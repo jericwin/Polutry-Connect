@@ -1,0 +1,783 @@
+{% extends "dashboard_base.html" %}
+
+{% block title %}Messages — PoultryConnect{% endblock %}
+{% block page_title %}Messages{% endblock %}
+{% block breadcrumb %}PoultryConnect / Messages{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/messenger.css') }}">
+{% endblock %}
+
+{% block topbar_actions %}
+<!-- Notification Bell -->
+<div class="notif-bell-wrap" id="notifBellWrap">
+  <button class="notif-bell-btn" id="notifBellBtn" title="Notifications" aria-label="Notifications">
+    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"
+         stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+      <path d="M13.73 21a2 2 0 01-3.46 0"/>
+    </svg>
+    <span class="notif-badge" id="notifBadge" style="display:none;">0</span>
+  </button>
+  <div class="notif-dropdown" id="notifDropdown">
+    <div class="notif-dropdown-header">
+      <span class="notif-dropdown-title">Notifications</span>
+      <button class="notif-mark-read-btn" id="markAllReadBtn">Mark all read</button>
+    </div>
+    <div class="notif-list" id="notifList">
+      <div class="notif-empty">No notifications yet</div>
+    </div>
+    <div class="notif-dropdown-footer">
+      <a href="{{ url_for('messaging.index') }}">View all notifications</a>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="msg-shell" id="msgShell">
+
+  <!-- ═══════════ LEFT SIDEBAR ═══════════ -->
+  <div class="msg-sidebar" id="msgSidebar">
+    <div class="msg-sidebar-header">
+      <div class="msg-sidebar-title">
+        <span>
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"
+               stroke="#0d631b" stroke-width="2.5"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+          Messages
+        </span>
+      </div>
+      {% if current_user.role.value in ['farmer', 'feed_supplier', 'veterinarian'] %}
+      <button type="button" class="msg-new-btn" id="newChatBtn"
+              onclick="const m=document.getElementById('newChatModal'); if (m){m.style.display='flex';} const s=document.getElementById('contactSearch'); if (s){s.value=''; s.focus();} const r=document.getElementById('contactResults'); if (r){r.innerHTML='<div class=\'msg-no-results\'>Loading contacts…</div>';} (function tryLoad(){ if (window.loadChatContacts){ window.loadChatContacts(''); } else { setTimeout(tryLoad, 50); } })();">
+        <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none"
+             stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        New Chat
+      </button>
+      {% endif %}
+    </div>
+
+    <!-- Conversation search -->
+    <div class="msg-search-wrap">
+      <div class="msg-search">
+        <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none"
+             stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input type="text" id="convSearch" placeholder="Search conversations…" autocomplete="off">
+      </div>
+    </div>
+
+    <!-- Conversation list -->
+    <div class="msg-conv-list" id="convList">
+      {% if conv_data %}
+        {% for item in conv_data %}
+        {% set other = item.other %}
+        {% set is_vet = other.role.value == 'veterinarian' %}
+        <a href="{{ url_for('messaging.index', open=item.conv.id) }}"
+           class="msg-conv-item {% if open_conv and open_conv.id == item.conv.id %}active{% endif %}"
+           data-conv-name="{{ other.full_name|lower }}">
+          <div class="msg-avatar-wrap">
+            <div class="msg-avatar {% if is_vet %}vet{% endif %}">
+              {{ (other.first_name[0] + other.last_name[0])|upper if other.first_name and other.last_name else other.username[:2]|upper }}
+            </div>
+            <div class="msg-online-dot {% if not other.online_status %}offline{% endif %}"></div>
+          </div>
+          <div class="msg-conv-info">
+            <div class="msg-conv-name">
+              {{ other.full_name }}
+              <span class="msg-conv-role-badge {% if is_vet %}vet{% endif %}">
+                {{ 'Vet' if is_vet else 'Supplier' }}
+              </span>
+            </div>
+            <div class="msg-conv-preview {% if item.unread > 0 %}unread{% endif %}">
+              {% if item.last_msg %}
+                {% if item.last_msg.sender_id == current_user.id %}You: {% endif %}
+                {{ item.last_msg.body|truncate(40, True, '…') }}
+              {% else %}
+                Start the conversation
+              {% endif %}
+            </div>
+          </div>
+          <div class="msg-conv-meta">
+            <span class="msg-conv-time">
+              {% if item.last_msg %}{{ item.last_msg.sent_at.strftime('%H:%M') }}{% endif %}
+            </span>
+            {% if item.unread > 0 %}
+            <span class="msg-conv-badge">{{ item.unread }}</span>
+            {% endif %}
+          </div>
+        </a>
+        {% endfor %}
+      {% else %}
+        <div class="msg-empty-convos">
+          <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none"
+               stroke="currentColor" stroke-width="1.5"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+          <p>No conversations yet.<br>
+          {% if current_user.role.value == 'farmer' %}
+            Click <strong>New Chat</strong> to start!
+          {% elif current_user.role.value in ['feed_supplier','veterinarian'] %}
+            Click <strong>New Chat</strong> to reach a farmer.
+          {% else %}
+            Farmers will contact you here.
+          {% endif %}
+          </p>
+        </div>
+      {% endif %}
+    </div>
+    {% if farm_contacts and farm_contacts|length > 0 and current_user.role.value in ['feed_supplier','veterinarian'] %}
+    <div class="msg-farms-list">
+      <div class="msg-farms-title">Available Farmers</div>
+      <ul class="msg-farms-ul">
+        {% for f in farm_contacts %}
+        <li class="msg-farm-item">
+          <form method="POST" action="{{ url_for('messaging.start_from_farm') }}" class="farm-contact-form">
+            <input type="hidden" name="farm_id" value="{{ f.farm_id }}">
+            <button class="btn-link small" type="submit">{{ f.farm_name }} — {{ f.farmer_name }}</button>
+          </form>
+        </li>
+        {% endfor %}
+      </ul>
+    </div>
+    {% endif %}
+  </div>
+
+  <!-- ═══════════ RIGHT CHAT PANEL ═══════════ -->
+  <div class="msg-chat-panel" id="chatPanel">
+
+    {% if open_conv and open_other %}
+    <!-- Chat header -->
+    <div class="msg-chat-header">
+      <div class="msg-avatar-wrap">
+        <div class="msg-avatar {% if open_other.role.value == 'veterinarian' %}vet{% elif open_other.role.value == 'farmer' %}farmer{% endif %}" style="width:40px;height:40px;font-size:0.9rem;">
+          {{ (open_other.first_name[0] + open_other.last_name[0])|upper if open_other.first_name and open_other.last_name else open_other.username[:2]|upper }}
+        </div>
+        <div class="msg-online-dot {% if not open_other.online_status %}offline{% endif %}"></div>
+      </div>
+      <div class="msg-chat-header-info">
+        <div class="msg-chat-header-name">{{ open_other.full_name }}</div>
+        <div class="msg-chat-header-status">
+          <span class="dot {% if not open_other.online_status %}offline{% endif %}"></span>
+          {% if open_other.online_status %}Online{% else %}
+            {% if open_other.last_seen %}Last seen {{ open_other.last_seen.strftime('%H:%M') }}{% else %}Offline{% endif %}
+          {% endif %}
+        </div>
+      </div>
+      <div class="msg-chat-actions">
+        <form method="post" action="{{ url_for('messaging.delete_conversation', conv_id=open_conv.id) }}"
+              onsubmit="return confirm('Remove this conversation from your list?')">
+          <button class="msg-icon-btn danger" title="Delete conversation" type="submit">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
+                 stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg>
+          </button>
+        </form>
+      </div>
+    </div>
+
+    <!-- Messages -->
+    <div class="msg-messages" id="msgMessages">
+      {% for msg in open_messages %}
+      {% set is_mine = msg.sender_id == current_user.id %}
+      <div class="msg-row {% if is_mine %}mine{% endif %}" data-msg-id="{{ msg.id }}">
+        {% if not is_mine %}
+        <div class="msg-bubble-avatar {% if open_other.role.value == 'veterinarian' %}vet{% elif open_other.role.value == 'farmer' %}farmer{% endif %}">
+          {{ (open_other.first_name[0] + open_other.last_name[0])|upper if open_other.first_name and open_other.last_name else open_other.username[:2]|upper }}
+        </div>
+        {% endif %}
+        <div class="msg-bubble-group">
+          <div class="msg-bubble {% if is_mine %}mine{% else %}them{% endif %}">{{ msg.body }}</div>
+          <div class="msg-bubble-meta">
+            <span>{{ msg.sent_at.strftime('%H:%M') }}</span>
+            {% if is_mine %}
+              {% if msg.is_seen %}
+              <span class="msg-seen-tick" title="Seen">
+                <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none"
+                     stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none"
+                     stroke="currentColor" stroke-width="2.5" style="margin-left:-6px"><polyline points="20 6 9 17 4 12"/></svg>
+              </span>
+              {% else %}
+              <span title="Delivered">
+                <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none"
+                     stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+              </span>
+              {% endif %}
+            {% endif %}
+          </div>
+        </div>
+        {% if is_mine %}
+        <div class="msg-bubble-avatar farmer" style="background:linear-gradient(135deg,#4caf50,#0d631b);">
+          {{ (current_user.first_name[0] + current_user.last_name[0])|upper if current_user.first_name and current_user.last_name else current_user.username[:2]|upper }}
+        </div>
+        {% endif %}
+      </div>
+      {% endfor %}
+    </div>
+
+    <!-- Input area -->
+    <div class="msg-input-area">
+      <div class="msg-input-wrap">
+        <textarea id="msgInput" placeholder="Type a message… (Enter to send)" rows="1" autocomplete="off"></textarea>
+      </div>
+      <button type="button" class="msg-send-btn" id="sendBtn" title="Send message">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"
+             stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/>
+        </svg>
+      </button>
+    </div>
+
+    {% else %}
+    <!-- No conversation selected -->
+    <div class="msg-no-conv">
+      <div class="msg-no-conv-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24" fill="none"
+             stroke="#0d631b" stroke-width="1.5"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+      </div>
+      <h3>Your Messages</h3>
+      <p>
+        {% if current_user.role.value == 'farmer' %}
+          Select a conversation or start a new one by clicking <strong>New Chat</strong>.
+        {% elif current_user.role.value in ['feed_supplier','veterinarian'] %}
+          Select a conversation or start a new one by clicking <strong>New Chat</strong>.
+        {% else %}
+          Select a conversation from the left panel.
+        {% endif %}
+      </p>
+      {% if current_user.role.value in ['farmer', 'feed_supplier', 'veterinarian'] %}
+      <button type="button" class="msg-new-btn" id="newChatBtnEmpty"
+              onclick="(window.openChatModal || function(){const m=document.getElementById('newChatModal'); if (m) m.style.display='flex';})();"
+              style="margin-top:0.5rem; padding: 0.6rem 1.25rem;">
+        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none"
+             stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        New Chat
+      </button>
+      {% endif %}
+    </div>
+    {% endif %}
+  </div>
+</div>
+
+<!-- ═══════════ NEW CHAT MODAL ═══════════ -->
+{% if current_user.role.value in ['farmer', 'feed_supplier', 'veterinarian'] %}
+<div class="msg-modal-backdrop" id="newChatModal" style="display:none;">
+  <div class="msg-modal" role="dialog" aria-modal="true" aria-label="Start New Conversation">
+    <div class="msg-modal-header">
+      <span class="msg-modal-title">Start New Conversation</span>
+      <button type="button" class="msg-modal-close" id="closeModal" aria-label="Close"
+              onclick="(window.closeChatModal || function(){ const m=document.getElementById('newChatModal'); if (m) m.style.display='none'; })()">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"
+             stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="msg-modal-body">
+      <div class="msg-contact-search">
+        <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none"
+             stroke="#6b8f70" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input type="text" id="contactSearch" placeholder="{% if current_user.role.value == 'farmer' %}Search suppliers, veterinarians…{% else %}Search farmers…{% endif %}" autocomplete="off">
+      </div>
+      <div class="msg-contact-results" id="contactResults">
+        {% if modal_contacts %}
+          {% for u in modal_contacts %}
+          <div class="msg-contact-item-wrap">
+            <a href="{{ url_for('messaging.start', participant_id=u.id) }}" class="msg-contact-item" data-participant-id="{{ u.id }}">
+              <div class="msg-avatar {{ 'vet' if 'Vet' in u.role else '' }}" style="width:38px;height:38px;font-size:0.85rem;flex-shrink:0;">
+                {{ u.initials }}
+              </div>
+              <div class="msg-contact-info">
+                <div class="msg-contact-name">{{ u.name }}</div>
+                <div class="msg-contact-role">{{ u.role }}{% if u.online %} · <span style="color:#22c55e">Online</span>{% endif %}</div>
+              </div>
+              {% if u.online %}<div class="msg-online-dot" style="position:static;border:none;"></div>{% endif %}
+            </a>
+          </div>
+          {% endfor %}
+        {% else %}
+          <div class="msg-no-results">Start typing to search…</div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+  <form id="messagingStartForm" method="post" action="{{ url_for('messaging.start') }}" style="display:none;">
+    <input type="hidden" name="participant_id" id="startParticipantId" value="">
+  </form>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function() {
+  'use strict';
+
+  /* ── Config ─────────────────────────────── */
+  const CONV_ID       = {{ open_conv.id if open_conv else 'null' }};
+  const MY_ID         = {{ current_user.id }};
+  const MY_INITIALS   = {{ ('"' + (current_user.first_name[0] + current_user.last_name[0])|upper + '"') if current_user.first_name and current_user.last_name else ('"' + current_user.username[:2]|upper + '"') }};
+  const OTHER_INITIALS= {{ ('"' + (open_other.first_name[0] + open_other.last_name[0])|upper + '"') if open_other and open_other.first_name and open_other.last_name else ('"' + (open_other.username[:2]|upper if open_other else 'XX') + '"') }};
+  const IS_FARMER     = {{ 'true' if current_user.role.value == 'farmer' else 'false' }};
+  const OTHER_ROLE    = '{{ open_other.role.value if open_other else "" }}';
+  let   lastMsgId     = 0;
+
+  /* ── Helpers ─────────────────────────────── */
+  function csrfHeaders() {
+    const meta = document.querySelector('meta[name="csrf-token"]');
+    return meta ? { 'X-CSRFToken': meta.content } : {};
+  }
+
+  function postForm(url, data) {
+    const fd = new FormData();
+    for (const [k, v] of Object.entries(data)) fd.append(k, v);
+    return fetch(url, {
+      method: 'POST',
+      body: fd,
+      headers: {
+        'X-Requested-With': 'XMLHttpRequest',
+        ...csrfHeaders(),
+      },
+      credentials: 'same-origin',
+    });
+  }
+
+  /* ── Scroll to bottom ──────────────────── */
+  const msgContainer = document.getElementById('msgMessages');
+  const convList = document.getElementById('convList');
+  function scrollBottom() {
+    if (msgContainer) msgContainer.scrollTop = msgContainer.scrollHeight;
+  }
+  if (msgContainer) {
+    scrollBottom();
+  }
+
+  /* ── Track last message id ─────────────── */
+  if (msgContainer) {
+    const rows = msgContainer.querySelectorAll('.msg-row[data-msg-id]');
+    rows.forEach(r => {
+      const id = parseInt(r.dataset.msgId, 10);
+      if (id > lastMsgId) lastMsgId = id;
+    });
+  }
+
+  /* ── Render a message bubble ───────────── */
+  function renderBubble(msg) {
+    const isMine = msg.is_mine;
+    const avatarClass = isMine ? 'farmer' : (OTHER_ROLE === 'veterinarian' ? 'vet' : '');
+    const initials = isMine ? MY_INITIALS : OTHER_INITIALS;
+
+    const seenHtml = isMine
+      ? (msg.is_seen
+          ? `<span class="msg-seen-tick" title="Seen">
+               <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+               <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="margin-left:-6px"><polyline points="20 6 9 17 4 12"/></svg>
+             </span>`
+          : `<span title="Delivered"><svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg></span>`)
+      : '';
+
+    const otherAvatar = !isMine
+      ? `<div class="msg-bubble-avatar ${avatarClass}">${initials}</div>` : '';
+    const myAvatar = isMine
+      ? `<div class="msg-bubble-avatar farmer" style="background:linear-gradient(135deg,#4caf50,#0d631b);">${initials}</div>` : '';
+
+    const div = document.createElement('div');
+    div.className = `msg-row ${isMine ? 'mine' : ''}`;
+    div.dataset.msgId = msg.id;
+    div.innerHTML = `
+      ${otherAvatar}
+      <div class="msg-bubble-group">
+        <div class="msg-bubble ${isMine ? 'mine' : 'them'}">${escHtml(msg.body)}</div>
+        <div class="msg-bubble-meta">
+          <span>${msg.sent_at}</span>
+          ${seenHtml}
+        </div>
+      </div>
+      ${myAvatar}`;
+    return div;
+  }
+
+  function escHtml(str) {
+    const d = document.createElement('div');
+    d.appendChild(document.createTextNode(str));
+    return d.innerHTML;
+  }
+
+  function loadMessages() {
+    if (!CONV_ID || !msgContainer) return Promise.resolve();
+    return fetch(`/messaging/conversation/${CONV_ID}/messages`, {
+      credentials: 'same-origin',
+      headers: {
+        'X-Requested-With': 'XMLHttpRequest',
+      },
+    })
+      .then(response => response.ok ? response.json() : Promise.reject('Failed to load messages'))
+      .then(msgs => {
+        const existing = Array.from(msgContainer.querySelectorAll('.msg-row[data-msg-id]'));
+        const existingIds = new Set(existing.map(row => parseInt(row.dataset.msgId, 10)));
+        msgContainer.innerHTML = '';
+        lastMsgId = 0;
+        msgs.forEach(msg => {
+          const el = renderBubble(msg);
+          msgContainer.appendChild(el);
+          lastMsgId = Math.max(lastMsgId, msg.id);
+        });
+        scrollBottom();
+      })
+      .catch(err => {
+        console.error('Unable to load messages', err);
+      });
+  }
+
+  /* ── Send message ──────────────────────── */
+  const sendBtn  = document.getElementById('sendBtn');
+  const msgInput = document.getElementById('msgInput');
+
+  function sendMessage() {
+    if (!CONV_ID || !msgInput || !sendBtn) return;
+    const body = msgInput.value.trim();
+    if (!body) return;
+
+    sendBtn.disabled = true;
+    postForm(`/messaging/conversation/${CONV_ID}/send`, { body })
+      .then(response => {
+        return response.ok
+          ? response.json()
+          : response.json().then(err => Promise.reject(err || { error: 'Send failed' }));
+      })
+      .then(msg => {
+        if (msg.error) {
+          return Promise.reject(msg);
+        }
+        msgInput.value = '';
+        msgInput.style.height = '';
+        const el = renderBubble(msg);
+        msgContainer.appendChild(el);
+        lastMsgId = Math.max(lastMsgId, msg.id);
+        scrollBottom();
+      })
+      .catch(err => {
+        console.error('Message send failed', err);
+        const message = err && err.error ? err.error : 'Unable to send message. Please try again.';
+        alert(message);
+      })
+      .finally(() => {
+        if (sendBtn) sendBtn.disabled = false;
+      });
+  }
+
+  if (sendBtn) sendBtn.addEventListener('click', sendMessage);
+
+  if (msgInput) {
+    msgInput.addEventListener('keydown', e => {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        sendMessage();
+      }
+    });
+    // Auto-resize
+    msgInput.addEventListener('input', function() {
+      this.style.height = '';
+      this.style.height = Math.min(this.scrollHeight, 120) + 'px';
+    });
+  }
+
+  /* ── Initial load ─────────────────────── */
+  loadMessages().catch(() => {});
+
+  /* ── Polling for new messages ──────────── */
+  function refreshConversationList() {
+    if (!convList) return;
+    fetch('/messaging/conversations', {
+      credentials: 'same-origin',
+      headers: { 'X-Requested-With': 'XMLHttpRequest' },
+    })
+      .then(r => r.ok ? r.json() : Promise.reject('Unable to refresh conversations'))
+      .then(items => {
+        if (!items.length) {
+          convList.innerHTML = '<div class="msg-empty-convos"><svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg><p>No conversations yet.<br>Click <strong>New Chat</strong> to start!</p></div>';
+          return;
+        }
+        convList.innerHTML = items.map(item => {
+          const isActive = CONV_ID && Number(CONV_ID) === item.conversation_id;
+          const badge = item.unread_count > 0 ? `<span class="msg-conv-badge">${item.unread_count}</span>` : '';
+          const previewText = item.preview_is_mine ? `You: ${item.preview}` : item.preview;
+          const roleLabel = item.role_label || 'Contact';
+          return `
+            <a href="${item.open_url}" class="msg-conv-item ${isActive ? 'active' : ''}" data-conv-name="${escHtml(item.name).toLowerCase()}">
+              <div class="msg-avatar-wrap">
+                <div class="msg-avatar ${item.role === 'veterinarian' ? 'vet' : ''}">${escHtml(item.avatar_initials || '??')}</div>
+                <div class="msg-online-dot ${item.online ? '' : 'offline'}"></div>
+              </div>
+              <div class="msg-conv-info">
+                <div class="msg-conv-name">${escHtml(item.name)}<span class="msg-conv-role-badge ${item.role === 'veterinarian' ? 'vet' : ''}">${escHtml(roleLabel)}</span></div>
+                <div class="msg-conv-preview ${item.unread_count > 0 ? 'unread' : ''}">${escHtml(previewText)}</div>
+              </div>
+              <div class="msg-conv-meta">
+                <span class="msg-conv-time">${escHtml(item.last_sent_at || '')}</span>
+                ${badge}
+              </div>
+            </a>`;
+        }).join('');
+      })
+      .catch(() => {});
+  }
+
+  function pollMessages() {
+    if (!CONV_ID || !msgContainer) return;
+    fetch(`/messaging/conversation/${CONV_ID}/poll?last_id=${lastMsgId}`)
+      .then(r => r.json())
+      .then(msgs => {
+        if (msgs.length) {
+          msgs.forEach(msg => {
+            if (msg.id > lastMsgId) {
+              msgContainer.appendChild(renderBubble(msg));
+              lastMsgId = msg.id;
+            }
+          });
+          scrollBottom();
+          refreshConversationList();
+        }
+      })
+      .catch(() => {});
+  }
+
+  /* ── Conversation search filter ─────────── */
+  const convSearchInput = document.getElementById('convSearch');
+  if (convSearchInput) {
+    convSearchInput.addEventListener('input', function() {
+      const q = this.value.toLowerCase();
+      document.querySelectorAll('.msg-conv-item').forEach(item => {
+        const name = item.dataset.convName || '';
+        item.style.display = name.includes(q) ? '' : 'none';
+      });
+    });
+  }
+
+  /* ── New Chat Modal ──────────────────────── */
+  const newChatBtn      = document.getElementById('newChatBtn');
+  const newChatBtnEmpty = document.getElementById('newChatBtnEmpty');
+  const newChatModal    = document.getElementById('newChatModal');
+  const closeModal      = document.getElementById('closeModal');
+  const contactSearch   = document.getElementById('contactSearch');
+  const contactResults  = document.getElementById('contactResults');
+
+  function openModal() {
+    console.debug('messenger: openModal called');
+    if (newChatModal) {
+      newChatModal.style.display = 'flex';
+      if (contactSearch) {
+        contactSearch.value = '';
+        contactSearch.focus();
+        if (contactResults) {
+          contactResults.innerHTML = '<div class="msg-no-results">Loading contacts…</div>';
+        }
+        loadContacts('');
+      }
+    }
+  }
+
+  function closeModalFn() {
+    if (newChatModal) newChatModal.style.display = 'none';
+  }
+
+  window.openChatModal = openModal;
+  window.closeChatModal = closeModalFn;
+  window.loadChatContacts = loadContacts;
+
+  if (newChatBtn)      newChatBtn.addEventListener('click', openModal);
+  if (newChatBtnEmpty) newChatBtnEmpty.addEventListener('click', openModal);
+  if (closeModal)      closeModal.addEventListener('click', closeModalFn);
+  if (newChatModal)    newChatModal.addEventListener('click', e => { if (e.target === newChatModal) closeModalFn(); });
+
+  let contactTimer;
+  if (contactSearch) {
+    contactSearch.addEventListener('input', function() {
+      clearTimeout(contactTimer);
+      contactTimer = setTimeout(() => loadContacts(this.value), 300);
+    });
+  }
+
+  const messagingStartForm = document.getElementById('messagingStartForm');
+  const startParticipantId = document.getElementById('startParticipantId');
+
+  function submitStartForm(participantId) {
+    if (!messagingStartForm || !startParticipantId) {
+      console.warn('submitStartForm fallback: form not found');
+      window.location.href = '/messaging/';
+      return;
+    }
+    startParticipantId.value = participantId;
+    messagingStartForm.submit();
+  }
+
+  function startConversation(participantId, btn) {
+    if (!participantId) return;
+    if (btn) btn.disabled = true;
+    console.debug('startConversation called', participantId);
+    postForm('/messaging/start', { participant_id: participantId })
+      .then(r => {
+        if (!r.ok) {
+          return r.text().then(text => Promise.reject(new Error(`Unable to start conversation: ${r.status}`)));
+        }
+        const contentType = r.headers.get('content-type') || '';
+        if (!contentType.includes('application/json')) {
+          return r.text().then(text => Promise.reject(new Error('Start response was not JSON')));
+        }
+        return r.json();
+      })
+      .then(data => {
+        if (data && data.ok && data.redirect_url) {
+          closeModalFn();
+          window.location.href = data.redirect_url;
+        } else {
+          throw new Error('Invalid response from start endpoint');
+        }
+      })
+      .catch(err => {
+        console.warn('startConversation fallback to form submit', err);
+        submitStartForm(participantId);
+      })
+      .finally(() => {
+        if (btn) btn.disabled = false;
+      });
+  }
+
+  window.startConversation = startConversation;
+
+  if (contactResults) {
+    contactResults.addEventListener('click', event => {
+      const anchor = event.target.closest('a.msg-contact-item[href]');
+      if (!anchor || !contactResults.contains(anchor)) return;
+      if (typeof startConversation !== 'function') return;
+      const participantId = anchor.dataset.participantId;
+      if (!participantId) return;
+      event.preventDefault();
+      startConversation(participantId, anchor);
+    });
+  }
+
+  function loadContacts(q) {
+    if (!contactResults) return;
+    contactResults.innerHTML = '<div class="msg-no-results">Loading contacts…</div>';
+    fetch(`/messaging/contacts?q=${encodeURIComponent(q)}`, {
+      credentials: 'same-origin',
+      headers: {
+        'X-Requested-With': 'XMLHttpRequest',
+      },
+    })
+      .then(r => {
+        const contentType = r.headers.get('content-type') || '';
+        if (!r.ok) {
+          return r.text().then(text => Promise.reject(new Error(`Contact load failed: ${r.status}`)));
+        }
+        if (!contentType.includes('application/json')) {
+          return Promise.reject(new Error('Contact response was not JSON'));
+        }
+        return r.json();
+      })
+      .then(users => {
+        if (!users.length) {
+          contactResults.innerHTML = '<div class="msg-no-results">No contacts found.</div>';
+          return;
+        }
+        contactResults.innerHTML = users.map(u => {
+          const isVet = u.role.toLowerCase().includes('vet');
+          return `
+          <div class="msg-contact-item-wrap">
+            <a href="/messaging/start?participant_id=${u.id}" class="msg-contact-item" data-participant-id="${u.id}">
+              <div class="msg-avatar ${isVet ? 'vet' : ''}" style="width:38px;height:38px;font-size:0.85rem;flex-shrink:0;">
+                ${escHtml(u.initials)}
+              </div>
+              <div class="msg-contact-info">
+                <div class="msg-contact-name">${escHtml(u.name)}</div>
+                <div class="msg-contact-role">${escHtml(u.role)}${u.online ? ' · <span style="color:#22c55e">Online</span>' : ''}</div>
+              </div>
+              ${u.online ? '<div class="msg-online-dot" style="position:static;border:none;"></div>' : ''}
+            </a>
+          </div>`;
+        }).join('');
+      })
+      .catch(() => {
+        if (contactResults) contactResults.innerHTML = '<div class="msg-no-results">Error loading contacts.</div>';
+      });
+  }
+
+  /* ── Notification Bell ──────────────────── */
+  const bellBtn      = document.getElementById('notifBellBtn');
+  const bellDropdown = document.getElementById('notifDropdown');
+  const notifBadge   = document.getElementById('notifBadge');
+  const notifList    = document.getElementById('notifList');
+  const markReadBtn  = document.getElementById('markAllReadBtn');
+
+  function toggleDropdown() {
+    bellDropdown && bellDropdown.classList.toggle('open');
+  }
+
+  if (bellBtn) bellBtn.addEventListener('click', e => { e.stopPropagation(); toggleDropdown(); });
+
+  document.addEventListener('click', e => {
+    if (bellDropdown && !bellDropdown.contains(e.target) && e.target !== bellBtn) {
+      bellDropdown.classList.remove('open');
+    }
+  });
+
+  if (markReadBtn) {
+    markReadBtn.addEventListener('click', () => {
+      postForm('/messaging/notifications/read', {})
+        .then(() => {
+          if (notifBadge) notifBadge.style.display = 'none';
+          document.querySelectorAll('.notif-item.unread').forEach(el => el.classList.remove('unread'));
+          document.querySelectorAll('.notif-unread-dot').forEach(el => el.remove());
+        });
+    });
+  }
+
+  function fetchNotifications() {
+    fetch('/messaging/notifications')
+      .then(r => r.json())
+      .then(data => {
+        if (notifBadge) {
+          if (data.unread_count > 0) {
+            notifBadge.textContent = data.unread_count > 99 ? '99+' : data.unread_count;
+            notifBadge.style.display = 'flex';
+          } else {
+            notifBadge.style.display = 'none';
+          }
+        }
+        if (notifList) {
+          if (!data.notifications.length) {
+            notifList.innerHTML = '<div class="notif-empty">No notifications yet</div>';
+            return;
+          }
+          notifList.innerHTML = data.notifications.map(n => `
+            <a href="${n.link_url || '#'}" class="notif-item ${n.is_read ? '' : 'unread'}">
+              <div class="notif-item-icon">
+                <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+              </div>
+              <div class="notif-item-body">
+                <div class="notif-item-title">${escHtml(n.title)}</div>
+                <div class="notif-item-text">${escHtml(n.body)}</div>
+                <div class="notif-item-time">${escHtml(n.created_at)}</div>
+              </div>
+              ${!n.is_read ? '<div class="notif-unread-dot"></div>' : ''}
+            </a>`).join('');
+        }
+      })
+      .catch(() => {});
+  }
+
+  /* ── Heartbeat (online status) ──────────── */
+  function heartbeat() {
+    postForm('/messaging/heartbeat', {}).catch(() => {});
+  }
+
+  /* ── Start all intervals ─────────────────── */
+  if (CONV_ID) setInterval(pollMessages, 2000);
+  setInterval(refreshConversationList, 3000);
+  setInterval(fetchNotifications, 5000);
+  setInterval(heartbeat, 30000);
+
+  // Initial loads
+  refreshConversationList();
+  fetchNotifications();
+  heartbeat();
+
+})();
+</script>
+{% endblock %}

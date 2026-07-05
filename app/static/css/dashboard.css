@@ -68,6 +68,208 @@ a { text-decoration: none; color: inherit; }
     min-height: 100vh;
 }
 
+/* ── Insight Panel ───────────────────────────────────────────── */
+
+.insight-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1rem;
+    margin: 1rem 0 1.25rem;
+}
+
+.insight-card {
+    background: var(--surface-container-lowest);
+    border: 1px solid rgba(13, 99, 27, 0.12);
+    border-radius: 1.1rem;
+    box-shadow: 0 8px 18px rgba(0, 31, 42, 0.06);
+    padding: 0.95rem 0.95rem 0.8rem;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    overflow: hidden;
+    gap: 0.55rem;
+}
+
+.insight-card-primary {
+    background: linear-gradient(135deg, rgba(13, 99, 27, 0.06), rgba(46, 125, 50, 0.02));
+}
+
+.insight-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 0.75rem;
+    margin-bottom: 0.2rem;
+    min-height: 44px;
+    padding-bottom: 0.25rem;
+    border-bottom: 1px solid rgba(13, 99, 27, 0.06);
+}
+
+.insight-card-title-row {
+    display: flex;
+    align-items: center;
+    gap: 0.7rem;
+}
+
+.insight-card-icon {
+    width: 38px;
+    height: 38px;
+    border-radius: 0.8rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(13, 99, 27, 0.08);
+    color: var(--primary);
+    flex-shrink: 0;
+}
+
+.insight-card-icon svg {
+    width: 18px;
+    height: 18px;
+}
+
+.insight-card-title {
+    font-family: var(--font-display);
+    font-size: 0.98rem;
+    font-weight: 700;
+    color: var(--on-surface);
+    line-height: 1.2;
+}
+
+.insight-card-sub {
+    font-size: 0.84rem;
+    color: var(--on-surface-variant);
+    margin-top: 0.16rem;
+    line-height: 1.35;
+}
+
+.insight-pill,
+.forecast-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--radius-full);
+    padding: 0.35rem 0.7rem;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+    background: var(--primary-fixed);
+    color: var(--on-primary-container);
+    white-space: nowrap;
+}
+
+.forecast-badge-center {
+    align-self: center;
+}
+
+.insight-hero {
+    padding: 0.15rem 0 0;
+}
+
+.insight-hero-value {
+    font-family: var(--font-display);
+    font-size: 1.2rem;
+    font-weight: 800;
+    color: var(--primary);
+    margin-bottom: 0.25rem;
+}
+
+.insight-hero-text,
+.insight-copy {
+    color: var(--on-surface-variant);
+    font-size: 0.93rem;
+    line-height: 1.55;
+}
+
+.insight-metrics {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.6rem;
+    margin-top: 0.05rem;
+}
+
+.metric {
+    padding: 0.65rem 0.7rem;
+    border-radius: var(--radius-md);
+    background: rgba(13, 99, 27, 0.05);
+    border: 1px solid rgba(13, 99, 27, 0.12);
+}
+
+.metric-label {
+    display: block;
+    font-size: 0.74rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--on-surface-variant);
+    margin-bottom: 0.25rem;
+}
+
+.insight-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: grid;
+    gap: 0.45rem;
+    color: var(--on-surface-variant);
+    font-size: 0.92rem;
+    line-height: 1.5;
+}
+
+.buyer-section {
+    margin-top: 1rem;
+    padding-top: 0.9rem;
+    border-top: 1px solid var(--outline);
+}
+
+.buyer-title {
+    font-family: var(--font-display);
+    font-size: 0.92rem;
+    font-weight: 700;
+    color: var(--on-surface);
+    margin-bottom: 0.65rem;
+}
+
+.buyer-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.65rem 0;
+    border-bottom: 1px solid var(--outline);
+    gap: 0.75rem;
+}
+
+.buyer-item:last-child {
+    border-bottom: none;
+}
+
+.buyer-sub {
+    color: var(--on-surface-variant);
+    font-size: 0.84rem;
+    margin-top: 0.15rem;
+}
+
+.buyer-channel {
+    font-size: 0.76rem;
+    font-weight: 700;
+    color: var(--primary);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+@media (max-width: 960px) {
+    .insight-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 760px) {
+    .section-header-card {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+}
+
 /* ── Sidebar ──────────────────────────────────────────────────── */
 
 .dash-sidebar {
@@ -491,15 +693,16 @@ a { text-decoration: none; color: inherit; }
 .charts-row {
     display: grid;
     grid-template-columns: 2fr 1fr;
-    gap: 1.25rem;
-    margin-bottom: 2rem;
+    gap: 1rem;
+    margin-bottom: 1.25rem;
 }
 
 .chart-card {
     background: var(--surface-container-lowest);
-    border-radius: var(--radius-lg);
-    padding: 1.5rem;
-    box-shadow: var(--shadow-ambient);
+    border: 1px solid rgba(13, 99, 27, 0.08);
+    border-radius: 1rem;
+    padding: 1.1rem;
+    box-shadow: 0 8px 18px rgba(0, 31, 42, 0.05);
     overflow: hidden;
 }
 
@@ -507,7 +710,7 @@ a { text-decoration: none; color: inherit; }
     display: flex;
     align-items: flex-start;
     justify-content: space-between;
-    margin-bottom: 1.25rem;
+    margin-bottom: 0.8rem;
 }
 
 .chart-card-title {
@@ -537,14 +740,14 @@ a { text-decoration: none; color: inherit; }
 
 .chart-container {
     position: relative;
-    height: 200px;
+    height: 190px;
 }
 
 /* ── Bottom Row ───────────────────────────────────────────────── */
 
 .bottom-row {
     display: grid;
-    grid-template-columns: 1fr 2fr;
+    grid-template-columns: 1fr;
     gap: 1.25rem;
 }
 
@@ -759,6 +962,86 @@ a { text-decoration: none; color: inherit; }
 }
 
 .empty-state p { margin-top: 0.5rem; }
+
+/* ── Chart Mini Components (Insight Cards) ──────────────────── */
+
+.chart-mini {
+    margin-top: 0.05rem;
+    padding: 0.35rem 0.35rem 0;
+    min-height: 178px;
+    flex: 1;
+    border: 1px solid rgba(13, 99, 27, 0.08);
+    border-radius: 0.9rem;
+    background: linear-gradient(180deg, rgba(248, 252, 255, 0.95), rgba(240, 248, 252, 0.9));
+    overflow: hidden;
+}
+
+.insight-chart-canvas {
+    display: block;
+    width: 100% !important;
+    height: 145px !important;
+    border-radius: 0.75rem;
+    background: transparent;
+    padding: 0;
+}
+
+.chart-mini-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.3rem;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    padding: 0 0.25rem 0.2rem;
+}
+
+.chart-mini-title {
+    font-family: var(--font-display);
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: var(--on-surface);
+}
+
+.chart-mini-note {
+    font-size: 0.71rem;
+    color: var(--on-surface-variant);
+    font-family: var(--font-body);
+    font-weight: 600;
+}
+
+.profit-summary {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.45rem;
+    margin-top: 0.1rem;
+    padding-top: 0.5rem;
+    border-top: 1px solid rgba(13, 99, 27, 0.08);
+}
+
+.margin-stat {
+    display: flex;
+    flex-direction: column;
+    text-align: center;
+    padding: 0.45rem 0.35rem;
+    background: rgba(13, 99, 27, 0.04);
+    border-radius: var(--radius-md);
+}
+
+.margin-label {
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: var(--on-surface-variant);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 0.3rem;
+}
+
+.margin-value {
+    font-family: var(--font-display);
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: var(--on-surface);
+}
 
 /* ── Flash Messages in Dashboard ─────────────────────────────── */
 

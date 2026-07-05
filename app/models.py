@@ -55,7 +55,7 @@ class User(UserMixin, db.Model):
     email         = db.Column(db.String(120), nullable=False, unique=True, index=True)
     password_hash = db.Column(db.String(256), nullable=False)
     role          = db.Column(
-                       db.Enum(UserRole),
+                       db.Enum(UserRole, values_callable=lambda enum_cls: [e.value for e in enum_cls]),
                        nullable=False,
                        default=UserRole.FARMER,
                        index=True
@@ -64,6 +64,8 @@ class User(UserMixin, db.Model):
     last_name     = db.Column(db.String(64))
     phone         = db.Column(db.String(20))
     is_active     = db.Column(db.Boolean, nullable=False, default=True)
+    online_status = db.Column(db.Boolean, nullable=False, default=False)
+    last_seen     = db.Column(db.DateTime, nullable=True)
     created_at    = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
     updated_at    = db.Column(db.DateTime, nullable=False, default=datetime.utcnow, onupdate=datetime.utcnow)
 
@@ -201,7 +203,7 @@ class Expense(db.Model):
 
     expense_date = db.Column(db.Date, nullable=False, index=True)
     category     = db.Column(
-                      db.Enum(ExpenseCategory),
+                      db.Enum(ExpenseCategory, values_callable=lambda enum_cls: [e.value for e in enum_cls]),
                       nullable=False,
                       default=ExpenseCategory.OTHER,
                       index=True
@@ -258,13 +260,13 @@ class Product(db.Model):
     name          = db.Column(db.String(150), nullable=False)
     description   = db.Column(db.Text)
     category      = db.Column(
-                       db.Enum(ProductCategory),
+                       db.Enum(ProductCategory, values_callable=lambda enum_cls: [e.value for e in enum_cls]),
                        nullable=False,
                        default=ProductCategory.EGGS,
                        index=True
                    )
     unit          = db.Column(
-                       db.Enum(ProductUnit),
+                       db.Enum(ProductUnit, values_callable=lambda enum_cls: [e.value for e in enum_cls]),
                        nullable=False,
                        default=ProductUnit.PIECE
                    )
@@ -317,7 +319,7 @@ class Order(db.Model):
 
     total_amount     = db.Column(db.Numeric(12, 2), nullable=False, default=0)
     status           = db.Column(
-                          db.Enum(OrderStatus),
+                          db.Enum(OrderStatus, values_callable=lambda enum_cls: [e.value for e in enum_cls]),
                           nullable=False,
                           default=OrderStatus.PENDING,
                           index=True
@@ -369,3 +371,133 @@ class OrderItem(db.Model):
 
     def __repr__(self):
         return f'<OrderItem order={self.order_id} product={self.product_id} qty={self.quantity}>'
+
+
+# ─────────────────────────────────────────
+# TABLE 8: conversations
+# ─────────────────────────────────────────
+
+class Conversation(db.Model):
+    """
+    A conversation thread between a farmer and a feed_supplier or veterinarian.
+    Each pair can only have one active conversation (enforced by unique constraint).
+    """
+    __tablename__ = 'conversations'
+
+    id               = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    farmer_id        = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False, index=True)
+    participant_id   = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False, index=True)
+    participant_role = db.Column(db.String(32), nullable=False)   # 'feed_supplier' or 'veterinarian'
+    # Soft-delete flags per side
+    deleted_by_farmer      = db.Column(db.Boolean, default=False)
+    deleted_by_participant = db.Column(db.Boolean, default=False)
+    created_at       = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+
+    farmer      = db.relationship('User', foreign_keys=[farmer_id],
+                                  backref=db.backref('farmer_conversations', lazy='dynamic'))
+    participant = db.relationship('User', foreign_keys=[participant_id],
+                                  backref=db.backref('participant_conversations', lazy='dynamic'))
+    messages    = db.relationship('Message', backref='conversation', lazy='dynamic',
+                                  cascade='all, delete-orphan')
+
+    __table_args__ = (
+        db.UniqueConstraint('farmer_id', 'participant_id', name='uq_convo_pair'),
+    )
+
+    def other_user(self, current_user_id):
+        """Return the other participant from this user's perspective."""
+        if self.farmer_id == current_user_id:
+            return self.participant
+        return self.farmer
+
+    def last_message(self):
+        return self.messages.order_by(Message.sent_at.desc()).first()
+
+    def unread_count(self, viewer_id):
+        """Count messages NOT sent by viewer that are unseen."""
+        return self.messages.filter(
+            Message.sender_id != viewer_id,
+            Message.is_seen == False
+        ).count()
+
+    def __repr__(self):
+        return f'<Conversation #{self.id} farmer={self.farmer_id} <-> {self.participant_id}>'
+
+
+# ─────────────────────────────────────────
+# TABLE 9: messages
+# ─────────────────────────────────────────
+
+class Message(db.Model):
+    """
+    Individual chat messages within a conversation.
+    """
+    __tablename__ = 'messages'
+
+    id              = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    conversation_id = db.Column(db.Integer, db.ForeignKey('conversations.id'), nullable=False, index=True)
+    sender_id       = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False, index=True)
+    receiver_id     = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False, index=True)
+    body            = db.Column(db.Text, nullable=False)
+    sent_at         = db.Column(db.DateTime, nullable=False, default=datetime.utcnow, index=True)
+    delivered_at    = db.Column(db.DateTime, nullable=True)
+    seen_at         = db.Column(db.DateTime, nullable=True)
+    is_seen         = db.Column(db.Boolean, nullable=False, default=False, index=True)
+
+    sender   = db.relationship('User', foreign_keys=[sender_id],
+                               backref=db.backref('sent_messages', lazy='dynamic'))
+    receiver = db.relationship('User', foreign_keys=[receiver_id],
+                               backref=db.backref('received_messages', lazy='dynamic'))
+
+    def to_dict(self, current_user_id):
+        return {
+            'id': self.id,
+            'body': self.body,
+            'sender_id': self.sender_id,
+            'is_mine': self.sender_id == current_user_id,
+            'sent_at': self.sent_at.strftime('%H:%M') if self.sent_at else '',
+            'sent_at_full': self.sent_at.strftime('%b %d, %H:%M') if self.sent_at else '',
+            'is_seen': self.is_seen,
+            'seen_at': self.seen_at.strftime('%H:%M') if self.seen_at else None,
+        }
+
+    def __repr__(self):
+        return f'<Message #{self.id} conv={self.conversation_id} from={self.sender_id}>'
+
+
+# ─────────────────────────────────────────
+# TABLE 10: notifications
+# ─────────────────────────────────────────
+
+class Notification(db.Model):
+    """
+    In-app notification entries per user (new message, seen, etc.)
+    """
+    __tablename__ = 'notifications'
+
+    id         = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    user_id    = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False, index=True)
+    title      = db.Column(db.String(120), nullable=False)
+    body       = db.Column(db.String(255), nullable=False)
+    notif_type = db.Column(db.String(32), nullable=False, default='message')  # 'message', 'seen'
+    is_read    = db.Column(db.Boolean, nullable=False, default=False, index=True)
+    link_url   = db.Column(db.String(255))
+    created_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+
+    user = db.relationship('User', foreign_keys=[user_id],
+                           backref=db.backref('notifications', lazy='dynamic'))
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'title': self.title,
+            'body': self.body,
+            'type': self.notif_type,
+            'is_read': self.is_read,
+            'link_url': self.link_url,
+            'created_at': self.created_at.strftime('%b %d, %H:%M'),
+        }
+
+    def __repr__(self):
+        return f'<Notification #{self.id} user={self.user_id} [{self.notif_type}]>'
+

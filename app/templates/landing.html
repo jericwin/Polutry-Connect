@@ -1192,6 +1192,14 @@
         <a href="{{ url_for('admin.index') }}" class="btn btn-primary"
           >Go to Dashboard</a
         >
+        {% elif current_user.role.value == 'feed_supplier' %}
+        <a href="{{ url_for('supplier.dashboard') }}" class="btn btn-primary"
+          >Go to Dashboard</a
+        >
+        {% elif current_user.role.value == 'veterinarian' %}
+        <a href="{{ url_for('vet.dashboard') }}" class="btn btn-primary"
+          >Go to Dashboard</a
+        >
         {% else %}
         <a href="{{ url_for('dashboard.farmer') }}" class="btn btn-primary"
           >Go to Dashboard</a

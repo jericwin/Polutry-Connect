@@ -29,6 +29,9 @@ def create_app(config_class=Config):
     from app.routes.marketplace.marketplace import marketplace_bp
     from app.routes.community.community import community_bp
     from app.routes.admin.admin import admin_bp
+    from app.routes.messaging.messaging import messaging_bp
+    from app.routes.supplier.supplier import supplier_bp
+    from app.routes.vet.vet import vet_bp
 
     app.register_blueprint(auth_bp, url_prefix='/auth')
     app.register_blueprint(dashboard_bp, url_prefix='/dashboard')
@@ -37,6 +40,9 @@ def create_app(config_class=Config):
     app.register_blueprint(marketplace_bp, url_prefix='/marketplace')
     app.register_blueprint(community_bp, url_prefix='/community')
     app.register_blueprint(admin_bp, url_prefix='/admin')
+    app.register_blueprint(messaging_bp, url_prefix='/messaging')
+    app.register_blueprint(supplier_bp, url_prefix='/supplier')
+    app.register_blueprint(vet_bp, url_prefix='/vet')
 
     # Main index / Landing page route
     @app.route('/')

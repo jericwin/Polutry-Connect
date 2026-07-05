@@ -31,10 +31,27 @@
           {% if current_user.is_authenticated %}
           <p class="sidebar-section-label">Overview</p>
 
+          {% if current_user.role.value == 'farmer' %}
           <a
             href="{{ url_for('dashboard.farmer') }}"
             class="nav-item {% if request.endpoint == 'dashboard.farmer' %}active{% endif %}"
           >
+          {% elif current_user.role.value == 'feed_supplier' %}
+          <a
+            href="{{ url_for('supplier.dashboard') }}"
+            class="nav-item {% if request.endpoint == 'supplier.dashboard' %}active{% endif %}"
+          >
+          {% elif current_user.role.value == 'veterinarian' %}
+          <a
+            href="{{ url_for('vet.dashboard') }}"
+            class="nav-item {% if request.endpoint == 'vet.dashboard' %}active{% endif %}"
+          >
+          {% else %}
+          <a
+            href="{{ url_for('index') }}"
+            class="nav-item"
+          >
+          {% endif %}
             <svg
               xmlns="http://www.w3.org/2000/svg"
               viewBox="0 0 24 24"
@@ -49,7 +66,18 @@
             </svg>
             Dashboard
           </a>
+          <a
+            href="{{ url_for('auth.profile') }}"
+            class="nav-item {% if request.endpoint == 'auth.profile' %}active{% endif %}"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" />
+              <circle cx="12" cy="7" r="4" />
+            </svg>
+            Profile
+          </a>
 
+          {% if current_user.role.value not in ['feed_supplier', 'veterinarian'] %}
           <p class="sidebar-section-label">Farm Operations</p>
 
           <a
@@ -239,7 +267,9 @@
             </svg>
             My Orders
           </a>
-          {% endif %} {% if current_user.is_authenticated %}
+          {% endif %}
+
+          {% if current_user.role.value not in ['feed_supplier', 'veterinarian'] %}
           <a
             href="{{ url_for('community.index') }}"
             class="nav-item {% if request.blueprint == 'community' %}active{% endif %}"
@@ -259,6 +289,33 @@
               <path d="M16 3.13a4 4 0 010 7.75" />
             </svg>
             Community
+          </a>
+          {% endif %}
+
+          <!-- Messages nav item -->
+          <a
+            href="{{ url_for('messaging.index') }}"
+            class="nav-item {% if request.blueprint == 'messaging' %}active{% endif %}"
+            style="position: relative;"
+            id="sidebarMsgLink"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" />
+            </svg>
+            Messages
+            <span id="sidebarMsgBadge"
+                  style="display:none; background:#ef4444; color:#fff; font-size:0.62rem;
+                         font-weight:700; border-radius:99px; min-width:16px; height:16px;
+                         padding:0 3px; align-items:center; justify-content:center;
+                         margin-left:auto; flex-shrink:0;">0</span>
           </a>
           {% endif %}
         </nav>
@@ -366,5 +423,31 @@
     </script>
 
     {% block extra_js %}{% endblock %}
+
+    <!-- Sidebar message unread badge polling -->
+    {% if current_user.is_authenticated %}
+    <script>
+    (function() {
+      const badge = document.getElementById('sidebarMsgBadge');
+      if (!badge) return;
+      function pollUnread() {
+        fetch('/messaging/notifications')
+          .then(r => r.json())
+          .then(data => {
+            if (data.unread_count > 0) {
+              badge.textContent = data.unread_count > 99 ? '99+' : data.unread_count;
+              badge.style.display = 'flex';
+            } else {
+              badge.style.display = 'none';
+            }
+          })
+          .catch(() => {});
+      }
+      setInterval(pollUnread, 8000);
+      pollUnread();
+    })();
+    </script>
+    {% endif %}
   </body>
 </html>
+

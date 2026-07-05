@@ -2,7 +2,8 @@
 
 {% block title %}{{ title }} — PoultryConnect{% endblock %}
 {% block page_title %}{{ title }}{% endblock %}
-{% block breadcrumb %}PoultryConnect / <a href="{{ url_for('marketplace.manage') }}" style="color:var(--primary);">My Products</a> / {{ 'Add' if action == 'add' else 'Edit' }}{% endblock %}
+{% block breadcrumb %}PoultryConnect / <a href="{{ url_for('marketplace.manage') }}" style="color:var(--primary);">My
+    Products</a> / {{ 'Add' if action == 'add' else 'Edit' }}{% endblock %}
 
 {% block extra_css %}
 <link rel="stylesheet" href="{{ url_for('static', filename='css/marketplace.css') }}">
@@ -15,7 +16,8 @@
         <div class="form-card">
             <div class="form-card__header">
                 <div class="form-card__title">{{ 'List a New Product' if action == 'add' else 'Edit Product' }}</div>
-                <div class="form-card__sub">{{ 'Fill in the details to list your product on the marketplace.' if action == 'add' else 'Update your product listing.' }}</div>
+                <div class="form-card__sub">{{ 'Fill in the details to list your product on the marketplace.' if action
+                    == 'add' else 'Update your product listing.' }}</div>
             </div>
 
             {% if action == 'add' %}
@@ -26,9 +28,8 @@
                     <select id="farmSelect" name="farm_id" required>
                         <option value="">— Select Farm —</option>
                         {% for farm in farms %}
-                        <option value="{{ farm.id }}"
-                                {{ 'selected' if form_data.get('farm_id')|string == farm.id|string }}
-                                data-location="{{ farm.location or '' }}">
+                        <option value="{{ farm.id }}" {{ 'selected' if form_data.get('farm_id')|string==farm.id|string
+                            }} data-location="{{ farm.location or '' }}">
                             {{ farm.name }}{% if farm.location %} — {{ farm.location }}{% endif %}
                         </option>
                         {% endfor %}
@@ -49,8 +50,8 @@
             <div class="form-group">
                 <label for="productName">Product Name <span class="required">*</span></label>
                 <input type="text" id="productName" name="name"
-                       value="{{ form_data.get('name', product.name if product is defined and product else '') }}"
-                       placeholder="e.g. Free-Range Eggs, Broiler Chicken" required maxlength="150">
+                    value="{{ form_data.get('name', product.name if product is defined and product else '') }}"
+                    placeholder="e.g. Free-Range Eggs, Broiler Chicken" required maxlength="150">
             </div>
 
             <!-- Category & Unit -->
@@ -58,15 +59,9 @@
                 <div class="form-group">
                     <label for="categorySelect">Category <span class="required">*</span></label>
                     <div class="select-wrap">
-                        <select id="categorySelect" name="category" required>
-                            <option value="">— Select Category —</option>
-                            {% for cat in categories %}
-                            <option value="{{ cat.value }}"
-                                    {{ 'selected' if form_data.get('category', (product.category.value if product is defined and product else '')) == cat.value }}>
-                                {{ cat.value | replace('_', ' ') | title }}
-                            </option>
-                            {% endfor %}
-                        </select>
+                        <input type="text" id="categorySelect" value="Eggs" readonly
+                            style="background: var(--bg-card, #f5f5f5); cursor: default; color: inherit;">
+                        <input type="hidden" name="category" value="eggs">
                     </div>
                 </div>
                 <div class="form-group">
@@ -75,8 +70,8 @@
                         <select id="unitSelect" name="unit" required>
                             <option value="">— Select Unit —</option>
                             {% for unit in units %}
-                            <option value="{{ unit.value }}"
-                                    {{ 'selected' if form_data.get('unit', (product.unit.value if product is defined and product else '')) == unit.value }}>
+                            <option value="{{ unit.value }}" {{ 'selected' if form_data.get('unit', (product.unit.value
+                                if product is defined and product else '' ))==unit.value }}>
                                 {{ unit.value | replace('_', ' ') | title }}
                             </option>
                             {% endfor %}
@@ -90,30 +85,34 @@
                 <div class="form-group">
                     <label for="priceInput">Price (₱) <span class="required">*</span></label>
                     <input type="number" id="priceInput" name="price" step="0.01" min="0.01"
-                           value="{{ form_data.get('price', product.price if product is defined and product else '') }}"
-                           placeholder="0.00" required>
+                        value="{{ form_data.get('price', product.price if product is defined and product else '') }}"
+                        placeholder="0.00" required>
                     <span class="form-hint">Price per unit in Philippine Pesos.</span>
                 </div>
                 <div class="form-group">
                     <label for="stockInput">Stock <span class="required">*</span></label>
                     <input type="number" id="stockInput" name="stock" min="0"
-                           value="{{ form_data.get('stock', product.stock if product is defined and product else '0') }}"
-                           placeholder="0" required>
+                        value="{{ form_data.get('stock', product.stock if product is defined and product else '0') }}"
+                        placeholder="0" required>
                     <span class="form-hint">Quantity available for sale.</span>
                 </div>
             </div>
 
             <!-- Description -->
             <div class="form-group">
-                <label for="descInput">Description <span style="font-weight:400; text-transform:none; letter-spacing:normal;">(optional)</span></label>
+                <label for="descInput">Description <span
+                        style="font-weight:400; text-transform:none; letter-spacing:normal;">(optional)</span></label>
                 <textarea id="descInput" name="description" rows="3"
-                          placeholder="Describe your product — quality, breed, freshness, etc.">{{ form_data.get('description', product.description if product is defined and product and product.description else '') }}</textarea>
+                    placeholder="Describe your product — quality, breed, freshness, etc.">{{ form_data.get('description', product.description if product is defined and product and product.description else '') }}</textarea>
             </div>
 
             <div class="form-actions">
                 <a href="{{ url_for('marketplace.manage') }}" class="btn btn-secondary">Cancel</a>
                 <button type="submit" class="btn btn-primary">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="15" height="15"><polyline points="20 6 9 17 4 12"/></svg>
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                        stroke-width="2" width="15" height="15">
+                        <polyline points="20 6 9 17 4 12" />
+                    </svg>
                     {{ 'List Product' if action == 'add' else 'Save Changes' }}
                 </button>
             </div>
