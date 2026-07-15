@@ -436,21 +436,31 @@
     <!-- Toolbar -->
     <div class="shop-toolbar">
         <div class="shop-filters">
-            <a href="{{ url_for('marketplace.index', q=search, sort=sort_by) }}"
-               class="shop-chip {{ 'active' if not category }}">All</a>
-            {% for cat in categories %}
-            <a href="{{ url_for('marketplace.index', q=search, category=cat.value, sort=sort_by) }}"
-               class="shop-chip {{ 'active' if category == cat.value }}">
-                {{ cat.value | replace('_', ' ') | title }}
+            <span class="shop-sort__label">Size:</span>
+            <a href="{{ url_for('marketplace.index', q=search, variety=variety, sort=sort_by) }}"
+               class="shop-chip {{ 'active' if not size }}">All</a>
+            {% for s in sizes %}
+            <a href="{{ url_for('marketplace.index', q=search, size=s.value, variety=variety, sort=sort_by) }}"
+               class="shop-chip {{ 'active' if size == s.value }}">
+                {{ s.value | title }}
+            </a>
+            {% endfor %}
+            <span class="shop-sort__label" style="margin-left: 1rem;">Variety:</span>
+            <a href="{{ url_for('marketplace.index', q=search, size=size, sort=sort_by) }}"
+               class="shop-chip {{ 'active' if not variety }}">All</a>
+            {% for v in varieties %}
+            <a href="{{ url_for('marketplace.index', q=search, size=size, variety=v.value, sort=sort_by) }}"
+               class="shop-chip {{ 'active' if variety == v.value }}">
+                {{ v.value | title }}
             </a>
             {% endfor %}
         </div>
         <div class="shop-sort">
             <span class="shop-sort__label">Sort</span>
             <div class="shop-sort__options" role="group" aria-label="Sort products">
-                <a href="{{ url_for('marketplace.index', q=search, category=category, sort='newest') }}" class="shop-sort__pill {{ 'active' if sort_by == 'newest' }}">Recommended</a>
-                <a href="{{ url_for('marketplace.index', q=search, category=category, sort='price_low') }}" class="shop-sort__pill {{ 'active' if sort_by == 'price_low' }}">Price: Low to High</a>
-                <a href="{{ url_for('marketplace.index', q=search, category=category, sort='price_high') }}" class="shop-sort__pill {{ 'active' if sort_by == 'price_high' }}">Price: High to Low</a>
+                <a href="{{ url_for('marketplace.index', q=search, size=size, variety=variety, sort='newest') }}" class="shop-sort__pill {{ 'active' if sort_by == 'newest' }}">Recommended</a>
+                <a href="{{ url_for('marketplace.index', q=search, size=size, variety=variety, sort='price_low') }}" class="shop-sort__pill {{ 'active' if sort_by == 'price_low' }}">Price: Low to High</a>
+                <a href="{{ url_for('marketplace.index', q=search, size=size, variety=variety, sort='price_high') }}" class="shop-sort__pill {{ 'active' if sort_by == 'price_high' }}">Price: High to Low</a>
             </div>
         </div>
     </div>
@@ -459,7 +469,8 @@
     <div class="shop-results">
         <strong>{{ products|length }}</strong> product{{ 's' if products|length != 1 }} available
         {% if search %} for "<strong>{{ search }}</strong>"{% endif %}
-        {% if category %} in <strong>{{ category|replace('_',' ')|title }}</strong>{% endif %}
+        {% if size %} Size: <strong>{{ size|title }}</strong>{% endif %}
+        {% if variety %} Variety: <strong>{{ variety|title }}</strong>{% endif %}
     </div>
 
     <!-- Product Grid -->
@@ -468,10 +479,8 @@
         {% for product in products %}
         <div class="shop-card" id="product-{{ product.id }}">
             <a href="{{ url_for('marketplace.product_detail', product_id=product.id) }}" class="shop-card__visual">
-                <span class="shop-card__tag">{{ product.category_label }}</span>
-                <span class="shop-card__emoji">
-                    {% if product.category.value == 'eggs' %}🥚{% elif product.category.value == 'live_birds' %}🐔{% elif product.category.value == 'dressed' %}🍗{% else %}📦{% endif %}
-                </span>
+                <span class="shop-card__tag">{{ product.size_label }} • {{ product.variety_label }}</span>
+                <span class="shop-card__emoji">🥚</span>
             </a>
 
             <div class="shop-card__body">
@@ -513,14 +522,14 @@
     </div>
 
     {% else %}
-    <div class="mp-empty">
+    <div class="shop-empty">
         <div class="mp-empty__icon">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 002 1.61h9.72a2 2 0 002-1.61L23 6H6"/></svg>
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
         </div>
         <h3>No products found</h3>
-        <p>{% if search or category %}Try adjusting your filters or search for something else.{% else %}The marketplace is waiting for fresh products. Check back soon!{% endif %}</p>
-        {% if search or category %}
-        <a href="{{ url_for('marketplace.index') }}" class="btn btn-secondary" style="margin: 0 auto;">Clear All Filters</a>
+        <p>{% if search or size or variety %}Try adjusting your filters or search for something else.{% else %}The marketplace is waiting for fresh products. Check back soon!{% endif %}</p>
+        {% if search or size or variety %}
+        <a href="{{ url_for('marketplace.index') }}" class="btn btn-secondary">Clear All Filters</a>
         {% endif %}
     </div>
     {% endif %}

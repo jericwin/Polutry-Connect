@@ -86,6 +86,8 @@ def profile():
         'email': current_user.email or '',
         'username': current_user.username or '',
         'phone': current_user.phone or '',
+        'address': getattr(current_user, 'address', '') or '',
+        'landmark': getattr(current_user, 'landmark', '') or '',
     }
 
     if request.method == 'POST':
@@ -94,12 +96,20 @@ def profile():
         email = request.form.get('email', '').strip().lower()
         username = request.form.get('username', '').strip()
         phone = request.form.get('phone', '').strip()
+        address = request.form.get('address', '').strip()
+        landmark = request.form.get('landmark', '').strip()
         password = request.form.get('password', '').strip()
         confirm_pw = request.form.get('confirm_password', '').strip()
 
         errors = []
         if not all([first_name, last_name, email, username]):
             errors.append('First name, last name, email and username are required.')
+        
+        if current_user.role.value == 'buyer':
+            if address not in ['Santa Maria, Laguna', 'Siniloan, Laguna']:
+                errors.append('Please select a valid city/municipality address.')
+            if not landmark:
+                errors.append('Please provide a specific address or landmark.')
 
         if User.query.filter(User.username == username, User.id != current_user.id).first():
             errors.append('That username is already in use.')
@@ -122,6 +132,8 @@ def profile():
                 'email': email,
                 'username': username,
                 'phone': phone,
+                'address': address,
+                'landmark': landmark,
             })
             return render_template('auth/profile.html', title='My Profile', form_data=form_data)
 
@@ -130,6 +142,9 @@ def profile():
         current_user.email = email
         current_user.username = username
         current_user.phone = phone
+        if hasattr(current_user, 'address'):
+            current_user.address = address
+            current_user.landmark = landmark
 
         if password:
             current_user.set_password(password)

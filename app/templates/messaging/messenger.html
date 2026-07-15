@@ -311,8 +311,8 @@
   /* ── Config ─────────────────────────────── */
   const CONV_ID       = {{ open_conv.id if open_conv else 'null' }};
   const MY_ID         = {{ current_user.id }};
-  const MY_INITIALS   = {{ ('"' + (current_user.first_name[0] + current_user.last_name[0])|upper + '"') if current_user.first_name and current_user.last_name else ('"' + current_user.username[:2]|upper + '"') }};
-  const OTHER_INITIALS= {{ ('"' + (open_other.first_name[0] + open_other.last_name[0])|upper + '"') if open_other and open_other.first_name and open_other.last_name else ('"' + (open_other.username[:2]|upper if open_other else 'XX') + '"') }};
+  const MY_INITIALS   = "{{ (current_user.first_name[0] + current_user.last_name[0])|upper if current_user.first_name and current_user.last_name else current_user.username[:2]|upper }}";
+  const OTHER_INITIALS= "{{ (open_other.first_name[0] + open_other.last_name[0])|upper if open_other and open_other.first_name and open_other.last_name else (open_other.username[:2]|upper if open_other else 'XX') }}";
   const IS_FARMER     = {{ 'true' if current_user.role.value == 'farmer' else 'false' }};
   const OTHER_ROLE    = '{{ open_other.role.value if open_other else "" }}';
   let   lastMsgId     = 0;

@@ -74,6 +74,32 @@
         >
     </div>
 
+    {% if current_user.role.value == 'buyer' %}
+    <div style="background: var(--surface-container-lowest); border: 1px solid var(--outline-variant); border-radius: var(--radius-lg); padding: 1.5rem; margin-bottom: 1.5rem; box-shadow: 0 4px 15px rgba(0,0,0,0.03);">
+        <h3 style="margin-top: 0; margin-bottom: 1rem; font-size: 1.1rem; color: var(--primary);">Delivery Information</h3>
+        <div class="form-group">
+            <label for="address">City / Municipality <span class="required">*</span></label>
+            <select id="address" name="address" style="width: 100%; border: 1.5px solid var(--outline); border-radius: var(--radius-sm); padding: 0.8rem 1rem; font-family: var(--font-body); font-size: 0.95rem; color: var(--on-surface); background-color: #ffffff; outline: none; transition: all 0.2s ease;">
+                <option value="">— Select your location —</option>
+                <option value="Santa Maria, Laguna" {% if form_data.get('address') == 'Santa Maria, Laguna' %}selected{% endif %}>Santa Maria, Laguna</option>
+                <option value="Siniloan, Laguna" {% if form_data.get('address') == 'Siniloan, Laguna' %}selected{% endif %}>Siniloan, Laguna</option>
+            </select>
+        </div>
+        <div class="form-group" style="margin-bottom: 0;">
+            <label for="landmark">Specific Address / Landmark <span class="required">*</span></label>
+            <input 
+                type="text" 
+                id="landmark" 
+                name="landmark" 
+                placeholder="e.g. Near Plaza, Blk 1 Lot 2" 
+                value="{{ form_data.get('landmark', '') }}" 
+                style="width: 100%; border: 1.5px solid var(--outline); border-radius: var(--radius-sm); padding: 0.8rem 1rem; font-family: var(--font-body); font-size: 0.95rem; color: var(--on-surface); background-color: #ffffff; outline: none; transition: all 0.2s ease;"
+                required
+            >
+        </div>
+    </div>
+    {% endif %}
+
     <div class="form-group">
         <label for="role">Role</label>
         <input

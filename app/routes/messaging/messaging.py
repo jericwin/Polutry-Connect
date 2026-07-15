@@ -42,8 +42,8 @@ def _get_matching_contacts(role, uid, q=''):
     """Return matching contacts for the current role and optional query."""
     current_role = _role_value(role)
     if current_role == UserRole.FARMER.value:
-        allowed_roles = [UserRole.FEED_SUPPLIER.value, UserRole.VETERINARIAN.value]
-    elif current_role in [UserRole.FEED_SUPPLIER.value, UserRole.VETERINARIAN.value]:
+        allowed_roles = [UserRole.BUYER.value]
+    elif current_role == UserRole.BUYER.value:
         allowed_roles = [UserRole.FARMER.value]
     else:
         return []
@@ -131,7 +131,7 @@ def index():
             'online': u.online_status,
             'initials': (u.first_name[0] + u.last_name[0]).upper() if u.first_name and u.last_name else u.username[:2].upper(),
         } for u in _get_matching_contacts(role, uid)],
-        # For supplier/vet show farms so they can message farmers directly
+        # For buyer show farms so they can message farmers directly
         farm_contacts=([] if role == UserRole.FARMER else [
             {
                 'farm_id': f.id,
@@ -168,8 +168,8 @@ def conversations():
 @messaging_bp.route('/start_from_farm', methods=['POST'])
 @login_required
 def start_from_farm():
-    """Allow supplier/vet to start a conversation by selecting a farm's owner."""
-    if current_user.role not in [UserRole.FEED_SUPPLIER, UserRole.VETERINARIAN]:
+    """Allow buyer to start a conversation by selecting a farm's owner."""
+    if current_user.role != UserRole.BUYER:
         abort(403)
     farm_id = request.form.get('farm_id', type=int)
     if not farm_id:
@@ -218,8 +218,8 @@ def contacts():
     """Return the matching contact list for the current role."""
     current_role = _role_value(current_user.role)
     if current_role == UserRole.FARMER.value:
-        allowed_roles = [UserRole.FEED_SUPPLIER.value, UserRole.VETERINARIAN.value]
-    elif current_role in [UserRole.FEED_SUPPLIER.value, UserRole.VETERINARIAN.value]:
+        allowed_roles = [UserRole.BUYER.value]
+    elif current_role == UserRole.BUYER.value:
         allowed_roles = [UserRole.FARMER.value]
     else:
         return jsonify([])
@@ -265,10 +265,10 @@ def start():
     participant_role_value = _role_value(participant.role)
 
     if current_role == UserRole.FARMER.value:
-        if participant_role_value not in [UserRole.FEED_SUPPLIER.value, UserRole.VETERINARIAN.value]:
-            flash('You can only start conversations with Feed Suppliers or Veterinarians.', 'error')
+        if participant_role_value != UserRole.BUYER.value:
+            flash('You can only start conversations with Buyers.', 'error')
             if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-                return jsonify({'ok': False, 'error': 'You can only start conversations with Feed Suppliers or Veterinarians.'}), 400
+                return jsonify({'ok': False, 'error': 'You can only start conversations with Buyers.'}), 400
             return redirect(url_for('messaging.index'))
         farmer_id = current_user.id
         participant_user_id = participant.id
@@ -277,7 +277,7 @@ def start():
             farmer_id=farmer_id,
             participant_id=participant_user_id
         ).first()
-    elif current_role in [UserRole.FEED_SUPPLIER.value, UserRole.VETERINARIAN.value]:
+    elif current_role == UserRole.BUYER.value:
         if participant_role_value != UserRole.FARMER.value:
             flash('You can only start conversations with Farmers.', 'error')
             if request.headers.get('X-Requested-With') == 'XMLHttpRequest':

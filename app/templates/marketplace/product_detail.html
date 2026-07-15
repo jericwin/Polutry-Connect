@@ -101,8 +101,8 @@ content %}
 <div class="pd-breadcrumb">
   <a href="{{ url_for('marketplace.index') }}">Marketplace</a>
   <span class="pd-breadcrumb__sep">›</span>
-  <a href="{{ url_for('marketplace.index', category=product.category.value) }}"
-    >{{ product.category_label }}</a
+  <a href="{{ url_for('marketplace.index', size=product.size.value, variety=product.variety.value) }}"
+    >{{ product.size_label }} • {{ product.variety_label }}</a
   >
   <span class="pd-breadcrumb__sep">›</span>
   <span>{{ product.name }}</span>
@@ -113,12 +113,8 @@ content %}
   <!-- Left: Visual -->
   <div class="pd-visual">
     <div class="pd-img">
-      <span class="pd-badge">{{ product.category_label }}</span>
-      <span class="pd-img__emoji">
-        {% if product.category.value == 'eggs' %}🥚{% elif
-        product.category.value == 'live_birds' %}🐔{% elif
-        product.category.value == 'dressed' %}🍗{% else %}📦{% endif %}
-      </span>
+      <span class="pd-badge">{{ product.size_label }} • {{ product.variety_label }}</span>
+      <span class="pd-img__emoji">🥚</span>
     </div>
   </div>
 
@@ -273,6 +269,16 @@ content %}
           </svg>
           {{ product.farmer.full_name }}
         </div>
+        {% if current_user.is_authenticated and current_user.role.value == 'buyer' %}
+        <div style="margin-top: 0.75rem;">
+          <a href="{{ url_for('messaging.start', participant_id=product.farmer.id) }}" class="btn btn-secondary" style="display: inline-flex; align-items: center; gap: 0.35rem; padding: 0.4rem 0.8rem; font-size: 0.75rem; border-radius: var(--radius-sm); border: 1px solid var(--outline); color: var(--on-surface-variant); text-decoration: none; font-weight: 600; background: white;">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12">
+              <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"></path>
+            </svg>
+            Message Farm
+          </a>
+        </div>
+        {% endif %}
       </div>
     </div>
 
@@ -306,9 +312,7 @@ content %}
       class="pd-related__card"
     >
       <div class="pd-related__img">
-        {% if item.category.value == 'eggs' %}🥚{% elif item.category.value ==
-        'live_birds' %}🐔{% elif item.category.value == 'dressed' %}🍗{% else
-        %}📦{% endif %}
+        🥚
       </div>
       <div class="pd-related__info">
         <div class="pd-related__name">{{ item.name }}</div>

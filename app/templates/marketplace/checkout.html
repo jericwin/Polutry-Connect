@@ -1,9 +1,75 @@
 {% extends "marketplace/marketplace_base.html" %} {% block title %}Checkout —
 PoultryConnect{% endblock %} {% block extra_css %}
-<link
-  rel="stylesheet"
-  href="{{ url_for('static', filename='css/marketplace.css') }}"
-/>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/marketplace.css') }}">
+<style>
+  .checkout-form-wrap .form-card {
+    border: none;
+    box-shadow: 0 10px 30px rgba(13, 99, 27, 0.08);
+    border-radius: var(--radius-lg);
+    background: #ffffff;
+    overflow: hidden;
+  }
+  .checkout-form-wrap .form-card__header {
+    background: #ffffff;
+    border-bottom: 1px solid var(--outline-variant);
+    padding: 2rem;
+  }
+  .checkout-form-wrap .form-card__title {
+    font-size: 1.6rem;
+    color: var(--primary);
+    margin-bottom: 0.5rem;
+  }
+  .checkout-form-wrap .form-card__sub {
+    font-size: 0.95rem;
+    color: var(--on-surface-variant);
+  }
+  .checkout-form-wrap .form-group {
+    padding: 0 2rem;
+    margin-bottom: 1.5rem;
+  }
+  .checkout-form-wrap .form-group:first-of-type {
+    margin-top: 1.5rem;
+  }
+  .checkout-form-wrap label {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--on-surface);
+    margin-bottom: 0.5rem;
+    display: block;
+  }
+  .checkout-form-wrap input[type="text"],
+  .checkout-form-wrap textarea {
+    width: 100%;
+    border: 1.5px solid var(--outline);
+    border-radius: var(--radius-sm);
+    padding: 0.8rem 1rem;
+    font-family: var(--font-body);
+    font-size: 0.95rem;
+    color: var(--on-surface);
+    transition: all 0.2s ease;
+    background: var(--surface-container-lowest);
+  }
+  .checkout-form-wrap input[type="text"]:focus,
+  .checkout-form-wrap textarea:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 4px var(--primary-fixed);
+    background: #ffffff;
+  }
+  .checkout-payment-info {
+    margin: 2rem;
+    padding: 1.25rem;
+    background: var(--surface-container-low);
+    border-left: 4px solid var(--primary);
+    border-radius: var(--radius-sm);
+  }
+  .form-actions {
+    padding: 1.5rem 2rem 2rem;
+    background: #fafafa;
+    border-top: 1px solid var(--outline-variant);
+    margin-top: 2rem;
+  }
+</style>
 {% endblock %} {% block content %}
 <div
   class="mp-container"
@@ -38,32 +104,39 @@ PoultryConnect{% endblock %} {% block extra_css %}
           </div>
 
           <div class="form-group">
-            <label for="deliveryAddress"
-              >Delivery Address <span class="required">*</span></label
-            >
-            <textarea
-              id="deliveryAddress"
-              name="delivery_address"
-              rows="3"
-              placeholder="Complete delivery address (street, barangay, city, province)"
-              required
-            >
-{{ form_data.get('delivery_address', '') }}</textarea
-            >
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+              <label for="deliveryAddress" style="margin-bottom: 0;">Delivery Address</label>
+              <a href="{{ url_for('auth.profile') }}" style="color: var(--primary); text-decoration: none; display: flex; align-items: center; gap: 0.25rem; font-size: 0.85rem; font-weight: 500; transition: color 0.2s ease;">
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                Edit
+              </a>
+            </div>
+            <div style="padding: 1rem; background: var(--surface-container-low); border: 1px solid var(--outline-variant); border-radius: var(--radius-sm); color: var(--on-surface); font-size: 0.95rem; line-height: 1.5;">
+              {% if form_data.get('delivery_address') %}
+                {{ form_data.get('delivery_address') }}
+              {% else %}
+                <span style="color: var(--error);"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: middle; margin-right: 4px;"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg> No address found. Please update your profile.</span>
+              {% endif %}
+            </div>
+            <input type="hidden" name="delivery_address" value="{{ form_data.get('delivery_address', '') }}">
           </div>
 
           <div class="form-group">
-            <label for="contactPhone"
-              >Contact Phone <span class="required">*</span></label
-            >
-            <input
-              type="text"
-              id="contactPhone"
-              name="contact_phone"
-              value="{{ form_data.get('contact_phone', current_user.phone or '') }}"
-              placeholder="Mobile number (e.g. 09171234567)"
-              required
-            />
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+              <label for="contactPhone" style="margin-bottom: 0;">Contact Phone</label>
+              <a href="{{ url_for('auth.profile') }}" style="color: var(--primary); text-decoration: none; display: flex; align-items: center; gap: 0.25rem; font-size: 0.85rem; font-weight: 500; transition: color 0.2s ease;">
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                Edit
+              </a>
+            </div>
+            <div style="padding: 1rem; background: var(--surface-container-low); border: 1px solid var(--outline-variant); border-radius: var(--radius-sm); color: var(--on-surface); font-size: 0.95rem; line-height: 1.5;">
+              {% if form_data.get('contact_phone', current_user.phone) %}
+                {{ form_data.get('contact_phone', current_user.phone) }}
+              {% else %}
+                <span style="color: var(--error);"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: middle; margin-right: 4px;"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg> No phone number found. Please update your profile.</span>
+              {% endif %}
+            </div>
+            <input type="hidden" name="contact_phone" value="{{ form_data.get('contact_phone', current_user.phone) or '' }}">
           </div>
 
           <div class="form-group">

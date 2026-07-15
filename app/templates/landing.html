@@ -1550,17 +1550,10 @@
             style="text-decoration: none"
           >
             <div class="product-card__img">
-              {% if product.category.value == 'eggs' %}<i data-lucide="egg"></i>
-              {% elif product.category.value == 'live_birds' %}<i
-                data-lucide="bird"
-              ></i>
-              {% elif product.category.value == 'dressed' %}<i
-                data-lucide="beef"
-              ></i>
-              {% else %}<i data-lucide="package"></i>{% endif %}
+              🥚
             </div>
             <div class="product-card__body">
-              <div class="product-card__tag">{{ product.category_label }}</div>
+              <div class="product-card__tag">{{ product.size_label }} • {{ product.variety_label }}</div>
               <div class="product-card__name">{{ product.name }}</div>
               <div class="product-card__farmer">
                 {{ product.farm.name }}{% if product.location %}, {{

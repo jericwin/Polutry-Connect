@@ -31,7 +31,7 @@ from datetime import datetime
 from app import db
 from app.models import (
     Product, Order, OrderItem, Farm, User,
-    ProductCategory, ProductUnit, OrderStatus, UserRole
+    ProductSize, ProductVariety, ProductUnit, OrderStatus, UserRole, Notification
 )
 
 marketplace_bp = Blueprint('marketplace', __name__)
@@ -99,7 +99,8 @@ def index():
     """Browse all available products — public, no login required."""
     # Filters
     search    = request.args.get('q', '').strip()
-    category  = request.args.get('category', '').strip()
+    size  = request.args.get('size', '').strip()
+    variety = request.args.get('variety', '').strip()
     sort_by   = request.args.get('sort', 'newest')
 
     query = Product.query.filter_by(is_available=True).filter(Product.stock > 0)
@@ -113,9 +114,13 @@ def index():
             )
         )
 
-    valid_categories = {e.value for e in ProductCategory}
-    if category and category in valid_categories:
-        query = query.filter(Product.category == ProductCategory(category))
+    valid_sizes = {e.value for e in ProductSize}
+    if size and size in valid_sizes:
+        query = query.filter(Product.size == ProductSize(size))
+        
+    valid_varieties = {e.value for e in ProductVariety}
+    if variety and variety in valid_varieties:
+        query = query.filter(Product.variety == ProductVariety(variety))
 
     # Sorting
     if sort_by == 'price_low':
@@ -132,9 +137,11 @@ def index():
         title='Marketplace',
         products=products,
         search=search,
-        category=category,
+        size=size,
+        variety=variety,
         sort_by=sort_by,
-        categories=ProductCategory,
+        sizes=ProductSize,
+        varieties=ProductVariety,
         cart_count=_get_cart_count(),
     )
 
@@ -147,10 +154,10 @@ def product_detail(product_id):
         flash('This product is no longer available.', 'error')
         return redirect(url_for('marketplace.index'))
 
-    # Get related products from the same category
+    # Get related products of the same size/variety
     related = Product.query.filter(
         Product.id != product.id,
-        Product.category == product.category,
+        Product.size == product.size,
         Product.is_available == True,
         Product.stock > 0,
     ).order_by(db.func.random()).limit(4).all()
@@ -391,6 +398,7 @@ def checkout():
         db.session.flush()  # get order.id
 
         # Create order items and decrement stock
+        farmer_ids = set()
         for item in cart_items:
             product = item['product']
             qty = item['quantity']
@@ -409,6 +417,18 @@ def checkout():
             )
             db.session.add(order_item)
             product.stock -= qty
+            farmer_ids.add(product.farmer_id)
+
+        # Notify farmers of new order
+        for fid in farmer_ids:
+            notif = Notification(
+                user_id=fid,
+                title="New Order Received!",
+                body=f"You have a new order #{order.id} from {current_user.first_name} {current_user.last_name}.",
+                notif_type='order',
+                link_url=url_for('marketplace.farmer_orders') + f"#farmerOrder-{order.id}"
+            )
+            db.session.add(notif)
 
         db.session.commit()
 
@@ -424,7 +444,7 @@ def checkout():
         title='Checkout',
         cart_items=cart_items,
         cart_total=float(total),
-        form_data={},
+        form_data={'delivery_address': f"{getattr(current_user, 'landmark', '') or ''}, {getattr(current_user, 'address', '') or ''}".strip(', ') if getattr(current_user, 'address', '') else ''},
         cart_count=_get_cart_count(),
     )
 
@@ -504,7 +524,8 @@ def manage_add():
         farm_id     = _safe_int(request.form.get('farm_id'))
         name        = request.form.get('name', '').strip()
         description = request.form.get('description', '').strip()
-        category_str = request.form.get('category', '').strip()
+        size_str = request.form.get('size', '').strip()
+        variety_str = request.form.get('variety', '').strip()
         unit_str     = request.form.get('unit', '').strip()
         price       = _safe_decimal(request.form.get('price'))
         stock       = _safe_int(request.form.get('stock'), default=0)
@@ -518,8 +539,10 @@ def manage_add():
             errors.append('Product name is required.')
         if len(name) > 150:
             errors.append('Product name must be 150 characters or fewer.')
-        if category_str not in {e.value for e in ProductCategory}:
-            errors.append('Please select a valid category.')
+        if size_str not in {e.value for e in ProductSize}:
+            errors.append('Please select a valid size.')
+        if variety_str not in {e.value for e in ProductVariety}:
+            errors.append('Please select a valid variety.')
         if unit_str not in {e.value for e in ProductUnit}:
             errors.append('Please select a valid unit.')
         if price <= 0:
@@ -534,7 +557,7 @@ def manage_add():
                 'marketplace/product_form.html',
                 title='Add Product', action='add',
                 farms=farms, form_data=request.form,
-                categories=ProductCategory, units=ProductUnit,
+                sizes=ProductSize, varieties=ProductVariety, units=ProductUnit,
             )
 
         farm = Farm.query.get(farm_id)
@@ -543,7 +566,8 @@ def manage_add():
             farm_id=farm_id,
             name=name,
             description=description or None,
-            category=ProductCategory(category_str),
+            size=ProductSize(size_str),
+            variety=ProductVariety(variety_str),
             unit=ProductUnit(unit_str),
             price=price,
             stock=stock,
@@ -559,7 +583,7 @@ def manage_add():
         'marketplace/product_form.html',
         title='Add Product', action='add',
         farms=farms, form_data={},
-        categories=ProductCategory, units=ProductUnit,
+        sizes=ProductSize, varieties=ProductVariety, units=ProductUnit,
     )
 
 
@@ -576,7 +600,8 @@ def manage_edit(product_id):
     if request.method == 'POST':
         name        = request.form.get('name', '').strip()
         description = request.form.get('description', '').strip()
-        category_str = request.form.get('category', '').strip()
+        size_str = request.form.get('size', '').strip()
+        variety_str = request.form.get('variety', '').strip()
         unit_str     = request.form.get('unit', '').strip()
         price       = _safe_decimal(request.form.get('price'))
         stock       = _safe_int(request.form.get('stock'), default=product.stock)
@@ -586,8 +611,10 @@ def manage_edit(product_id):
             errors.append('Product name is required.')
         if len(name) > 150:
             errors.append('Product name must be 150 characters or fewer.')
-        if category_str not in {e.value for e in ProductCategory}:
-            errors.append('Please select a valid category.')
+        if size_str not in {e.value for e in ProductSize}:
+            errors.append('Please select a valid size.')
+        if variety_str not in {e.value for e in ProductVariety}:
+            errors.append('Please select a valid variety.')
         if unit_str not in {e.value for e in ProductUnit}:
             errors.append('Please select a valid unit.')
         if price <= 0:
@@ -602,12 +629,13 @@ def manage_edit(product_id):
                 'marketplace/product_form.html',
                 title='Edit Product', action='edit',
                 farms=farms, product=product, form_data=request.form,
-                categories=ProductCategory, units=ProductUnit,
+                sizes=ProductSize, varieties=ProductVariety, units=ProductUnit,
             )
 
         product.name        = name
         product.description = description or None
-        product.category    = ProductCategory(category_str)
+        product.size        = ProductSize(size_str)
+        product.variety     = ProductVariety(variety_str)
         product.unit        = ProductUnit(unit_str)
         product.price       = price
         product.stock       = stock
@@ -619,7 +647,7 @@ def manage_edit(product_id):
         'marketplace/product_form.html',
         title='Edit Product', action='edit',
         farms=farms, product=product, form_data={},
-        categories=ProductCategory, units=ProductUnit,
+        sizes=ProductSize, varieties=ProductVariety, units=ProductUnit,
     )
 
 

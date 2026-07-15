@@ -63,6 +63,8 @@ class User(UserMixin, db.Model):
     first_name    = db.Column(db.String(64))
     last_name     = db.Column(db.String(64))
     phone         = db.Column(db.String(20))
+    address       = db.Column(db.String(200))
+    landmark      = db.Column(db.String(255))
     is_active     = db.Column(db.Boolean, nullable=False, default=True)
     online_status = db.Column(db.Boolean, nullable=False, default=False)
     last_seen     = db.Column(db.DateTime, nullable=True)
@@ -222,11 +224,14 @@ class Expense(db.Model):
 # MARKETPLACE ENUMS
 # ─────────────────────────────────────────
 
-class ProductCategory(str, enum.Enum):
-    EGGS       = 'eggs'
-    LIVE_BIRDS = 'live_birds'
-    DRESSED    = 'dressed'
-    OTHER      = 'other'
+class ProductSize(str, enum.Enum):
+    SMALL  = 'small'
+    MEDIUM = 'medium'
+    LARGE  = 'large'
+
+class ProductVariety(str, enum.Enum):
+    BROWN = 'brown'
+    WHITE = 'white'
 
 class ProductUnit(str, enum.Enum):
     PIECE    = 'piece'
@@ -259,10 +264,16 @@ class Product(db.Model):
 
     name          = db.Column(db.String(150), nullable=False)
     description   = db.Column(db.Text)
-    category      = db.Column(
-                       db.Enum(ProductCategory, values_callable=lambda enum_cls: [e.value for e in enum_cls]),
+    size          = db.Column(
+                       db.Enum(ProductSize, values_callable=lambda enum_cls: [e.value for e in enum_cls]),
                        nullable=False,
-                       default=ProductCategory.EGGS,
+                       default=ProductSize.MEDIUM,
+                       index=True
+                   )
+    variety       = db.Column(
+                       db.Enum(ProductVariety, values_callable=lambda enum_cls: [e.value for e in enum_cls]),
+                       nullable=False,
+                       default=ProductVariety.BROWN,
                        index=True
                    )
     unit          = db.Column(
@@ -292,8 +303,12 @@ class Product(db.Model):
         return 'in_stock'
 
     @property
-    def category_label(self):
-        return self.category.value.replace('_', ' ').title()
+    def size_label(self):
+        return self.size.value.title()
+
+    @property
+    def variety_label(self):
+        return self.variety.value.title()
 
     @property
     def unit_label(self):
@@ -379,7 +394,7 @@ class OrderItem(db.Model):
 
 class Conversation(db.Model):
     """
-    A conversation thread between a farmer and a feed_supplier or veterinarian.
+    A conversation thread between a farmer and a buyer.
     Each pair can only have one active conversation (enforced by unique constraint).
     """
     __tablename__ = 'conversations'
@@ -387,7 +402,7 @@ class Conversation(db.Model):
     id               = db.Column(db.Integer, primary_key=True, autoincrement=True)
     farmer_id        = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False, index=True)
     participant_id   = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False, index=True)
-    participant_role = db.Column(db.String(32), nullable=False)   # 'feed_supplier' or 'veterinarian'
+    participant_role = db.Column(db.String(32), nullable=False)   # 'buyer'
     # Soft-delete flags per side
     deleted_by_farmer      = db.Column(db.Boolean, default=False)
     deleted_by_participant = db.Column(db.Boolean, default=False)

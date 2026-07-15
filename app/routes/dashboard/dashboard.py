@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, redirect, url_for, flash
+from flask import Blueprint, render_template, redirect, url_for, flash, request
 from flask_login import login_required, current_user
 from app.models import UserRole, Farm, ProductionRecord, Expense
 from datetime import date, timedelta
@@ -213,3 +213,37 @@ def farmer():
         market_intelligence=market_intelligence,
         today=today,
     )
+
+@dashboard_bp.route('/notifications', methods=['GET', 'POST'])
+@login_required
+def notifications():
+    from app.models import Notification
+    from app import db
+    
+    if current_user.role != UserRole.FARMER:
+        flash('Only farmers have access to this page.', 'error')
+        return redirect(url_for('dashboard.index'))
+        
+    if request.method == 'POST':
+        # Mark all as read
+        current_user.notifications.filter_by(is_read=False, notif_type='order').update({'is_read': True})
+        db.session.commit()
+        flash('All notifications marked as read.', 'success')
+        return redirect(url_for('dashboard.notifications'))
+        
+    # Mark viewed notifications as read when visited? The user might want to click them individually.
+    
+    notifs = current_user.notifications.filter_by(notif_type='order').order_by(Notification.created_at.desc()).all()
+    
+    # Check if a specific notification is clicked
+    mark_read = request.args.get('read', type=int)
+    if mark_read:
+        notif = Notification.query.get(mark_read)
+        if notif and notif.user_id == current_user.id:
+            notif.is_read = True
+            db.session.commit()
+            if notif.link_url:
+                return redirect(notif.link_url)
+                
+    return render_template('dashboard/notifications.html', title='Notifications', notifications=notifs)
+

@@ -45,10 +45,7 @@
     <div class="manage-card {{ 'manage-card--inactive' if not product.is_available }}" id="manageProduct-{{ product.id }}">
         <div class="manage-card__header">
             <div class="manage-card__img">
-                {% if product.category.value == 'eggs' %}🥚
-                {% elif product.category.value == 'live_birds' %}🐔
-                {% elif product.category.value == 'dressed' %}🍗
-                {% else %}📦{% endif %}
+                🥚
             </div>
             <div class="manage-card__meta">
                 <div class="manage-card__name">{{ product.name }}</div>
@@ -69,8 +66,12 @@
                 <span class="manage-card__stat-label">In Stock</span>
             </div>
             <div class="manage-card__stat">
-                <span class="manage-card__stat-val">{{ product.category_label }}</span>
-                <span class="manage-card__stat-label">Category</span>
+                <span class="manage-card__stat-val">{{ product.size_label }}</span>
+                <span class="manage-card__stat-label">Size</span>
+            </div>
+            <div class="manage-card__stat">
+                <span class="manage-card__stat-val">{{ product.variety_label }}</span>
+                <span class="manage-card__stat-label">Variety</span>
             </div>
         </div>
 
