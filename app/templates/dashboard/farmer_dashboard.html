@@ -5,18 +5,25 @@
 {% block breadcrumb %}PoultryConnect / Farmer / Overview{% endblock %}
 
 {% block topbar_actions %}
+    <a href="#" class="btn btn-secondary" onclick="document.getElementById('quickSaleModal').style.display='flex'; return false;">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+        </svg>
+        Log Sale
+    </a>
     <a href="{{ url_for('production.log_add') }}" class="btn btn-primary">
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
             <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
         </svg>
-        Log Today
+        Log Production
     </a>
 {% endblock %}
 
 {% block content %}
+<div class="animated-bg-container" style="margin: -2rem; padding: 2rem; border-radius: 1.5rem; overflow: hidden;">
 
 <!-- ── Welcome Header ─────────────────────────────── -->
-<div class="section-header-card">
+<div class="section-header-card animate-fade-in delay-1">
     <div class="section-header">
         <div class="section-header-badge">Farm overview</div>
         <h2>Good day, {{ current_user.first_name or current_user.username }}.</h2>
@@ -45,7 +52,7 @@
 {% endif %}
 
 <!-- ── KPI Cards ──────────────────────────────────── -->
-<div class="kpi-grid">
+<div class="kpi-grid animate-fade-in delay-2">
 
     <!-- Eggs This Month -->
     <div class="kpi-card" data-accent="yellow">
@@ -91,117 +98,206 @@
         <div class="kpi-sub">This month · all categories</div>
     </div>
 
-    <!-- Pending Orders placeholder -->
+    <!-- Total Revenue -->
     <div class="kpi-card" data-accent="blue">
         <div class="kpi-icon">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 01-8 0"/>
+                <line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/>
             </svg>
         </div>
-        <div class="kpi-label">Pending Orders</div>
-        <div class="kpi-value">—</div>
-        <div class="kpi-sub">Marketplace module coming soon</div>
+        <div class="kpi-label">Total Revenue</div>
+        <div class="kpi-value">&#8369;{{ "{:,.0f}".format(revenue_this_month) }}</div>
+        <div class="kpi-sub">This month · egg sales</div>
     </div>
 
 </div>
 
 <!-- ── Market Intelligence Panel ───────────────────── -->
-<div class="insight-grid">
+<div class="insight-grid animate-fade-in delay-3" style="gap: 1.5rem; margin-bottom: 2rem;">
     <!-- PROFITABILITY GUIDANCE CARD -->
-    <div class="insight-card insight-card-primary">
-        <div class="insight-card-header">
+    <div class="insight-card insight-card-primary" style="display: flex; flex-direction: column; gap: 1rem; padding: 1.5rem;">
+        <div class="insight-card-header" style="border-bottom: none; padding-bottom: 0;">
             <div class="insight-card-title-row">
-                <div class="insight-card-icon">
+                <div class="insight-card-icon" style="background: linear-gradient(135deg, #0d631b, #2e7d32); color: white;">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <path d="M12 2v20"/><path d="M17 6a5 5 0 00-10 0"/><path d="M7 18a5 5 0 0110 0"/>
                     </svg>
                 </div>
                 <div>
-                    <div class="insight-card-title">Profitability guidance</div>
+                    <div class="insight-card-title" style="font-size: 1.1rem;">Profitability Guidance</div>
                     <div class="insight-card-sub">Pricing and sale timing insight</div>
                 </div>
             </div>
-            <span class="insight-pill">Recommended</span>
+            <span class="insight-pill" style="background: rgba(13, 99, 27, 0.1); color: #0d631b; border: 1px solid rgba(13,99,27,0.2);">Recommended</span>
         </div>
-        <div class="insight-hero">
-            <div class="insight-hero-value">Sell {{ market_intelligence.sell_window }}</div>
-            <div class="insight-hero-text">{{ market_intelligence.guidance }}</div>
+        
+        <div class="insight-hero" style="background: rgba(255,255,255,0.5); border-radius: 1rem; padding: 1rem; text-align: center; border: 1px solid rgba(13,99,27,0.1);">
+            <div class="insight-hero-text" style="text-transform: uppercase; font-size: 0.75rem; font-weight: 700; letter-spacing: 0.05em; color: var(--on-surface-variant); margin-bottom: 0.25rem;">Optimal Action</div>
+            <div class="insight-hero-value" style="font-size: 1.5rem !important;">Sell {{ market_intelligence.sell_window }}</div>
+            <div class="insight-hero-text" style="margin-top: 0.5rem; font-size: 0.85rem;">{{ market_intelligence.guidance }}</div>
         </div>
-        <div class="insight-metrics">
-            <div class="metric">
-                <span class="metric-label">Suggested price</span>
-                <strong>₱{{ "%.2f"|format(market_intelligence.recommended_price) }} / egg</strong>
-            </div>
-            <div class="metric">
-                <span class="metric-label">Projected 7-day profit</span>
-                <strong>₱{{ "{:,.0f}".format(market_intelligence.projected_profit) }}</strong>
+
+        <div class="metric" style="background: rgba(255,255,255,0.6); border: 1px solid rgba(13,99,27,0.1); border-radius: 1rem; padding: 1rem;">
+            <span class="metric-label" style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 0.75rem;">
+                <span style="font-weight: 700; color: var(--on-surface);">Suggested Price Matrix</span>
+                <span class="chart-mini-note" style="background: rgba(13,99,27,0.08); padding: 0.2rem 0.6rem; border-radius: 2rem; color: #0d631b; font-weight: 600;">Base Cost + 20% Margin</span>
+            </span>
+            <div style="overflow-x: auto;">
+                <table style="width: 100%; border-collapse: separate; border-spacing: 0; font-size: 0.85rem; text-align: center;">
+                    <thead>
+                        <tr>
+                            <th style="padding: 10px 8px; color: var(--on-surface-variant); font-weight: 600; text-align: left; border-bottom: 2px solid rgba(13,99,27,0.1);">Size</th>
+                            <th style="padding: 10px 8px; color: var(--on-surface-variant); font-weight: 600; border-bottom: 2px solid rgba(13,99,27,0.1);" colspan="2">White<br><span style="font-size:0.7rem; font-weight:400;">(Rec / Yours)</span></th>
+                            <th style="padding: 10px 8px; color: var(--on-surface-variant); font-weight: 600; border-bottom: 2px solid rgba(13,99,27,0.1);" colspan="2">Brown<br><span style="font-size:0.7rem; font-weight:400;">(Rec / Yours)</span></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for size_key, size_label in [('small', 'Small'), ('medium', 'Medium'), ('large', 'Large'), ('extra_large', 'XL'), ('jumbo', 'Jumbo')] %}
+                        <tr style="transition: background-color 0.2s; {% if size_key == 'medium' %}background-color: rgba(13,99,27,0.05);{% endif %}">
+                            <td style="padding: 10px 8px; text-align: left; font-weight: {% if size_key == 'medium' %}700; color:#0d631b;{% else %}500;{% endif %} border-bottom: 1px solid rgba(0,0,0,0.05);">
+                                {{ size_label }}
+                                {% if size_key == 'medium' %}<span style="font-size: 0.65rem; display:block; line-height:1; margin-top:2px; opacity:0.7;">Base Size</span>{% endif %}
+                            </td>
+                            <td style="padding: 10px 8px; font-weight: 700; color: {% if size_key == 'medium' %}#0d631b{% else %}var(--on-surface){% endif %}; border-bottom: 1px solid rgba(0,0,0,0.05);">₱{{ "%.2f"|format(market_intelligence.pricing_matrix[size_key].white) }}</td>
+                            <td style="padding: 10px 8px; color: var(--on-surface-variant); font-size: 0.8rem; border-bottom: 1px solid rgba(0,0,0,0.05);">
+                                {% if market_intelligence.selling_prices.get(size_key, {}).get('white') %}
+                                    ₱{{ "%.2f"|format(market_intelligence.selling_prices[size_key]['white']) }}
+                                {% else %}—{% endif %}
+                            </td>
+                            <td style="padding: 10px 8px; font-weight: 700; color: {% if size_key == 'medium' %}#0d631b{% else %}var(--on-surface){% endif %}; border-bottom: 1px solid rgba(0,0,0,0.05);">₱{{ "%.2f"|format(market_intelligence.pricing_matrix[size_key].brown) }}</td>
+                            <td style="padding: 10px 8px; color: var(--on-surface-variant); font-size: 0.8rem; border-bottom: 1px solid rgba(0,0,0,0.05);">
+                                {% if market_intelligence.selling_prices.get(size_key, {}).get('brown') %}
+                                    ₱{{ "%.2f"|format(market_intelligence.selling_prices[size_key]['brown']) }}
+                                {% else %}—{% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
             </div>
         </div>
 
-        <!-- Price Trend Chart -->
-        <div class="chart-mini">
-            <div class="chart-mini-header">
-                <span class="chart-mini-title">Price Trend (Last 7 Days)</span>
-                <span class="chart-mini-note">Cost ₱{{ "%.2f"|format(market_intelligence.base_cost_per_egg) }}/egg · Avg ₱{{ "%.2f"|format(market_intelligence.avg_selling_price) }}/egg</span>
-            </div>
-            <canvas id="priceTrendChart" class="insight-chart-canvas"></canvas>
-        </div>
-
-        <!-- Margin Card -->
-        <div class="profit-summary">
+        <div class="profit-summary" style="background: rgba(255,255,255,0.6); border: 1px solid rgba(13,99,27,0.1); border-radius: 1rem; padding: 1rem; margin-top: auto;">
             <div class="margin-stat">
                 <span class="margin-label">Profit Margin</span>
-                <span class="margin-value" style="color: #0d631b; font-weight: 800; font-size: 1.4rem;">{{ market_intelligence.avg_margin }}%</span>
+                <span class="margin-value" style="color: #0d631b; font-weight: 800; font-size: 1.3rem;">{{ market_intelligence.avg_margin }}%</span>
             </div>
             <div class="margin-stat">
-                <span class="margin-label">Cost/Egg</span>
+                <span class="margin-label">Avg Cost/Egg</span>
                 <span class="margin-value">₱{{ "%.2f"|format(market_intelligence.base_cost_per_egg) }}</span>
             </div>
             <div class="margin-stat">
-                <span class="margin-label">Price/Egg</span>
+                <span class="margin-label">Avg Price/Egg</span>
                 <span class="margin-value" style="color: #1976d2;">₱{{ "%.2f"|format(market_intelligence.avg_selling_price) }}</span>
             </div>
         </div>
     </div>
 
     <!-- DEMAND FORECASTING CARD -->
-    <div class="insight-card">
-        <div class="insight-card-header">
+    <div class="insight-card" style="display: flex; flex-direction: column; gap: 1rem; padding: 1.5rem;">
+        <div class="insight-card-header" style="border-bottom: none; padding-bottom: 0;">
             <div class="insight-card-title-row">
-                <div class="insight-card-icon">
+                <div class="insight-card-icon" style="background: linear-gradient(135deg, #f57f17, #f9a825); color: white;">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <path d="M3 3v18h18"/><path d="M7 15l3-3 2 2 5-6"/>
                     </svg>
                 </div>
                 <div>
-                    <div class="insight-card-title">Demand forecasting</div>
+                    <div class="insight-card-title" style="font-size: 1.1rem;">Demand Forecasting</div>
                     <div class="insight-card-sub">Recent output and demand trend</div>
                 </div>
             </div>
-            <span class="forecast-badge forecast-badge-center">{{ market_intelligence.demand_signal }}</span>
+            <span class="forecast-badge forecast-badge-center" style="background: rgba(249, 168, 37, 0.15); color: #f57f17; border: 1px solid rgba(249, 168, 37, 0.3);">{{ market_intelligence.demand_signal }}</span>
         </div>
 
-        <!-- Forecast vs Actual Chart -->
-        <div class="chart-mini">
-            <div class="chart-mini-header">
-                <span class="chart-mini-title">4-Week Forecast Outlook</span>
-                <span class="chart-mini-note">Actual vs forecast</span>
+        <div class="chart-mini" style="background: rgba(255,255,255,0.6); border: 1px solid rgba(0,0,0,0.05); border-radius: 1rem; padding: 1rem;">
+            <div class="chart-mini-header" style="margin-bottom: 0.5rem;">
+                <span class="chart-mini-title" style="font-weight: 700; color: var(--on-surface);">4-Week Forecast Outlook</span>
+                <span class="chart-mini-note">Actual vs Forecast</span>
             </div>
-            <canvas id="forecastChart" class="insight-chart-canvas"></canvas>
+            <div style="height: 160px;">
+                <canvas id="forecastChart" class="insight-chart-canvas"></canvas>
+            </div>
         </div>
 
-        <p class="insight-copy">{{ market_intelligence.forecast_summary }}</p>
-        <ul class="insight-list">
-            <li><strong>Production plan:</strong> {{ market_intelligence.production_plan }}</li>
-            <li><strong>Supply allocation:</strong> {{ market_intelligence.allocation }}</li>
-            <li><strong>Forecasted next-week volume:</strong> <span style="color: #0d631b; font-weight: 700;">{{ market_intelligence.demand_forecast }} eggs/day</span></li>
-        </ul>
+        <div style="background: rgba(255,255,255,0.6); border: 1px solid rgba(0,0,0,0.05); border-radius: 1rem; padding: 1.2rem; flex: 1;">
+            <p class="insight-copy" style="font-weight: 500; color: var(--on-surface); margin-bottom: 1rem; padding-bottom: 1rem; border-bottom: 1px solid rgba(0,0,0,0.05);">
+                {{ market_intelligence.forecast_summary }}
+            </p>
+            <ul class="insight-list" style="gap: 0.8rem;">
+                <li style="display: flex; flex-direction: column; gap: 0.2rem;">
+                    <span style="font-size: 0.75rem; text-transform: uppercase; font-weight: 700; color: var(--on-surface-variant); letter-spacing: 0.05em;">Production Plan</span>
+                    <span style="color: var(--on-surface);">{{ market_intelligence.production_plan }}</span>
+                </li>
+                <li style="display: flex; flex-direction: column; gap: 0.2rem;">
+                    <span style="font-size: 0.75rem; text-transform: uppercase; font-weight: 700; color: var(--on-surface-variant); letter-spacing: 0.05em;">Supply Allocation</span>
+                    <span style="color: var(--on-surface);">{{ market_intelligence.allocation }}</span>
+                </li>
+                <li style="display: flex; flex-direction: column; gap: 0.2rem;">
+                    <span style="font-size: 0.75rem; text-transform: uppercase; font-weight: 700; color: var(--on-surface-variant); letter-spacing: 0.05em;">Next-Week Volume</span>
+                    <span style="color: #0d631b; font-weight: 800; font-size: 1.1rem;">{{ market_intelligence.demand_forecast }} <span style="font-size: 0.8rem; font-weight: 500;">eggs/day</span></span>
+                </li>
+            </ul>
+        </div>
+    </div>
+</div>
 
+<!-- ── Financial Analytics (NEW) ─────────────────── -->
+<div class="charts-row animate-fade-in delay-3" style="margin-bottom: 1.25rem;">
+    <!-- 6-Month Financial Trend -->
+    <div class="chart-card">
+        <div class="chart-card-header">
+            <div>
+                <div class="chart-card-title">Financial Analytics</div>
+                <div class="chart-card-sub">Revenue vs. Expenses (Last 6 Months)</div>
+            </div>
+            <span class="chart-tag">Analytics</span>
+        </div>
+        <div class="chart-container">
+            <canvas id="financeTrendChart"></canvas>
+        </div>
+    </div>
+
+    <!-- Profit Summary -->
+    <div class="insight-card insight-card-primary" style="height: auto;">
+        <div class="insight-card-header">
+            <div class="insight-card-title-row">
+                <div class="insight-card-icon" style="color: #0d631b;">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+                    </svg>
+                </div>
+                <div>
+                    <div class="insight-card-title">Monthly P&L</div>
+                    <div class="insight-card-sub">Current Month Profit</div>
+                </div>
+            </div>
+        </div>
+        <div class="insight-hero" style="padding-top: 1rem; text-align: center;">
+            <div class="insight-hero-value" style="font-size: 2rem !important; margin-bottom: 1rem;">
+                {% if profit_this_month >= 0 %}
+                    <span style="color: #0d631b;">+₱{{ "{:,.0f}".format(profit_this_month) }}</span>
+                {% else %}
+                    <span style="color: #ba1a1a;">-₱{{ "{:,.0f}".format(profit_this_month|abs) }}</span>
+                {% endif %}
+            </div>
+        </div>
+        
+        <div class="profit-summary" style="margin-top: auto;">
+            <div class="margin-stat">
+                <span class="margin-label">Revenue</span>
+                <span class="margin-value">₱{{ "{:,.0f}".format(revenue_this_month) }}</span>
+            </div>
+            <div class="margin-stat">
+                <span class="margin-label">Expenses</span>
+                <span class="margin-value">₱{{ "{:,.0f}".format(expenses_this_month) }}</span>
+            </div>
+        </div>
     </div>
 </div>
 
 <!-- ── Charts Row ─────────────────────────────────── -->
-<div class="charts-row">
+<div class="charts-row animate-fade-in delay-4">
 
     <!-- 7-Day Production Chart -->
     <div class="chart-card">
@@ -233,7 +329,7 @@
 </div>
 
 <!-- ── Bottom Row ─────────────────────────────────── -->
-<div class="bottom-row">
+<div class="bottom-row animate-fade-in delay-5">
 
     <!-- Recent Production Records -->
     <div class="recent-card">
@@ -287,6 +383,58 @@
         {% endif %}
     </div>
 
+</div>
+
+</div> <!-- /.animated-bg-container -->
+
+<!-- Quick Sale Modal -->
+<div id="quickSaleModal" class="modal-overlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,31,42,0.4); z-index:9999; justify-content:center; align-items:center; backdrop-filter:blur(4px);">
+    <div class="modal-card" style="background:white; padding:2rem; border-radius:1rem; width:100%; max-width:400px; box-shadow:var(--shadow-lg);">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.5rem;">
+            <h3 style="margin:0; font-size:1.2rem; color:var(--on-surface);">Log a Sale</h3>
+            <button type="button" onclick="document.getElementById('quickSaleModal').style.display='none'" style="background:none; border:none; cursor:pointer; color:var(--text-muted);">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+            </button>
+        </div>
+        <form method="POST" action="{{ url_for('production.sales_add') }}" class="data-form">
+            <div class="form-group">
+                <label>Farm</label>
+                <div class="select-wrap">
+                    <select name="farm_id" required>
+                        {% for f in farms %}
+                            <option value="{{ f.id }}">{{ f.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+            <div class="form-group">
+                <label>Sale Date</label>
+                <input type="date" name="sale_date" value="{{ today.isoformat() }}" max="{{ today.isoformat() }}" required>
+            </div>
+            <div style="display:flex; gap:1rem;">
+                <div class="form-group" style="flex:1;">
+                    <label>Quantity Sold (Eggs)</label>
+                    <input type="number" name="quantity_sold" min="1" required placeholder="e.g. 300">
+                </div>
+                <div class="form-group" style="flex:1;">
+                    <label>Price per Egg (₱)</label>
+                    <input type="number" name="price_per_egg" min="0.01" step="0.01" required placeholder="e.g. 7.50">
+                </div>
+            </div>
+            <div class="form-group">
+                <label>Buyer Name (Optional)</label>
+                <input type="text" name="buyer_name" placeholder="e.g. SM Supermarket">
+            </div>
+            <div class="form-group">
+                <label>Notes</label>
+                <input type="text" name="notes" placeholder="Optional notes">
+            </div>
+            <div style="display:flex; justify-content:flex-end; gap:1rem; margin-top:1.5rem;">
+                <button type="button" class="btn btn-secondary" onclick="document.getElementById('quickSaleModal').style.display='none'">Cancel</button>
+                <button type="submit" class="btn btn-primary">Save Sale</button>
+            </div>
+        </form>
+    </div>
 </div>
 
 {% endblock %}
@@ -549,6 +697,80 @@ if (forecastCtx) {
                         color: '#3d5260',
                         font: { size: 11 },
                         callback: v => v.toLocaleString()
+                    },
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+}
+
+
+// ── 6-Month Financial Trend Chart ───────────────────
+const financeCtx = document.getElementById('financeTrendChart');
+if (financeCtx) {
+    const trendLabels = {{ trend_labels | tojson }};
+    const trendRevenue = {{ trend_revenue | tojson }};
+    const trendExpenses = {{ trend_expenses | tojson }};
+    
+    new Chart(financeCtx.getContext('2d'), {
+        type: 'bar',
+        data: {
+            labels: trendLabels,
+            datasets: [
+                {
+                    label: 'Revenue',
+                    data: trendRevenue,
+                    backgroundColor: 'rgba(13, 99, 27, 0.8)',
+                    borderRadius: 4,
+                    barPercentage: 0.6,
+                    categoryPercentage: 0.8
+                },
+                {
+                    label: 'Expenses',
+                    data: trendExpenses,
+                    backgroundColor: 'rgba(186, 26, 26, 0.8)',
+                    borderRadius: 4,
+                    barPercentage: 0.6,
+                    categoryPercentage: 0.8
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'top',
+                    labels: {
+                        color: '#3d5260',
+                        font: { size: 11, family: 'Public Sans' },
+                        usePointStyle: true,
+                    }
+                },
+                tooltip: {
+                    backgroundColor: '#ffffff',
+                    borderColor: '#daedf7',
+                    borderWidth: 1,
+                    titleColor: '#001f2a',
+                    bodyColor: '#3d5260',
+                    padding: 10,
+                    callbacks: {
+                        label: ctx => ` ${ctx.dataset.label}: ₱${ctx.parsed.y.toLocaleString()}`
+                    }
+                }
+            },
+            scales: {
+                x: {
+                    grid: { display: false },
+                    ticks: { color: '#3d5260', font: { size: 11 } }
+                },
+                y: {
+                    grid: { color: 'rgba(0,31,42,0.05)' },
+                    ticks: {
+                        color: '#3d5260',
+                        font: { size: 11 },
+                        callback: v => '₱' + (v / 1000) + 'k'
                     },
                     beginAtZero: true
                 }

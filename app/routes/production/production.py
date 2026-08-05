@@ -25,7 +25,7 @@ from datetime import date, datetime
 from decimal import Decimal, InvalidOperation
 
 from app import db
-from app.models import Farm, ProductionRecord, Expense, UserRole, ExpenseCategory
+from app.models import Farm, ProductionRecord, Expense, UserRole, ExpenseCategory, ExpenseFrequency, SalesRecord
 
 production_bp = Blueprint('production', __name__)
 
@@ -224,6 +224,20 @@ def log():
     if selected_farm_id and selected_farm_id in farm_ids:
         query = query.filter(ProductionRecord.farm_id == selected_farm_id)
 
+    # Date range filters
+    start_date_str = request.args.get('start_date')
+    end_date_str = request.args.get('end_date')
+    if start_date_str:
+        try:
+            query = query.filter(ProductionRecord.record_date >= datetime.strptime(start_date_str, '%Y-%m-%d').date())
+        except ValueError:
+            pass
+    if end_date_str:
+        try:
+            query = query.filter(ProductionRecord.record_date <= datetime.strptime(end_date_str, '%Y-%m-%d').date())
+        except ValueError:
+            pass
+
     records = query.order_by(ProductionRecord.record_date.desc()).limit(60).all()
 
     return render_template(
@@ -233,6 +247,8 @@ def log():
         farm_map=farm_map,
         records=records,
         selected_farm_id=selected_farm_id,
+        start_date_str=start_date_str,
+        end_date_str=end_date_str,
         today=date.today(),
     )
 
@@ -418,6 +434,19 @@ def expenses():
     if selected_farm_id and selected_farm_id in farm_ids:
         query = query.filter(Expense.farm_id == selected_farm_id)
 
+    start_date_str = request.args.get('start_date')
+    end_date_str = request.args.get('end_date')
+    if start_date_str:
+        try:
+            query = query.filter(Expense.expense_date >= datetime.strptime(start_date_str, '%Y-%m-%d').date())
+        except ValueError:
+            pass
+    if end_date_str:
+        try:
+            query = query.filter(Expense.expense_date <= datetime.strptime(end_date_str, '%Y-%m-%d').date())
+        except ValueError:
+            pass
+
     expense_records = query.order_by(Expense.expense_date.desc()).limit(60).all()
 
     return render_template(
@@ -427,8 +456,11 @@ def expenses():
         farm_map=farm_map,
         expenses=expense_records,
         selected_farm_id=selected_farm_id,
+        start_date_str=start_date_str,
+        end_date_str=end_date_str,
         categories=ExpenseCategory,
         today=date.today(),
+        ExpenseFrequency=ExpenseFrequency,
     )
 
 
@@ -475,11 +507,17 @@ def expense_add():
                 categories=ExpenseCategory, today=date.today(),
             )
 
+        frequency_str = request.form.get('frequency', 'one_time').strip().lower()
+        valid_frequencies = {e.value for e in ExpenseFrequency}
+        if frequency_str not in valid_frequencies:
+            frequency_str = 'one_time'
+
         expense = Expense(
             farm_id=farm_id,
             user_id=current_user.id,
             expense_date=expense_date,
             category=ExpenseCategory(category_str),
+            frequency=ExpenseFrequency(frequency_str),
             amount=amount,
             description=description or None,
         )
@@ -493,6 +531,7 @@ def expense_add():
         title='Log Expense', action='add',
         farms=farms, form_data={'expense_date': date.today().isoformat()},
         categories=ExpenseCategory, today=date.today(),
+        ExpenseFrequency=ExpenseFrequency,
     )
 
 
@@ -508,12 +547,16 @@ def expense_edit(expense_id: int):
 
     if request.method == 'POST':
         category_str = request.form.get('category', '').strip().lower()
+        frequency_str = request.form.get('frequency', 'one_time').strip().lower()
         amount       = _safe_decimal(request.form.get('amount'))
         description  = request.form.get('description', '').strip()
 
         errors = []
+        valid_frequencies = {e.value for e in ExpenseFrequency}
         if category_str not in valid_categories:
             errors.append('Please select a valid expense category.')
+        if frequency_str not in valid_frequencies:
+            frequency_str = 'one_time'
         if amount <= 0:
             errors.append('Amount must be greater than zero.')
 
@@ -525,9 +568,11 @@ def expense_edit(expense_id: int):
                 title='Edit Expense', action='edit',
                 farms=farms, expense=expense, form_data=request.form,
                 categories=ExpenseCategory, today=date.today(),
+                ExpenseFrequency=ExpenseFrequency,
             )
 
         expense.category    = ExpenseCategory(category_str)
+        expense.frequency   = ExpenseFrequency(frequency_str)
         expense.amount      = amount
         expense.description = description or None
         db.session.commit()
@@ -540,6 +585,7 @@ def expense_edit(expense_id: int):
         farms=farms, expense=expense, form_data={},
         farm_map={f.id: f.name for f in farms},
         categories=ExpenseCategory, today=date.today(),
+        ExpenseFrequency=ExpenseFrequency,
     )
 
 
@@ -609,4 +655,50 @@ def quick_log():
             'Visit the Production Log to edit it.',
             'error'
         )
+    return redirect(url_for('dashboard.farmer'))
+
+# ════════════════════════════════════════════════════════════════════════════
+# SALES LOG
+# ════════════════════════════════════════════════════════════════════════════
+
+@production_bp.route('/sales/add', methods=['POST'])
+@login_required
+def sales_add():
+    """Log a sale quickly from dashboard."""
+    _require_farmer()
+    farms = _get_my_farms()
+    farm_ids = [f.id for f in farms]
+
+    farm_id        = _safe_int(request.form.get('farm_id'))
+    sale_date      = _parse_date(request.form.get('sale_date'))
+    quantity_sold  = _safe_int(request.form.get('quantity_sold'))
+    price_per_egg  = _safe_decimal(request.form.get('price_per_egg'))
+    buyer_name     = request.form.get('buyer_name', '').strip()
+    notes          = request.form.get('notes', '').strip()
+
+    if farm_id not in farm_ids:
+        flash('Invalid farm selected.', 'error')
+        return redirect(url_for('dashboard.farmer'))
+    if not sale_date or sale_date > date.today():
+        flash('Invalid sale date.', 'error')
+        return redirect(url_for('dashboard.farmer'))
+    if quantity_sold <= 0 or price_per_egg <= 0:
+        flash('Quantity and price must be greater than zero.', 'error')
+        return redirect(url_for('dashboard.farmer'))
+
+    total_revenue = Decimal(quantity_sold) * price_per_egg
+
+    sale = SalesRecord(
+        farm_id=farm_id,
+        user_id=current_user.id,
+        sale_date=sale_date,
+        quantity_sold=quantity_sold,
+        price_per_egg=price_per_egg,
+        total_revenue=total_revenue,
+        buyer_name=buyer_name or None,
+        notes=notes or None,
+    )
+    db.session.add(sale)
+    db.session.commit()
+    flash('Sale logged successfully.', 'success')
     return redirect(url_for('dashboard.farmer'))

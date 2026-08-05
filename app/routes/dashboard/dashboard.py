@@ -1,10 +1,58 @@
 from flask import Blueprint, render_template, redirect, url_for, flash, request
 from flask_login import login_required, current_user
-from app.models import UserRole, Farm, ProductionRecord, Expense
+from app.models import UserRole, Farm, ProductionRecord, Expense, SalesRecord, ExpenseFrequency
 from datetime import date, timedelta
 from sqlalchemy import func
+from app import db
+from decimal import Decimal
+from calendar import monthrange
 
 dashboard_bp = Blueprint('dashboard', __name__)
+
+def _calculate_expenses(farm_ids, start_date, end_date):
+    """Calculate total expenses considering frequency."""
+    if not farm_ids: return 0.0
+    expenses = Expense.query.filter(
+        Expense.farm_id.in_(farm_ids),
+        Expense.expense_date <= end_date,
+        db.or_(Expense.end_date.is_(None), Expense.end_date >= start_date)
+    ).all()
+    
+    total = 0.0
+    days_in_period = (end_date - start_date).days + 1
+    
+    for exp in expenses:
+        # Determine active period for this expense
+        active_start = max(exp.expense_date, start_date)
+        active_end = min(exp.end_date, end_date) if exp.end_date else end_date
+        if active_start > active_end:
+            continue
+            
+        active_days = (active_end - active_start).days + 1
+        amount = float(exp.amount)
+        
+        if exp.frequency.value == 'one_time':
+            if start_date <= exp.expense_date <= end_date:
+                total += amount
+        elif exp.frequency.value == 'daily':
+            total += amount * active_days
+        elif exp.frequency.value == 'weekly':
+            total += amount * (active_days / 7.0)
+        elif exp.frequency.value == 'monthly':
+            # Simplified: full month amount if it overlaps
+            total += amount * (active_days / 30.0)
+            
+    return total
+
+def _calculate_revenue(farm_ids, start_date, end_date):
+    """Calculate revenue from SalesRecord."""
+    if not farm_ids: return 0.0
+    result = db.session.query(func.sum(SalesRecord.total_revenue)).filter(
+        SalesRecord.farm_id.in_(farm_ids),
+        SalesRecord.sale_date >= start_date,
+        SalesRecord.sale_date <= end_date,
+    ).scalar()
+    return float(result or 0.0)
 
 
 def _build_market_intelligence(recent_records, monthly_expenses, farm_count, today):
@@ -38,7 +86,51 @@ def _build_market_intelligence(recent_records, monthly_expenses, farm_count, tod
     season_factor = seasonal_factors.get(today.month, 1.0)
     demand_forecast = round(avg_daily_eggs * season_factor, 1)
 
-    recommended_price = round(max(avg_selling_price * 1.06, base_cost_per_egg * 1.7, 7.2), 2)
+    # Calculate base recommended price for Medium White (Base Cost + 20% margin)
+    target_margin = 1.20
+    medium_white_base = round(max(avg_selling_price * 1.06, base_cost_per_egg * target_margin, 7.2), 2)
+    
+    # Build pricing matrix based on multipliers
+    size_multipliers = {
+        'small': 0.90,
+        'medium': 1.00,
+        'large': 1.10,
+        'extra_large': 1.20,
+        'jumbo': 1.30
+    }
+    color_multiplier = {'white': 1.00, 'brown': 1.05}
+
+    pricing_matrix = {}
+    for size, s_mult in size_multipliers.items():
+        pricing_matrix[size] = {}
+        for color, c_mult in color_multiplier.items():
+            pricing_matrix[size][color] = round(medium_white_base * s_mult * c_mult, 2)
+
+    from app.models import Product, ProductUnit
+    
+    # In dashboard logic, we fallback to current_user if available, else first record user_id for test_logic script
+    try:
+        from flask_login import current_user
+        u_id = current_user.id
+    except:
+        u_id = records[0].user_id if records else 1
+    farmer_products = Product.query.filter_by(farmer_id=u_id, is_available=True).all()
+    selling_prices = {}
+    for p in farmer_products:
+        if p.size and p.variety:
+            # Convert to per-egg price if listed as a tray (30 pieces), but only if price > 30 
+            # to handle cases where farmers enter the per-piece price while selecting TRAY.
+            raw_price = float(p.price)
+            if p.unit == ProductUnit.TRAY and raw_price > 30:
+                price_per_egg = raw_price / 30
+            else:
+                price_per_egg = raw_price
+                
+            if p.size.value not in selling_prices:
+                selling_prices[p.size.value] = {}
+            selling_prices[p.size.value][p.variety.value] = round(price_per_egg, 2)
+
+    recommended_price = pricing_matrix['medium']['white'] # Keep for backward compatibility or general reference
     projected_eggs = round(avg_daily_eggs * 7 * season_factor, 0)
     estimated_revenue = round(projected_eggs * recommended_price, 2)
     estimated_cost = round((projected_eggs * max(base_cost_per_egg, 1.5)) + (monthly_expenses / 4), 2)
@@ -82,6 +174,8 @@ def _build_market_intelligence(recent_records, monthly_expenses, farm_count, tod
         'sell_window': sell_window,
         'guidance': guidance,
         'recommended_price': recommended_price,
+        'pricing_matrix': pricing_matrix,
+        'selling_prices': selling_prices,
         'projected_profit': projected_profit,
         'demand_forecast': demand_forecast,
         'demand_signal': demand_signal,
@@ -155,16 +249,7 @@ def farmer():
         eggs_this_month = result or 0
 
     # ── KPI: Total expenses this month ───────────────────────────────────────
-    expenses_this_month = 0
-    if farm_ids:
-        result = Expense.query.with_entities(
-            func.sum(Expense.amount)
-        ).filter(
-            Expense.farm_id.in_(farm_ids),
-            Expense.expense_date >= month_start,
-            Expense.expense_date <= today,
-        ).scalar()
-        expenses_this_month = float(result or 0)
+    expenses_this_month = _calculate_expenses(farm_ids, month_start, today)
 
     # ── Chart: 7-day daily egg production ────────────────────────────────────
     chart_labels = []
@@ -199,6 +284,38 @@ def farmer():
         today,
     )
 
+    # ── KPI: Total Revenue & Profit ──────────────────────────────────────────
+    revenue_this_month = _calculate_revenue(farm_ids, month_start, today)
+            
+    profit_this_month = revenue_this_month - expenses_this_month
+
+    # ── 6-month trend (revenue + expenses per month) ───────────────────────
+    trend_labels   = []
+    trend_revenue  = []
+    trend_expenses = []
+
+    for i in range(5, -1, -1):
+        # Walk back i months from the selected month
+        ref = today.replace(day=1)
+        m = ref.month - i
+        y = ref.year
+        while m <= 0:
+            m += 12
+            y -= 1
+            
+        _, last_day = monthrange(y, m)
+        t_start = date(y, m, 1)
+        t_end = date(y, m, last_day)
+        
+        label = date(y, m, 1).strftime('%b')
+        trend_labels.append(label)
+
+        rev = _calculate_revenue(farm_ids, t_start, t_end)
+        exp = _calculate_expenses(farm_ids, t_start, t_end)
+
+        trend_revenue.append(rev)
+        trend_expenses.append(exp)
+
     return render_template(
         'dashboard/farmer_dashboard.html',
         title='Farmer Dashboard',
@@ -211,6 +328,11 @@ def farmer():
         recent_records=recent_records,
         farm_map=farm_map,
         market_intelligence=market_intelligence,
+        revenue_this_month=revenue_this_month,
+        profit_this_month=profit_this_month,
+        trend_labels=trend_labels,
+        trend_revenue=trend_revenue,
+        trend_expenses=trend_expenses,
         today=today,
     )
 

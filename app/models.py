@@ -38,6 +38,12 @@ class ExpenseCategory(str, enum.Enum):
     MEDICINE   = 'medicine'
     OTHER      = 'other'
 
+class ExpenseFrequency(str, enum.Enum):
+    ONE_TIME = 'one_time'
+    DAILY    = 'daily'
+    WEEKLY   = 'weekly'
+    MONTHLY  = 'monthly'
+
 
 # ─────────────────────────────────────────
 # TABLE 1: users
@@ -140,6 +146,8 @@ class Farm(db.Model):
                                           foreign_keys='ProductionRecord.farm_id')
     expenses           = db.relationship('Expense', backref='farm', lazy='dynamic',
                                           foreign_keys='Expense.farm_id')
+    sales_records      = db.relationship('SalesRecord', backref='farm', lazy='dynamic',
+                                          foreign_keys='SalesRecord.farm_id')
 
     def __repr__(self):
         return f'<Farm {self.name} (owner_id={self.farmer_id})>'
@@ -210,6 +218,12 @@ class Expense(db.Model):
                       default=ExpenseCategory.OTHER,
                       index=True
                   )
+    frequency    = db.Column(
+                      db.Enum(ExpenseFrequency, values_callable=lambda enum_cls: [e.value for e in enum_cls]),
+                      nullable=False,
+                      default=ExpenseFrequency.ONE_TIME
+                  )
+    end_date     = db.Column(db.Date, nullable=True) # for recurring expenses
     amount       = db.Column(db.Numeric(10, 2), nullable=False)   # PHP
     description  = db.Column(db.String(255))
 
@@ -221,6 +235,35 @@ class Expense(db.Model):
 
 
 # ─────────────────────────────────────────
+# TABLE 5: sales_records
+# ─────────────────────────────────────────
+
+class SalesRecord(db.Model):
+    """
+    Log of actual eggs sold. Separated from ProductionRecord.
+    Indexed: farm_id, sale_date
+    """
+    __tablename__ = 'sales_records'
+
+    id             = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    farm_id        = db.Column(db.Integer, db.ForeignKey('farms.id'), nullable=False, index=True)
+    user_id        = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False, index=True)
+
+    sale_date      = db.Column(db.Date, nullable=False, index=True)
+    quantity_sold  = db.Column(db.Integer, nullable=False)
+    price_per_egg  = db.Column(db.Numeric(10, 2), nullable=False)
+    total_revenue  = db.Column(db.Numeric(12, 2), nullable=False)
+    buyer_name     = db.Column(db.String(255), nullable=True)
+    notes          = db.Column(db.Text)
+
+    created_at     = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+    updated_at     = db.Column(db.DateTime, nullable=False, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    def __repr__(self):
+        return f'<SalesRecord farm={self.farm_id} sold={self.quantity_sold} for ₱{self.total_revenue}>'
+
+
+# ─────────────────────────────────────────
 # MARKETPLACE ENUMS
 # ─────────────────────────────────────────
 
@@ -228,6 +271,8 @@ class ProductSize(str, enum.Enum):
     SMALL  = 'small'
     MEDIUM = 'medium'
     LARGE  = 'large'
+    EXTRA_LARGE = 'extra_large'
+    JUMBO = 'jumbo'
 
 class ProductVariety(str, enum.Enum):
     BROWN = 'brown'

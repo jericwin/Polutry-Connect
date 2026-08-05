@@ -21,17 +21,36 @@
     <p>Your last 60 production entries. Each record is one farm per day.</p>
 </div>
 
-{# Farm filter chips #}
 {% if farms %}
-<div class="filter-chips">
-    <a href="{{ url_for('production.log') }}"
-       class="filter-chip {% if not selected_farm_id %}active{% endif %}">All Farms</a>
-    {% for farm in farms %}
-    <a href="{{ url_for('production.log') }}?farm_id={{ farm.id }}"
-       class="filter-chip {% if selected_farm_id == farm.id %}active{% endif %}">
-        {{ farm.name }}
-    </a>
-    {% endfor %}
+<div style="display:flex; flex-wrap:wrap; gap:1.5rem; justify-content:space-between; align-items:center; margin-bottom:1.5rem;">
+    <div class="filter-chips" style="margin-bottom:0;">
+        <a href="{{ url_for('production.log') }}"
+           class="filter-chip {% if not selected_farm_id %}active{% endif %}">All Farms</a>
+        {% for farm in farms %}
+        <a href="{{ url_for('production.log') }}?farm_id={{ farm.id }}{% if start_date_str %}&start_date={{ start_date_str }}{% endif %}{% if end_date_str %}&end_date={{ end_date_str }}{% endif %}"
+           class="filter-chip {% if selected_farm_id == farm.id %}active{% endif %}">
+            {{ farm.name }}
+        </a>
+        {% endfor %}
+    </div>
+
+    <form method="GET" action="{{ url_for('production.log') }}" style="display:flex; gap:0.75rem; align-items:center; background:var(--surface); padding:0.5rem 1rem; border-radius:1rem; border:1px solid rgba(0,31,42,0.1);">
+        {% if selected_farm_id %}
+            <input type="hidden" name="farm_id" value="{{ selected_farm_id }}">
+        {% endif %}
+        <div style="display:flex; align-items:center; gap:0.5rem;">
+            <label for="start_date" style="font-size:0.85rem; font-weight:600; color:var(--on-surface-variant);">From</label>
+            <input type="date" name="start_date" id="start_date" value="{{ start_date_str or '' }}" style="padding:0.3rem 0.5rem; border:1px solid #daedf7; border-radius:0.5rem; outline:none; font-family:'Public Sans'; font-size:0.85rem;">
+        </div>
+        <div style="display:flex; align-items:center; gap:0.5rem;">
+            <label for="end_date" style="font-size:0.85rem; font-weight:600; color:var(--on-surface-variant);">To</label>
+            <input type="date" name="end_date" id="end_date" value="{{ end_date_str or '' }}" style="padding:0.3rem 0.5rem; border:1px solid #daedf7; border-radius:0.5rem; outline:none; font-family:'Public Sans'; font-size:0.85rem;">
+        </div>
+        <button type="submit" class="btn btn-secondary" style="padding:0.3rem 0.75rem; font-size:0.85rem; border-radius:0.5rem;">Filter</button>
+        {% if start_date_str or end_date_str %}
+            <a href="{{ url_for('production.log') }}{% if selected_farm_id %}?farm_id={{ selected_farm_id }}{% endif %}" class="btn" style="padding:0.3rem 0.75rem; font-size:0.85rem; color:var(--text-muted);">Clear</a>
+        {% endif %}
+    </form>
 </div>
 {% endif %}
 

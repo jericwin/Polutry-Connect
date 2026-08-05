@@ -6,34 +6,45 @@
 
 {% block topbar_actions %}
 {# Month navigator #}
-<div class="month-nav">
-    <a href="{{ prev_link }}" class="month-nav__btn" title="Previous month">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
-             stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-            <polyline points="15 18 9 12 15 6"/>
-        </svg>
+<div style="display: flex; gap: 1rem; align-items: center;">
+    <a href="{{ url_for('analytics.sales_report', format='pdf', start_date=today.replace(day=1).strftime('%Y-%m-%d'), end_date=today.strftime('%Y-%m-%d')) }}" class="btn btn-secondary btn-sm" target="_blank">
+        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 4px;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+        Export PDF
     </a>
-    <span class="month-nav__label">{{ month_label }}</span>
-    {% if not is_current_month %}
-    <a href="{{ next_link }}" class="month-nav__btn" title="Next month">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
-             stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-            <polyline points="9 18 15 12 9 6"/>
-        </svg>
+    <a href="{{ url_for('analytics.sales_report', format='excel', start_date=today.replace(day=1).strftime('%Y-%m-%d'), end_date=today.strftime('%Y-%m-%d')) }}" class="btn btn-secondary btn-sm">
+        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 4px;"><path d="M14 2H6a2 2 0 0 0-2 2v16c0 1.1.9 2 2 2h12a2 2 0 0 0 2-2V8l-6-6z"/><path d="M14 3v5h5M16 13H8M16 17H8M10 9H8"/></svg>
+        Export Excel
     </a>
-    {% else %}
-    <span class="month-nav__btn month-nav__btn--disabled">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
-             stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-            <polyline points="9 18 15 12 9 6"/>
-        </svg>
-    </span>
-    {% endif %}
+
+    <div class="month-nav">
+        <a href="{{ prev_link }}" class="month-nav__btn" title="Previous month">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
+                 stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="15 18 9 12 15 6"/>
+            </svg>
+        </a>
+        <span class="month-nav__label">{{ month_label }}</span>
+        {% if not is_current_month %}
+        <a href="{{ next_link }}" class="month-nav__btn" title="Next month">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
+                 stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="9 18 15 12 9 6"/>
+            </svg>
+        </a>
+        {% else %}
+        <span class="month-nav__btn month-nav__btn--disabled">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
+                 stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="9 18 15 12 9 6"/>
+            </svg>
+        </span>
+        {% endif %}
+    </div>
 </div>
 {% endblock %}
 
 {% block content %}
-
+<div class="animated-bg-container" style="margin: -2rem; padding: 2rem; border-radius: 1.5rem; overflow: hidden;">
 {% if not farms %}
 {# ── No farms yet ── #}
 <div class="empty-page">
@@ -119,21 +130,67 @@
     </div>
 </div>
 
-{# ── Price Recommendation Engine ── #}
-<div class="price-engine-card">
-    <div class="price-engine__header">
-        <div>
-            <div class="price-engine__title">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
-                     stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-                     style="width:18px;height:18px;display:inline;vertical-align:text-bottom;margin-right:6px;">
-                    <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
-                </svg>
-                Price Recommendation — {{ month_label }}
-            </div>
-            <div class="price-engine__sub">Based on your actual costs and {{ margin_pct }}% target profit margin</div>
+{# ── Farm Health & Efficiency Strip ── #}
+<h4 style="margin: 1.5rem 0 1rem; color: #2c3e50; font-size: 1.25rem;">Flock Health & Efficiency</h4>
+<div class="kpi-grid kpi-grid--analytics" style="margin-bottom: 2rem;">
+
+    <div class="kpi-card" data-accent="green">
+        <div class="kpi-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
+                 stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
+            </svg>
         </div>
+        <div class="kpi-label">Feed Consumed</div>
+        <div class="kpi-value">{{ "{:,.1f}".format(monthly_feed_kg) }} kg</div>
+        <div class="kpi-sub">Total this month</div>
     </div>
+
+    <div class="kpi-card {% if feed_efficiency > 150 %}kpi-card--loss{% elif feed_efficiency > 0 %}kpi-card--profit{% endif %}">
+        <div class="kpi-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
+                 stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"/><path d="M16 12l-4-4-4 4M12 8v8"/>
+            </svg>
+        </div>
+        <div class="kpi-label">Feed Efficiency</div>
+        <div class="kpi-value {% if feed_efficiency > 150 %}kpi-value--loss{% endif %}">
+            {{ "{:,.1f}".format(feed_efficiency) }} g
+        </div>
+        <div class="kpi-sub">Grams of feed per egg</div>
+    </div>
+
+    <div class="kpi-card" data-accent="red">
+        <div class="kpi-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
+                 stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 2v20"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+                <path d="M2 2l20 20"/>
+            </svg>
+        </div>
+        <div class="kpi-label">Mortality</div>
+        <div class="kpi-value {% if monthly_mortality > 0 %}kpi-value--loss{% endif %}">{{ "{:,}".format(monthly_mortality) }}</div>
+        <div class="kpi-sub">Birds lost this month</div>
+    </div>
+</div>
+
+{# ── Price Recommendation Engine ── #}
+    <!-- PROFITABILITY GUIDANCE CARD -->
+    <div class="insight-card insight-card-primary animate-fade-in delay-2" style="display: flex; flex-direction: column; gap: 1rem; padding: 1.5rem; margin-bottom:2rem;">
+        <div class="insight-card-header" style="border-bottom: none; padding-bottom: 0;">
+            <div class="insight-card-title-row">
+                <div class="insight-card-icon" style="background: linear-gradient(135deg, #0d631b, #2e7d32); color: white;">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M12 2v20"/><path d="M17 6a5 5 0 00-10 0"/><path d="M7 18a5 5 0 0110 0"/>
+                    </svg>
+                </div>
+                <div>
+                    <div class="insight-card-title" style="font-size: 1.1rem;">Price Recommendation</div>
+                    <div class="insight-card-sub">Based on your actual costs and {{ margin_pct }}% target margin</div>
+                </div>
+            </div>
+            <span class="insight-pill" style="background: rgba(13, 99, 27, 0.1); color: #0d631b; border: 1px solid rgba(13,99,27,0.2);">Data-Driven</span>
+        </div>
 
     {% if breakeven_price %}
     <div class="price-engine__grid">
@@ -143,10 +200,44 @@
             <div class="price-pill__hint">per egg to cover all costs</div>
         </div>
 
-        <div class="price-pill price-pill--recommended">
-            <div class="price-pill__label">Recommended Price</div>
-            <div class="price-pill__val">₱{{ "{:.2f}".format(recommended_price) }}</div>
-            <div class="price-pill__hint">{{ margin_pct }}% margin above break-even</div>
+        <div class="metric" style="background: rgba(255,255,255,0.6); border: 1px solid rgba(13,99,27,0.1); border-radius: 1rem; padding: 1rem; grid-column: span 2;">
+            <span class="metric-label" style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 0.75rem;">
+                <span style="font-weight: 700; color: var(--on-surface);">Suggested Price Matrix</span>
+                <span class="chart-mini-note" style="background: rgba(13,99,27,0.08); padding: 0.2rem 0.6rem; border-radius: 2rem; color: #0d631b; font-weight: 600;">Base Cost + {{ margin_pct }}% Margin</span>
+            </span>
+            <div style="overflow-x: auto;">
+                <table style="width: 100%; border-collapse: separate; border-spacing: 0; font-size: 0.85rem; text-align: center;">
+                    <thead>
+                        <tr>
+                            <th style="padding: 10px 8px; color: var(--on-surface-variant); font-weight: 600; text-align: left; border-bottom: 2px solid rgba(13,99,27,0.1);">Size</th>
+                            <th style="padding: 10px 8px; color: var(--on-surface-variant); font-weight: 600; border-bottom: 2px solid rgba(13,99,27,0.1);" colspan="2">White<br><span style="font-size:0.7rem; font-weight:400;">(Rec / Yours)</span></th>
+                            <th style="padding: 10px 8px; color: var(--on-surface-variant); font-weight: 600; border-bottom: 2px solid rgba(13,99,27,0.1);" colspan="2">Brown<br><span style="font-size:0.7rem; font-weight:400;">(Rec / Yours)</span></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for size_key, size_label in [('small', 'Small'), ('medium', 'Medium'), ('large', 'Large'), ('extra_large', 'XL'), ('jumbo', 'Jumbo')] %}
+                        <tr style="transition: background-color 0.2s; {% if size_key == 'medium' %}background-color: rgba(13,99,27,0.05);{% endif %}">
+                            <td style="padding: 10px 8px; text-align: left; font-weight: {% if size_key == 'medium' %}700; color:#0d631b;{% else %}500;{% endif %} border-bottom: 1px solid rgba(0,0,0,0.05);">
+                                {{ size_label }}
+                                {% if size_key == 'medium' %}<span style="font-size: 0.65rem; display:block; line-height:1; margin-top:2px; opacity:0.7;">Base Size</span>{% endif %}
+                            </td>
+                            <td style="padding: 10px 8px; font-weight: 700; color: {% if size_key == 'medium' %}#0d631b{% else %}var(--on-surface){% endif %}; border-bottom: 1px solid rgba(0,0,0,0.05);">₱{{ "{:.2f}".format(pricing_matrix[size_key].white) }}</td>
+                            <td style="padding: 10px 8px; color: var(--on-surface-variant); font-size: 0.8rem; border-bottom: 1px solid rgba(0,0,0,0.05);">
+                                {% if selling_prices.get(size_key, {}).get('white') %}
+                                    ₱{{ "{:.2f}".format(selling_prices[size_key]['white']) }}
+                                {% else %}—{% endif %}
+                            </td>
+                            <td style="padding: 10px 8px; font-weight: 700; color: {% if size_key == 'medium' %}#0d631b{% else %}var(--on-surface){% endif %}; border-bottom: 1px solid rgba(0,0,0,0.05);">₱{{ "{:.2f}".format(pricing_matrix[size_key].brown) }}</td>
+                            <td style="padding: 10px 8px; color: var(--on-surface-variant); font-size: 0.8rem; border-bottom: 1px solid rgba(0,0,0,0.05);">
+                                {% if selling_prices.get(size_key, {}).get('brown') %}
+                                    ₱{{ "{:.2f}".format(selling_prices[size_key]['brown']) }}
+                                {% else %}—{% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
         </div>
 
         {% if current_avg_price %}
@@ -248,6 +339,7 @@
 
 {% endif %} {# /if farms #}
 
+</div> <!-- /.animated-bg-container -->
 {% endblock %}
 
 {% block extra_js %}

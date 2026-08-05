@@ -14,6 +14,15 @@
 
 {% block content %}
 
+<div style="display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap;">
+    <a href="{{ url_for('marketplace.farmer_orders', status='all') }}" class="btn {% if current_status == 'all' or not current_status %}btn-primary{% else %}btn-secondary{% endif %} btn-sm">All</a>
+    <a href="{{ url_for('marketplace.farmer_orders', status='pending') }}" class="btn {% if current_status == 'pending' %}btn-primary{% else %}btn-secondary{% endif %} btn-sm">Pending</a>
+    <a href="{{ url_for('marketplace.farmer_orders', status='confirmed') }}" class="btn {% if current_status == 'confirmed' %}btn-primary{% else %}btn-secondary{% endif %} btn-sm">Confirmed</a>
+    <a href="{{ url_for('marketplace.farmer_orders', status='shipped') }}" class="btn {% if current_status == 'shipped' %}btn-primary{% else %}btn-secondary{% endif %} btn-sm">Shipped</a>
+    <a href="{{ url_for('marketplace.farmer_orders', status='delivered') }}" class="btn {% if current_status == 'delivered' %}btn-primary{% else %}btn-secondary{% endif %} btn-sm">Delivered</a>
+    <a href="{{ url_for('marketplace.farmer_orders', status='cancelled') }}" class="btn {% if current_status == 'cancelled' %}btn-primary{% else %}btn-secondary{% endif %} btn-sm">Cancelled</a>
+</div>
+
 {% if orders %}
 <div class="fo-list">
     {% for order in orders %}

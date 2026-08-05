@@ -28,9 +28,10 @@ from flask_login import login_required, current_user
 from decimal import Decimal, InvalidOperation
 from datetime import datetime
 
+from sqlalchemy import func
 from app import db
 from app.models import (
-    Product, Order, OrderItem, Farm, User,
+    Product, Order, OrderItem, Farm, User, SalesRecord,
     ProductSize, ProductVariety, ProductUnit, OrderStatus, UserRole, Notification
 )
 
@@ -71,6 +72,14 @@ def _get_own_product_or_404(product_id: int) -> Product:
     if product.farmer_id != current_user.id:
         abort(403)
     return product
+
+def _get_available_stock(product: Product) -> int:
+    """Calculates stock available for purchase (stock minus pending/confirmed orders)."""
+    pending_qty = db.session.query(func.sum(OrderItem.quantity)).join(Order).filter(
+        OrderItem.product_id == product.id,
+        Order.status.in_([OrderStatus.PENDING, OrderStatus.CONFIRMED])
+    ).scalar() or 0
+    return max(0, product.stock - pending_qty)
 
 
 def _get_cart():
@@ -225,10 +234,12 @@ def cart_add():
         flash('Product not available.', 'error')
         return redirect(url_for('marketplace.index'))
 
-    if quantity > product.stock:
+    available_stock = _get_available_stock(product)
+    
+    if quantity > available_stock:
         if request.headers.get('X-Requested-With') == 'XMLHttpRequest' or request.is_json:
-            return {'status': 'error', 'message': f'Only {product.stock} available in stock.'}
-        flash(f'Only {product.stock} available in stock.', 'error')
+            return {'status': 'error', 'message': f'Only {available_stock} available in stock.'}
+        flash(f'Only {available_stock} available in stock.', 'error')
         return redirect(url_for('marketplace.product_detail', product_id=product_id))
 
     cart = _get_cart()
@@ -236,10 +247,10 @@ def cart_add():
     current_qty = cart.get(pid_str, 0)
     new_qty = current_qty + quantity
 
-    if new_qty > product.stock:
+    if new_qty > available_stock:
         if request.headers.get('X-Requested-With') == 'XMLHttpRequest' or request.is_json:
-            return {'status': 'error', 'message': f'Cannot add more. Only {product.stock} available (you have {current_qty} in cart).'}
-        flash(f'Cannot add more. Only {product.stock} available (you have {current_qty} in cart).', 'error')
+            return {'status': 'error', 'message': f'Cannot add more. Only {available_stock} available (you have {current_qty} in cart).'}
+        flash(f'Cannot add more. Only {available_stock} available (you have {current_qty} in cart).', 'error')
         return redirect(url_for('marketplace.product_detail', product_id=product_id))
 
     cart[pid_str] = new_qty
@@ -279,11 +290,13 @@ def cart_update():
         return redirect(url_for('marketplace.cart'))
 
     product = Product.query.get(product_id)
-    if product and quantity > product.stock:
-        if request.headers.get('X-Requested-With') == 'XMLHttpRequest' or request.is_json:
-            return {'status': 'error', 'message': f'Only {product.stock} available.', 'cart_count': _get_cart_count()}
-        flash(f'Only {product.stock} available.', 'error')
-        return redirect(url_for('marketplace.cart'))
+    if product:
+        available_stock = _get_available_stock(product)
+        if quantity > available_stock:
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest' or request.is_json:
+                return {'status': 'error', 'message': f'Only {available_stock} available.', 'cart_count': _get_cart_count()}
+            flash(f'Only {available_stock} available.', 'error')
+            return redirect(url_for('marketplace.cart'))
 
     cart[pid_str] = quantity
     _save_cart(cart)
@@ -334,10 +347,11 @@ def checkout():
         if not product or not product.is_available:
             errors.append(f'"{pid_str}" is no longer available.')
             continue
-        if qty > product.stock:
-            errors.append(f'"{product.name}" only has {product.stock} in stock (you requested {qty}).')
-            cart_data[pid_str] = product.stock
-            qty = product.stock
+        available_stock = _get_available_stock(product)
+        if qty > available_stock:
+            errors.append(f'"{product.name}" only has {available_stock} available (you requested {qty}).')
+            cart_data[pid_str] = available_stock
+            qty = available_stock
         if qty <= 0:
             continue
 
@@ -404,7 +418,8 @@ def checkout():
             qty = item['quantity']
 
             # Final stock check
-            if product.stock < qty:
+            available_stock = _get_available_stock(product)
+            if available_stock < qty:
                 db.session.rollback()
                 flash(f'"{product.name}" stock changed. Please review your cart.', 'error')
                 return redirect(url_for('marketplace.cart'))
@@ -416,7 +431,7 @@ def checkout():
                 unit_price=product.price,
             )
             db.session.add(order_item)
-            product.stock -= qty
+            # DO NOT DEDUCT STOCK YET: product.stock -= qty
             farmer_ids.add(product.farmer_id)
 
         # Notify farmers of new order
@@ -676,6 +691,8 @@ def farmer_orders():
 
     # Find orders containing products from this farmer
     my_product_ids = [p.id for p in Product.query.filter_by(farmer_id=current_user.id).all()]
+    
+    current_status = request.args.get('status', 'all')
 
     if not my_product_ids:
         orders_list = []
@@ -684,15 +701,22 @@ def farmer_orders():
             OrderItem.product_id.in_(my_product_ids)
         ).distinct().all()
         order_ids = [oid[0] for oid in order_ids]
-        orders_list = Order.query.filter(
-            Order.id.in_(order_ids)
-        ).order_by(Order.created_at.desc()).all()
+        
+        query = Order.query.filter(Order.id.in_(order_ids))
+        
+        if current_status != 'all':
+            valid_statuses = {e.value for e in OrderStatus}
+            if current_status in valid_statuses:
+                query = query.filter(Order.status == current_status)
+                
+        orders_list = query.order_by(Order.created_at.desc()).all()
 
     return render_template(
         'marketplace/farmer_orders.html',
         title='Incoming Orders',
         orders=orders_list,
         my_product_ids=my_product_ids,
+        current_status=current_status,
     )
 
 
@@ -724,13 +748,50 @@ def update_order_status(order_id):
         flash('Cannot cancel a delivered order.', 'error')
         return redirect(url_for('marketplace.farmer_orders'))
 
-    # Restore stock if cancelling
-    if new_status == 'cancelled' and order.status.value != 'cancelled':
+    # Deduct stock ONLY when moving to shipped/delivered from an earlier state
+    old_status = order.status.value
+    if new_status in ['shipped', 'delivered'] and old_status not in ['shipped', 'delivered']:
+        for item in order.items:
+            if item.product_id in my_product_ids:
+                # Deduct inventory stock formally here!
+                item.product.stock -= item.quantity
+    
+    # Restore stock if moving back from shipped/delivered to cancelled/pending/confirmed
+    if new_status not in ['shipped', 'delivered'] and old_status in ['shipped', 'delivered']:
         for item in order.items:
             if item.product_id in my_product_ids:
                 item.product.stock += item.quantity
 
+    # Generate SalesRecord when order is DELIVERED for the first time
+    if new_status == 'delivered' and old_status != 'delivered':
+        for item in order.items:
+            if item.product_id in my_product_ids:
+                sales_record = SalesRecord(
+                    farm_id=item.product.farm_id,
+                    user_id=current_user.id,
+                    sale_date=datetime.utcnow().date(),
+                    quantity_sold=item.quantity,
+                    price_per_egg=item.unit_price,
+                    total_revenue=item.subtotal,
+                    buyer_name=order.buyer.full_name,
+                    notes=f"{item.product.name} (Order #{order.id})"
+                )
+                db.session.add(sales_record)
+
+    # Cancel order logic: SalesRecord should be removed if moving from delivered to cancelled.
+    if new_status == 'cancelled' and old_status == 'delivered':
+        for item in order.items:
+            if item.product_id in my_product_ids:
+                # Find matching auto-generated SalesRecord and delete it
+                rec = SalesRecord.query.filter_by(
+                    farm_id=item.product.farm_id,
+                    user_id=current_user.id,
+                    notes=f"{item.product.name} (Order #{order.id})"
+                ).first()
+                if rec:
+                    db.session.delete(rec)
+
     order.status = OrderStatus(new_status)
     db.session.commit()
-    flash(f'Order #{order.id} status updated to {order.status_label}.', 'success')
+    flash(f'Order #{order.id} status updated to {order.status_label}. Inventory adjusted.', 'success')
     return redirect(url_for('marketplace.farmer_orders'))
