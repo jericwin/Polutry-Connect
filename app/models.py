@@ -44,6 +44,30 @@ class ExpenseFrequency(str, enum.Enum):
     WEEKLY   = 'weekly'
     MONTHLY  = 'monthly'
 
+class ProductSize(str, enum.Enum):
+    SMALL  = 'small'
+    MEDIUM = 'medium'
+    LARGE  = 'large'
+    EXTRA_LARGE = 'extra_large'
+    JUMBO = 'jumbo'
+
+class ProductVariety(str, enum.Enum):
+    BROWN = 'brown'
+    WHITE = 'white'
+
+class ProductUnit(str, enum.Enum):
+    PIECE    = 'piece'
+    TRAY     = 'tray'
+    KILOGRAM = 'kilogram'
+    HEAD     = 'head'
+
+class OrderStatus(str, enum.Enum):
+    PENDING    = 'pending'
+    CONFIRMED  = 'confirmed'
+    SHIPPED    = 'shipped'
+    DELIVERED  = 'delivered'
+    CANCELLED  = 'cancelled'
+
 
 # ─────────────────────────────────────────
 # TABLE 1: users
@@ -170,6 +194,14 @@ class ProductionRecord(db.Model):
 
     record_date  = db.Column(db.Date, nullable=False, index=True)   # the date the data is FOR
     egg_count    = db.Column(db.Integer, nullable=False, default=0)  # total eggs collected
+    size         = db.Column(
+                       db.Enum(ProductSize, values_callable=lambda enum_cls: [e.value for e in enum_cls]),
+                       nullable=True
+                   )
+    variety      = db.Column(
+                       db.Enum(ProductVariety, values_callable=lambda enum_cls: [e.value for e in enum_cls]),
+                       nullable=True
+                   )
     feed_kg      = db.Column(db.Numeric(8, 2), default=0.00)         # feed consumed in kg
     feed_cost    = db.Column(db.Numeric(10, 2), default=0.00)        # cost of feed that day (PHP)
     egg_price    = db.Column(db.Numeric(10, 2), nullable=True)       # selling price per egg (PHP); None = not recorded
@@ -179,9 +211,9 @@ class ProductionRecord(db.Model):
     created_at   = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
     updated_at   = db.Column(db.DateTime, nullable=False, default=datetime.utcnow, onupdate=datetime.utcnow)
 
-    # Composite unique constraint: one record per farm per day
+    # Composite unique constraint: one record per farm per day per size per variety
     __table_args__ = (
-        db.UniqueConstraint('farm_id', 'record_date', name='uq_farm_record_date'),
+        db.UniqueConstraint('farm_id', 'record_date', 'size', 'variety', name='uq_farm_record_date_size_variety'),
     )
 
     @property
@@ -261,35 +293,6 @@ class SalesRecord(db.Model):
 
     def __repr__(self):
         return f'<SalesRecord farm={self.farm_id} sold={self.quantity_sold} for ₱{self.total_revenue}>'
-
-
-# ─────────────────────────────────────────
-# MARKETPLACE ENUMS
-# ─────────────────────────────────────────
-
-class ProductSize(str, enum.Enum):
-    SMALL  = 'small'
-    MEDIUM = 'medium'
-    LARGE  = 'large'
-    EXTRA_LARGE = 'extra_large'
-    JUMBO = 'jumbo'
-
-class ProductVariety(str, enum.Enum):
-    BROWN = 'brown'
-    WHITE = 'white'
-
-class ProductUnit(str, enum.Enum):
-    PIECE    = 'piece'
-    TRAY     = 'tray'
-    KILOGRAM = 'kilogram'
-    HEAD     = 'head'
-
-class OrderStatus(str, enum.Enum):
-    PENDING    = 'pending'
-    CONFIRMED  = 'confirmed'
-    SHIPPED    = 'shipped'
-    DELIVERED  = 'delivered'
-    CANCELLED  = 'cancelled'
 
 
 # ─────────────────────────────────────────

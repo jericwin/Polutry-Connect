@@ -485,3 +485,158 @@ a { text-decoration: none; color: inherit; }
         padding: 2rem 1.5rem;
     }
 }
+
+/* ── Egg Crack Animation Overlay ──────────────────────────────── */
+
+#egg-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: radial-gradient(circle at center, #173b1f 0%, #031206 100%);
+    backdrop-filter: blur(10px);
+    z-index: 9999;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+    cursor: none; /* Hide default cursor */
+    transition: opacity 1s ease-in-out, visibility 1s ease-in-out;
+}
+
+.egg-glow {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 400px;
+    height: 400px;
+    background: radial-gradient(circle, rgba(255, 235, 180, 0.15) 0%, transparent 65%);
+    z-index: 1;
+    pointer-events: none;
+    animation: glow-pulse 3s infinite alternate;
+}
+
+@keyframes glow-pulse {
+    0% { transform: translate(-50%, -50%) scale(0.9); opacity: 0.7; }
+    100% { transform: translate(-50%, -50%) scale(1.1); opacity: 1; }
+}
+
+#egg-overlay.fade-out {
+    opacity: 0;
+    visibility: hidden;
+}
+
+.overlay-text {
+    color: #f7e6b5;
+    text-shadow: 0 4px 15px rgba(247, 230, 181, 0.4);
+    font-family: var(--font-display);
+    font-size: 1.8rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 4px;
+    margin-top: 3rem;
+    z-index: 2;
+    animation: text-pulse 2s infinite;
+}
+
+@keyframes text-pulse {
+    0%, 100% { opacity: 0.8; transform: translateY(0); }
+    50%       { opacity: 1; transform: translateY(-3px); }
+}
+
+/* Hammer Styles */
+.hammer {
+    position: fixed;
+    width: 140px;
+    height: 140px;
+    pointer-events: none; /* Let clicks pass through */
+    z-index: 10000;
+    transform-origin: bottom right;
+    transition: transform 0.1s ease, filter 0.1s ease;
+    transform: translate(-15%, -85%) rotate(10deg);
+    filter: drop-shadow(0 15px 10px rgba(0,0,0,0.4));
+}
+
+.hammer.swing {
+    animation: hammer-swing 0.4s cubic-bezier(0.25, 1, 0.5, 1);
+}
+
+@keyframes hammer-swing {
+    0% { transform: translate(-15%, -85%) rotate(10deg); filter: drop-shadow(0 15px 10px rgba(0,0,0,0.4)); }
+    30% { transform: translate(-15%, -85%) rotate(-60deg) scale(1.1); filter: drop-shadow(0 25px 20px rgba(0,0,0,0.2)); }
+    100% { transform: translate(-15%, -85%) rotate(30deg); filter: drop-shadow(0 5px 5px rgba(0,0,0,0.6)); }
+}
+
+/* Egg Styles */
+#egg-overlay {
+    perspective: 1200px; /* Enable 3D space */
+}
+
+.egg {
+    width: 220px;
+    height: 290px;
+    cursor: pointer;
+    position: relative;
+    transform-style: preserve-3d;
+    transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), filter 0.4s;
+    z-index: 9999;
+}
+
+.egg:hover {
+    transform: scale(1.08) translateY(-10px) rotateY(18deg) rotateX(5deg);
+    filter: brightness(1.1) drop-shadow(0 20px 25px rgba(0,0,0,0.6));
+}
+
+.egg svg {
+    width: 100%;
+    height: 100%;
+    overflow: visible;
+}
+
+.crack-line, .crack-line-shadow, 
+.crack-line2, .crack-line2-shadow, 
+.crack-line3, .crack-line3-shadow {
+    transition: stroke-dashoffset 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+    stroke-linecap: round;
+}
+
+.egg.cracked {
+    animation: egg-shake 0.3s cubic-bezier(.36,.07,.19,.97) both;
+}
+
+.egg.cracked .crack-line, .egg.cracked .crack-line-shadow { stroke-dashoffset: 0; }
+.egg.cracked .crack-line2, .egg.cracked .crack-line2-shadow { stroke-dashoffset: 0; transition-delay: 0.15s; }
+.egg.cracked .crack-line3, .egg.cracked .crack-line3-shadow { stroke-dashoffset: 0; transition-delay: 0.25s; }
+
+.egg.shatter {
+    animation: shatter-egg 0.9s cubic-bezier(0.55, 0.085, 0.68, 0.53) forwards;
+}
+
+@keyframes egg-shake {
+    10%, 90% { transform: translate3d(-2px, 0, 0) rotate(1deg); }
+    20%, 80% { transform: translate3d(4px, 0, 0) rotate(-2deg); }
+    30%, 50%, 70% { transform: translate3d(-8px, 0, 0) rotate(3deg); }
+    40%, 60% { transform: translate3d(8px, 0, 0) rotate(-3deg); }
+}
+
+@keyframes shatter-egg {
+    0% {
+        transform: scale(1) translateZ(0);
+        opacity: 1;
+        filter: brightness(1);
+    }
+    40% {
+        transform: scale(1.2) translateZ(100px) rotateX(-20deg) rotateY(20deg);
+        opacity: 0.9;
+        filter: brightness(1.2);
+    }
+    100% {
+        transform: scale(1.8) translateZ(300px) translateY(150px) rotateX(-60deg) rotateY(60deg);
+        opacity: 0;
+        filter: brightness(0.5);
+    }
+}
+

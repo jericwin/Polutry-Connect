@@ -62,6 +62,7 @@
                 <th>Date</th>
                 <th>Farm</th>
                 <th>Eggs</th>
+                <th>Size/Variety</th>
                 <th>Feed (kg)</th>
                 <th>Feed Cost (₱)</th>
                 <th>Mortality</th>
@@ -78,6 +79,13 @@
                 <td class="muted">{{ farm_map.get(rec.farm_id, '—') }}</td>
                 <td>
                     <span class="badge badge-eggs">{{ "{:,}".format(rec.egg_count) }}</span>
+                </td>
+                <td class="muted">
+                    {% if rec.size and rec.variety %}
+                        {{ rec.size.value|title }} {{ rec.variety.value|title }}
+                    {% else %}
+                        —
+                    {% endif %}
                 </td>
                 <td class="muted">{{ rec.feed_kg or '—' }}</td>
                 <td class="muted">

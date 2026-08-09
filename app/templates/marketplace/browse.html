@@ -480,7 +480,15 @@
         <div class="shop-card" id="product-{{ product.id }}">
             <a href="{{ url_for('marketplace.product_detail', product_id=product.id) }}" class="shop-card__visual">
                 <span class="shop-card__tag">{{ product.size_label }} • {{ product.variety_label }}</span>
-                <span class="shop-card__emoji">🥚</span>
+                <svg class="shop-card__emoji" viewBox="0 0 100 130" xmlns="http://www.w3.org/2000/svg" style="width: 52px; height: 68px; filter: drop-shadow(0 6px 10px rgba(0,0,0,0.15));">
+                    {% if product.variety and product.variety.value == 'white' %}
+                        <path d="M50 0 C15 0 0 50 0 90 C0 115 15 130 50 130 C85 130 100 115 100 90 C100 50 85 0 50 0 Z" fill="url(#eggGradWhite)"/>
+                        <path d="M50 0 C15 0 0 50 0 90 C0 115 15 130 50 130 C85 130 100 115 100 90 C100 50 85 0 50 0 Z" fill="url(#eggHighlightWhite)"/>
+                    {% else %}
+                        <path d="M50 0 C15 0 0 50 0 90 C0 115 15 130 50 130 C85 130 100 115 100 90 C100 50 85 0 50 0 Z" fill="url(#eggGradBrown)"/>
+                        <path d="M50 0 C15 0 0 50 0 90 C0 115 15 130 50 130 C85 130 100 115 100 90 C100 50 85 0 50 0 Z" fill="url(#eggHighlightBrown)"/>
+                    {% endif %}
+                </svg>
             </a>
 
             <div class="shop-card__body">

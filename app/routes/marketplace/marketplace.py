@@ -74,12 +74,8 @@ def _get_own_product_or_404(product_id: int) -> Product:
     return product
 
 def _get_available_stock(product: Product) -> int:
-    """Calculates stock available for purchase (stock minus pending/confirmed orders)."""
-    pending_qty = db.session.query(func.sum(OrderItem.quantity)).join(Order).filter(
-        OrderItem.product_id == product.id,
-        Order.status.in_([OrderStatus.PENDING, OrderStatus.CONFIRMED])
-    ).scalar() or 0
-    return max(0, product.stock - pending_qty)
+    """Calculates stock available for purchase."""
+    return max(0, product.stock)
 
 
 def _get_cart():
@@ -431,7 +427,8 @@ def checkout():
                 unit_price=product.price,
             )
             db.session.add(order_item)
-            # DO NOT DEDUCT STOCK YET: product.stock -= qty
+            # Deduct stock immediately upon pending order
+            product.stock -= qty
             farmer_ids.add(product.farmer_id)
 
         # Notify farmers of new order
@@ -473,15 +470,21 @@ def checkout():
 def orders():
     """View buyer's order history."""
     _require_buyer()
-    buyer_orders = Order.query.filter_by(
-        buyer_id=current_user.id
-    ).order_by(Order.created_at.desc()).all()
+    
+    status_filter = request.args.get('status', 'all')
+    query = Order.query.filter_by(buyer_id=current_user.id)
+    
+    if status_filter != 'all':
+        query = query.filter_by(status=status_filter)
+        
+    buyer_orders = query.order_by(Order.created_at.desc()).all()
 
     return render_template(
         'marketplace/orders.html',
         title='My Orders',
         orders=buyer_orders,
         cart_count=_get_cart_count(),
+        status_filter=status_filter
     )
 
 
@@ -748,16 +751,9 @@ def update_order_status(order_id):
         flash('Cannot cancel a delivered order.', 'error')
         return redirect(url_for('marketplace.farmer_orders'))
 
-    # Deduct stock ONLY when moving to shipped/delivered from an earlier state
+    # Since stock is deducted on checkout, we only need to restore it if the order is cancelled.
     old_status = order.status.value
-    if new_status in ['shipped', 'delivered'] and old_status not in ['shipped', 'delivered']:
-        for item in order.items:
-            if item.product_id in my_product_ids:
-                # Deduct inventory stock formally here!
-                item.product.stock -= item.quantity
-    
-    # Restore stock if moving back from shipped/delivered to cancelled/pending/confirmed
-    if new_status not in ['shipped', 'delivered'] and old_status in ['shipped', 'delivered']:
+    if new_status == 'cancelled' and old_status != 'cancelled':
         for item in order.items:
             if item.product_id in my_product_ids:
                 item.product.stock += item.quantity

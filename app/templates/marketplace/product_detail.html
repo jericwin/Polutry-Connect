@@ -114,7 +114,15 @@ content %}
   <div class="pd-visual">
     <div class="pd-img">
       <span class="pd-badge">{{ product.size_label }} • {{ product.variety_label }}</span>
-      <span class="pd-img__emoji">🥚</span>
+      <svg class="pd-img__emoji" viewBox="0 0 100 130" xmlns="http://www.w3.org/2000/svg" style="width: 120px; height: 156px; filter: drop-shadow(0 8px 20px rgba(0,0,0,0.15));">
+        {% if product.variety and product.variety.value == 'white' %}
+            <path d="M50 0 C15 0 0 50 0 90 C0 115 15 130 50 130 C85 130 100 115 100 90 C100 50 85 0 50 0 Z" fill="url(#eggGradWhite)"/>
+            <path d="M50 0 C15 0 0 50 0 90 C0 115 15 130 50 130 C85 130 100 115 100 90 C100 50 85 0 50 0 Z" fill="url(#eggHighlightWhite)"/>
+        {% else %}
+            <path d="M50 0 C15 0 0 50 0 90 C0 115 15 130 50 130 C85 130 100 115 100 90 C100 50 85 0 50 0 Z" fill="url(#eggGradBrown)"/>
+            <path d="M50 0 C15 0 0 50 0 90 C0 115 15 130 50 130 C85 130 100 115 100 90 C100 50 85 0 50 0 Z" fill="url(#eggHighlightBrown)"/>
+        {% endif %}
+      </svg>
     </div>
   </div>
 
@@ -312,7 +320,15 @@ content %}
       class="pd-related__card"
     >
       <div class="pd-related__img">
-        🥚
+        <svg viewBox="0 0 100 130" xmlns="http://www.w3.org/2000/svg" style="width: 36px; height: 46px; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.1));">
+          {% if item.variety and item.variety.value == 'white' %}
+              <path d="M50 0 C15 0 0 50 0 90 C0 115 15 130 50 130 C85 130 100 115 100 90 C100 50 85 0 50 0 Z" fill="url(#eggGradWhite)"/>
+              <path d="M50 0 C15 0 0 50 0 90 C0 115 15 130 50 130 C85 130 100 115 100 90 C100 50 85 0 50 0 Z" fill="url(#eggHighlightWhite)"/>
+          {% else %}
+              <path d="M50 0 C15 0 0 50 0 90 C0 115 15 130 50 130 C85 130 100 115 100 90 C100 50 85 0 50 0 Z" fill="url(#eggGradBrown)"/>
+              <path d="M50 0 C15 0 0 50 0 90 C0 115 15 130 50 130 C85 130 100 115 100 90 C100 50 85 0 50 0 Z" fill="url(#eggHighlightBrown)"/>
+          {% endif %}
+        </svg>
       </div>
       <div class="pd-related__info">
         <div class="pd-related__name">{{ item.name }}</div>

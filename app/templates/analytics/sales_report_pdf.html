@@ -241,6 +241,14 @@
                 </tr>
                 {% endfor %}
             </tbody>
+            <tfoot>
+                <tr style="background-color: #0d631b; color: white;">
+                    <td colspan="4" style="text-align: right; font-weight: bold; padding: 12px 15px; border: 1px solid #0d631b;">TOTALS</td>
+                    <td style="font-weight: bold; padding: 12px 15px; border: 1px solid #0d631b;">{{ "{:,}".format(total_qty) }}</td>
+                    <td style="border: 1px solid #0d631b;"></td>
+                    <td style="font-weight: bold; padding: 12px 15px; border: 1px solid #0d631b;">₱{{ "{:,.2f}".format(total_rev) }}</td>
+                </tr>
+            </tfoot>
         </table>
 
         <div class="footer">

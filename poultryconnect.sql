@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Jul 15, 2026 at 12:05 PM
+-- Generation Time: Aug 05, 2026 at 06:12 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -30,6 +30,13 @@ SET time_zone = "+00:00";
 CREATE TABLE `alembic_version` (
   `version_num` varchar(32) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Dumping data for table `alembic_version`
+--
+
+INSERT INTO `alembic_version` (`version_num`) VALUES
+('bebffabdfdfc');
 
 -- --------------------------------------------------------
 
@@ -73,16 +80,25 @@ CREATE TABLE `expenses` (
   `amount` decimal(10,2) NOT NULL,
   `description` varchar(255) DEFAULT NULL,
   `created_at` datetime NOT NULL DEFAULT current_timestamp(),
-  `updated_at` datetime NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+  `updated_at` datetime NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  `frequency` enum('one_time','daily','weekly','monthly') NOT NULL DEFAULT 'one_time',
+  `end_date` date DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 --
 -- Dumping data for table `expenses`
 --
 
-INSERT INTO `expenses` (`id`, `farm_id`, `user_id`, `expense_date`, `category`, `amount`, `description`, `created_at`, `updated_at`) VALUES
-(1, 1, 2, '2026-07-02', 'feed', 15750.00, 'Poultry starter feed purchase', '2026-07-15 16:04:04', '2026-07-15 16:04:04'),
-(2, 1, 2, '2026-07-03', 'medicine', 3200.00, 'Vaccination medicine', '2026-07-15 16:04:04', '2026-07-15 16:04:04');
+INSERT INTO `expenses` (`id`, `farm_id`, `user_id`, `expense_date`, `category`, `amount`, `description`, `created_at`, `updated_at`, `frequency`, `end_date`) VALUES
+(1, 1, 2, '2026-07-02', 'feed', 15750.00, 'Poultry starter feed purchase', '2026-07-15 16:04:04', '2026-07-15 16:04:04', 'one_time', NULL),
+(2, 1, 2, '2026-07-03', 'medicine', 3200.00, 'Vaccination medicine', '2026-07-15 16:04:04', '2026-07-15 16:04:04', 'one_time', NULL),
+(3, 4, 8, '2026-08-05', 'feed', 1176.34, 'Expense for 2026-08-05', '2026-08-05 14:07:45', '2026-08-05 14:07:45', 'one_time', NULL),
+(4, 4, 8, '2026-08-04', 'utilities', 1093.43, 'Expense for 2026-08-04', '2026-08-05 14:07:45', '2026-08-05 14:07:45', 'one_time', NULL),
+(5, 4, 8, '2026-08-03', 'feed', 1854.46, 'Expense for 2026-08-03', '2026-08-05 14:07:45', '2026-08-05 14:07:45', 'one_time', NULL),
+(6, 4, 8, '2026-08-02', 'medicine', 1839.40, 'Expense for 2026-08-02', '2026-08-05 14:07:45', '2026-08-05 14:07:45', 'one_time', NULL),
+(7, 4, 8, '2026-08-01', 'medicine', 524.81, 'Expense for 2026-08-01', '2026-08-05 14:07:45', '2026-08-05 14:07:45', 'one_time', NULL),
+(8, 4, 8, '2026-07-31', 'utilities', 1457.07, 'Expense for 2026-07-31', '2026-08-05 14:07:45', '2026-08-05 14:07:45', 'one_time', NULL),
+(9, 4, 8, '2026-07-30', 'medicine', 1841.44, 'Expense for 2026-07-30', '2026-08-05 14:07:45', '2026-08-05 14:07:45', 'one_time', NULL);
 
 -- --------------------------------------------------------
 
@@ -109,7 +125,8 @@ CREATE TABLE `farms` (
 INSERT INTO `farms` (`id`, `farmer_id`, `name`, `location`, `description`, `flock_size`, `is_active`, `created_at`, `updated_at`) VALUES
 (1, 2, 'Sunrise Layer Farm', 'Cavite', 'Layer farm producing fresh eggs.', 1200, 1, '2026-07-15 16:04:04', '2026-07-15 16:04:04'),
 (2, 2, 'Green Feed Poultry', 'Laguna', 'Broiler and feed support farm.', 800, 1, '2026-07-15 16:04:04', '2026-07-15 16:04:04'),
-(3, 6, 'Paete Farm', 'Paete', NULL, 500, 1, '2026-07-15 09:06:02', '2026-07-15 09:06:02');
+(3, 6, 'Paete Farm', 'Paete', NULL, 500, 1, '2026-07-15 09:06:02', '2026-07-15 09:06:02'),
+(4, 8, 'Juan Poultry Farm', 'San Jose, Batangas', 'A mid-sized layer poultry farm.', 5000, 1, '2026-08-05 14:07:45', '2026-08-05 14:07:45');
 
 -- --------------------------------------------------------
 
@@ -200,7 +217,19 @@ CREATE TABLE `orders` (
 INSERT INTO `orders` (`id`, `buyer_id`, `total_amount`, `status`, `delivery_address`, `contact_phone`, `notes`, `created_at`, `updated_at`) VALUES
 (1, 5, 540.00, 'pending', '123 Main Street, Quezon City', '09170000005', 'Please deliver in the morning.', '2026-07-15 16:04:04', '2026-07-15 16:04:04'),
 (2, 7, 7.00, 'pending', 'Near Plaza, Santa Maria, Laguna', '09270196752', NULL, '2026-07-15 09:47:32', '2026-07-15 09:47:32'),
-(4, 7, 7.00, 'pending', 'Near Plaza, Santa Maria, Laguna', '09270196752', NULL, '2026-07-15 09:57:39', '2026-07-15 09:57:39');
+(4, 7, 7.00, 'pending', 'Near Plaza, Santa Maria, Laguna', '09270196752', NULL, '2026-07-15 09:57:39', '2026-07-15 09:57:39'),
+(5, 10, 190.00, 'pending', '123 Market St., Cityville', '09123456789', 'Mock Order 1 for farmer1', '2026-08-05 15:19:19', '2026-08-05 15:19:19'),
+(6, 10, 180.00, 'confirmed', '123 Market St., Cityville', '09123456789', 'Mock Order 2 for farmer1', '2026-08-05 15:19:19', '2026-08-05 15:19:19'),
+(7, 10, 825.00, 'shipped', '123 Market St., Cityville', '09123456789', 'Mock Order 3 for farmer1', '2026-08-05 15:19:19', '2026-08-05 15:19:19'),
+(8, 10, 465.00, 'pending', '123 Market St., Cityville', '09123456789', 'Mock Order 4 for farmer1', '2026-08-05 15:19:19', '2026-08-05 15:19:19'),
+(9, 10, 7.00, 'pending', '123 Market St., Cityville', '09123456789', 'Mock Order 1 for jenrie', '2026-08-05 15:19:19', '2026-08-05 15:19:19'),
+(10, 10, 7.00, 'confirmed', '123 Market St., Cityville', '09123456789', 'Mock Order 2 for jenrie', '2026-08-05 15:19:19', '2026-08-05 15:19:19'),
+(11, 10, 14.00, 'shipped', '123 Market St., Cityville', '09123456789', 'Mock Order 3 for jenrie', '2026-08-05 15:19:19', '2026-08-05 15:19:19'),
+(12, 10, 7.00, 'pending', '123 Market St., Cityville', '09123456789', 'Mock Order 4 for jenrie', '2026-08-05 15:19:19', '2026-08-05 15:19:19'),
+(13, 10, 220.00, 'pending', '123 Market St., Cityville', '09123456789', 'Mock Order 1 for juan_farmer', '2026-08-05 15:19:19', '2026-08-05 15:19:19'),
+(14, 10, 440.00, 'confirmed', '123 Market St., Cityville', '09123456789', 'Mock Order 2 for juan_farmer', '2026-08-05 15:19:19', '2026-08-05 15:19:19'),
+(15, 10, 540.00, 'delivered', '123 Market St., Cityville', '09123456789', 'Mock Order 3 for juan_farmer', '2026-08-05 15:19:19', '2026-08-05 16:01:02'),
+(16, 10, 660.00, 'pending', '123 Market St., Cityville', '09123456789', 'Mock Order 4 for juan_farmer', '2026-08-05 15:19:19', '2026-08-05 15:19:19');
 
 -- --------------------------------------------------------
 
@@ -223,7 +252,21 @@ CREATE TABLE `order_items` (
 INSERT INTO `order_items` (`id`, `order_id`, `product_id`, `quantity`, `unit_price`) VALUES
 (1, 1, 1, 3, 180.00),
 (2, 2, 3, 1, 7.00),
-(3, 4, 3, 1, 7.00);
+(3, 4, 3, 1, 7.00),
+(4, 5, 2, 2, 95.00),
+(5, 6, 1, 1, 180.00),
+(6, 7, 1, 3, 180.00),
+(7, 7, 2, 3, 95.00),
+(8, 8, 1, 1, 180.00),
+(9, 8, 2, 3, 95.00),
+(10, 9, 3, 1, 7.00),
+(11, 10, 3, 1, 7.00),
+(12, 11, 3, 2, 7.00),
+(13, 12, 3, 1, 7.00),
+(14, 13, 4, 1, 220.00),
+(15, 14, 4, 2, 220.00),
+(16, 15, 5, 3, 180.00),
+(17, 16, 4, 3, 220.00);
 
 -- --------------------------------------------------------
 
@@ -252,7 +295,14 @@ CREATE TABLE `production_records` (
 
 INSERT INTO `production_records` (`id`, `farm_id`, `user_id`, `record_date`, `egg_count`, `feed_kg`, `feed_cost`, `egg_price`, `mortality`, `notes`, `created_at`, `updated_at`) VALUES
 (1, 1, 2, '2026-07-01', 980, 220.50, 15435.00, 5.50, 3, 'Steady production after vaccination.', '2026-07-15 16:04:04', '2026-07-15 16:04:04'),
-(2, 1, 2, '2026-07-02', 1010, 225.00, 15750.00, 5.50, 2, 'Improved feed conversion.', '2026-07-15 16:04:04', '2026-07-15 16:04:04');
+(2, 1, 2, '2026-07-02', 1010, 225.00, 15750.00, 5.50, 2, 'Improved feed conversion.', '2026-07-15 16:04:04', '2026-07-15 16:04:04'),
+(3, 4, 8, '2026-08-05', 4705, 598.59, 11949.94, 6.50, 4, 'Normal day', '2026-08-05 14:07:45', '2026-08-05 14:07:45'),
+(4, 4, 8, '2026-08-04', 4338, 526.08, 11189.15, 6.50, 4, 'Normal day', '2026-08-05 14:07:45', '2026-08-05 14:07:45'),
+(5, 4, 8, '2026-08-03', 4379, 527.57, 10739.45, 6.50, 1, 'Normal day', '2026-08-05 14:07:45', '2026-08-05 14:07:45'),
+(6, 4, 8, '2026-08-02', 4477, 552.03, 11928.89, 6.50, 1, 'Normal day', '2026-08-05 14:07:45', '2026-08-05 14:07:45'),
+(7, 4, 8, '2026-08-01', 4605, 557.92, 11758.45, 6.50, 4, 'Normal day', '2026-08-05 14:07:45', '2026-08-05 14:07:45'),
+(8, 4, 8, '2026-07-31', 4009, 596.14, 10807.02, 6.50, 5, 'Normal day', '2026-08-05 14:07:45', '2026-08-05 14:07:45'),
+(9, 4, 8, '2026-07-30', 4269, 526.75, 10047.90, 6.50, 3, 'Normal day', '2026-08-05 14:07:45', '2026-08-05 14:07:45');
 
 -- --------------------------------------------------------
 
@@ -284,7 +334,36 @@ CREATE TABLE `products` (
 INSERT INTO `products` (`id`, `farmer_id`, `farm_id`, `name`, `description`, `unit`, `price`, `stock`, `location`, `is_available`, `created_at`, `updated_at`, `size`, `variety`) VALUES
 (1, 2, 1, 'Fresh Eggs', 'Tray of fresh eggs from Sunrise Layer Farm.', 'tray', 180.00, 120, 'Cavite', 1, '2026-07-15 16:04:04', '2026-07-15 16:04:04', 'medium', 'brown'),
 (2, 2, 2, 'Broiler Chickens', 'Healthy broiler chickens ready for delivery.', 'head', 95.00, 45, 'Laguna', 1, '2026-07-15 16:04:04', '2026-07-15 16:04:04', 'medium', 'brown'),
-(3, 6, 3, 'Egg', NULL, 'tray', 7.00, 48, 'Paete', 1, '2026-07-15 09:41:23', '2026-07-15 09:57:39', 'small', 'brown');
+(3, 6, 3, 'Egg', NULL, 'tray', 7.00, 48, 'Paete', 1, '2026-07-15 09:41:23', '2026-07-15 09:57:39', 'small', 'brown'),
+(4, 8, 4, 'Premium Large Brown Eggs', 'Fresh daily harvest', 'tray', 220.00, 100, NULL, 1, '2026-08-05 15:19:19', '2026-08-05 15:19:19', 'large', 'brown'),
+(5, 8, 4, 'Medium White Eggs', 'Great for baking', 'tray', 180.00, 50, NULL, 1, '2026-08-05 15:19:19', '2026-08-05 15:19:19', 'medium', 'white');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `sales_records`
+--
+
+CREATE TABLE `sales_records` (
+  `id` int(11) NOT NULL,
+  `farm_id` int(10) UNSIGNED NOT NULL,
+  `user_id` int(10) UNSIGNED NOT NULL,
+  `sale_date` date NOT NULL,
+  `quantity_sold` int(11) NOT NULL,
+  `price_per_egg` decimal(10,2) NOT NULL,
+  `total_revenue` decimal(12,2) NOT NULL,
+  `buyer_name` varchar(255) DEFAULT NULL,
+  `notes` text DEFAULT NULL,
+  `created_at` datetime NOT NULL,
+  `updated_at` datetime NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `sales_records`
+--
+
+INSERT INTO `sales_records` (`id`, `farm_id`, `user_id`, `sale_date`, `quantity_sold`, `price_per_egg`, `total_revenue`, `buyer_name`, `notes`, `created_at`, `updated_at`) VALUES
+(1, 4, 8, '2026-08-05', 3, 180.00, 540.00, 'Demo Buyer', 'Auto-generated from Order #15', '2026-08-05 16:01:02', '2026-08-05 16:01:02');
 
 -- --------------------------------------------------------
 
@@ -321,7 +400,10 @@ INSERT INTO `users` (`id`, `username`, `email`, `password_hash`, `role`, `first_
 (4, 'vet1', 'vet1@poultryconnect.com', 'scrypt:32768:8:1$D9BhAxWKtWFZJWDl$63e9d41b219fd31e4b22a27c2813064adc92d03e25303ad8b9c28125bf18ee5ae035e922b22ec4afd9c9b318223adcebe73f6bdb067d271ea43a3849c6e215ee', 'veterinarian', 'Rosa', 'Cruz', '09170000004', 1, 1, '2026-07-15 16:04:04', '2026-07-15 16:04:04', '2026-07-15 16:04:04', NULL, NULL),
 (5, 'buyer1', 'buyer1@poultryconnect.com', 'scrypt:32768:8:1$D9BhAxWKtWFZJWDl$63e9d41b219fd31e4b22a27c2813064adc92d03e25303ad8b9c28125bf18ee5ae035e922b22ec4afd9c9b318223adcebe73f6bdb067d271ea43a3849c6e215ee', 'buyer', 'Pedro', 'Reyes', '09170000005', 1, 0, '2026-07-15 16:04:04', '2026-07-15 16:04:04', '2026-07-15 16:04:04', NULL, NULL),
 (6, 'jenrie', 'jenrie.araza12@gmail.com', 'scrypt:32768:8:1$6GnRje2dFwyME64s$e0bb6c8445bb14e0b6617aa062f7033fd80fe29412219b8be47c151d698195ecedb3b16ef8808927da764f71ded0a31228e73a4239835be35c106962a592cf6c', 'farmer', 'Jenrie', 'Araza', NULL, 1, 0, '2026-07-15 10:02:58', '2026-07-15 08:04:49', '2026-07-15 10:02:58', NULL, NULL),
-(7, 'jeric', 'punay.jeric@gmail.com', 'scrypt:32768:8:1$Gk3kiVWefV5l9FdT$e1395bc712be122a14f345c79f8fe1a6149e5eb2c4029c3913ecf1917a159b2eab640bc2d70f74fc9105c82c7a3c50225d4a22cee05fec6c4c3d53db8ee6ee3d', 'buyer', 'Jeric', 'Punay', '09270196752', 1, 1, '2026-07-15 09:05:15', '2026-07-15 08:21:16', '2026-07-15 09:43:54', 'Santa Maria, Laguna', 'Near Plaza');
+(7, 'jeric', 'punay.jeric@gmail.com', 'scrypt:32768:8:1$Gk3kiVWefV5l9FdT$e1395bc712be122a14f345c79f8fe1a6149e5eb2c4029c3913ecf1917a159b2eab640bc2d70f74fc9105c82c7a3c50225d4a22cee05fec6c4c3d53db8ee6ee3d', 'buyer', 'Jeric', 'Punay', '09270196752', 1, 1, '2026-07-15 09:05:15', '2026-07-15 08:21:16', '2026-07-15 09:43:54', 'Santa Maria, Laguna', 'Near Plaza'),
+(8, 'juan_farmer', 'juan@example.com', 'scrypt:32768:8:1$BaVcTavr7DKgUwTy$82c5307c9b0990a42b7562595e0b1c67e2130455c8854ec1546c2359339c27f5d3f48dcecda070bcf46077d056ff8fd6c2d81031033b57122f213b64d4c8b8bb', 'farmer', 'Juan', 'Dela Cruz', '09123456789', 1, 1, '2026-08-05 16:04:33', '2026-08-05 14:07:45', '2026-08-05 16:04:33', 'San Jose, Batangas', NULL),
+(9, 'maria_buyer', 'maria@example.com', 'scrypt:32768:8:1$GuP9v4ZOHUWubK0T$1e90ccb7f67ef279891cb66478252981b20bce8c5fb9e0a8de51caa2882cacb11dbcdc828526a13be1c43ce5f51676295ce4cf7028b230ed5c273adf52884dad', 'buyer', 'Maria', 'Clara', '09987654321', 1, 0, NULL, '2026-08-05 14:07:45', '2026-08-05 14:07:45', 'Lipa City, Batangas', NULL),
+(10, 'demo_buyer', 'demo_buyer@example.com', 'scrypt:32768:8:1$k4tRW87MXsaOL2pa$2f2a9f3f7985e200ce80678d3e53bb38c6655eeb34657e843772f0570c6cc9559eab5957d31634d620ef8f613eca136aaad1f6b900ef5118ca4293e455740029', 'buyer', 'Demo', 'Buyer', '09123456789', 1, 0, NULL, '2026-08-05 15:19:19', '2026-08-05 15:19:19', '123 Market St.', 'Near Plaza');
 
 --
 -- Indexes for dumped tables
@@ -414,6 +496,14 @@ ALTER TABLE `products`
   ADD KEY `idx_products_available` (`is_available`);
 
 --
+-- Indexes for table `sales_records`
+--
+ALTER TABLE `sales_records`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `farm_id` (`farm_id`),
+  ADD KEY `user_id` (`user_id`);
+
+--
 -- Indexes for table `users`
 --
 ALTER TABLE `users`
@@ -438,13 +528,13 @@ ALTER TABLE `conversations`
 -- AUTO_INCREMENT for table `expenses`
 --
 ALTER TABLE `expenses`
-  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
 
 --
 -- AUTO_INCREMENT for table `farms`
 --
 ALTER TABLE `farms`
-  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
 -- AUTO_INCREMENT for table `messages`
@@ -462,31 +552,37 @@ ALTER TABLE `notifications`
 -- AUTO_INCREMENT for table `orders`
 --
 ALTER TABLE `orders`
-  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=17;
 
 --
 -- AUTO_INCREMENT for table `order_items`
 --
 ALTER TABLE `order_items`
-  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=18;
 
 --
 -- AUTO_INCREMENT for table `production_records`
 --
 ALTER TABLE `production_records`
-  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
 
 --
 -- AUTO_INCREMENT for table `products`
 --
 ALTER TABLE `products`
-  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+
+--
+-- AUTO_INCREMENT for table `sales_records`
+--
+ALTER TABLE `sales_records`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
 -- AUTO_INCREMENT for table `users`
 --
 ALTER TABLE `users`
-  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
 
 --
 -- Constraints for dumped tables
@@ -552,6 +648,13 @@ ALTER TABLE `production_records`
 ALTER TABLE `products`
   ADD CONSTRAINT `fk_products_farm` FOREIGN KEY (`farm_id`) REFERENCES `farms` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
   ADD CONSTRAINT `fk_products_farmer` FOREIGN KEY (`farmer_id`) REFERENCES `users` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+--
+-- Constraints for table `sales_records`
+--
+ALTER TABLE `sales_records`
+  ADD CONSTRAINT `sales_records_ibfk_1` FOREIGN KEY (`farm_id`) REFERENCES `farms` (`id`),
+  ADD CONSTRAINT `sales_records_ibfk_2` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`);
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;

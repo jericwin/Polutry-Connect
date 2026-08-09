@@ -36,10 +36,10 @@ def login():
         remember = bool(request.form.get('remember'))
 
         if not username or not password:
-            flash('Please enter both your username and password.', 'error')
+            flash('Please enter both your username/email and password.', 'error')
             return render_template('auth/login.html', title='Sign In')
 
-        user = User.query.filter_by(username=username).first()
+        user = User.query.filter(db.or_(User.username == username, User.email == username)).first()
 
         if user is None or not user.check_password(password):
             flash('Invalid username or password. Please try again.', 'error')

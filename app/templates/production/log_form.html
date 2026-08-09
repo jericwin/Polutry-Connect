@@ -74,6 +74,33 @@
 
             <div class="form-row">
                 <div class="form-group">
+                    <label for="variety">Category (Variety)</label>
+                    <div class="select-wrap">
+                        <select id="variety" name="variety">
+                            <option value="">— Select Category —</option>
+                            <option value="brown" {% if form_data.get('variety') == 'brown' or (action == 'edit' and record.variety and record.variety.value == 'brown') %}selected{% endif %}>Brown</option>
+                            <option value="white" {% if form_data.get('variety') == 'white' or (action == 'edit' and record.variety and record.variety.value == 'white') %}selected{% endif %}>White</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="size">Size</label>
+                    <div class="select-wrap">
+                        <select id="size" name="size">
+                            <option value="">— Select Size —</option>
+                            <option value="small" {% if form_data.get('size') == 'small' or (action == 'edit' and record.size and record.size.value == 'small') %}selected{% endif %}>Small</option>
+                            <option value="medium" {% if form_data.get('size') == 'medium' or (action == 'edit' and record.size and record.size.value == 'medium') %}selected{% endif %}>Medium</option>
+                            <option value="large" {% if form_data.get('size') == 'large' or (action == 'edit' and record.size and record.size.value == 'large') %}selected{% endif %}>Large</option>
+                            <option value="extra_large" {% if form_data.get('size') == 'extra_large' or (action == 'edit' and record.size and record.size.value == 'extra_large') %}selected{% endif %}>Extra Large</option>
+                            <option value="jumbo" {% if form_data.get('size') == 'jumbo' or (action == 'edit' and record.size and record.size.value == 'jumbo') %}selected{% endif %}>Jumbo</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
                     <label for="egg_count">Eggs Collected <span class="required">*</span></label>
                     <input type="number" id="egg_count" name="egg_count"
                            min="0" step="1" placeholder="e.g. 240" required
@@ -134,5 +161,32 @@
         </form>
     </div>
 </div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const varietySelect = document.getElementById('variety');
+        const sizeSelect = document.getElementById('size');
+        const priceInput = document.getElementById('egg_price');
+
+        // Recommended prices based on variety and size
+        const recommendedPrices = {
+            'brown': { 'small': 5.50, 'medium': 6.50, 'large': 7.50, 'extra_large': 8.50, 'jumbo': 9.50 },
+            'white': { 'small': 5.00, 'medium': 6.00, 'large': 7.00, 'extra_large': 8.00, 'jumbo': 9.00 }
+        };
+
+        function updateRecommendedPrice() {
+            const variety = varietySelect.value;
+            const size = sizeSelect.value;
+            // Only auto-fill if the price input is empty OR if the user is changing categories
+            // To be safe, we'll auto-fill when they change the dropdowns.
+            if (variety && size && recommendedPrices[variety] && recommendedPrices[variety][size]) {
+                priceInput.value = recommendedPrices[variety][size].toFixed(2);
+            }
+        }
+
+        varietySelect.addEventListener('change', updateRecommendedPrice);
+        sizeSelect.addEventListener('change', updateRecommendedPrice);
+    });
+</script>
 
 {% endblock %}

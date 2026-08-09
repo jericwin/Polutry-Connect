@@ -25,7 +25,7 @@ from datetime import date, datetime
 from decimal import Decimal, InvalidOperation
 
 from app import db
-from app.models import Farm, ProductionRecord, Expense, UserRole, ExpenseCategory, ExpenseFrequency, SalesRecord
+from app.models import Farm, ProductionRecord, Expense, UserRole, ExpenseCategory, ExpenseFrequency, SalesRecord, ProductSize, ProductVariety
 
 production_bp = Blueprint('production', __name__)
 
@@ -274,6 +274,11 @@ def log_add():
         egg_price   = _safe_decimal(egg_price_raw) if egg_price_raw else None
         mortality   = _safe_int(request.form.get('mortality'), default=0)
         notes       = request.form.get('notes', '').strip()
+        
+        size_str    = request.form.get('size', '').strip()
+        variety_str = request.form.get('variety', '').strip()
+        size        = ProductSize(size_str) if size_str in {e.value for e in ProductSize} else None
+        variety     = ProductVariety(variety_str) if variety_str in {e.value for e in ProductVariety} else None
 
         # ── validation ──────────────────────────────────────────────────
         errors = []
@@ -316,6 +321,8 @@ def log_add():
             egg_price=egg_price,
             mortality=mortality,
             notes=notes or None,
+            size=size,
+            variety=variety,
         )
         db.session.add(record)
         try:
@@ -364,6 +371,11 @@ def log_edit(record_id: int):
         mortality = _safe_int(request.form.get('mortality'), default=record.mortality)
         notes     = request.form.get('notes', '').strip()
 
+        size_str    = request.form.get('size', '').strip()
+        variety_str = request.form.get('variety', '').strip()
+        size        = ProductSize(size_str) if size_str in {e.value for e in ProductSize} else None
+        variety     = ProductVariety(variety_str) if variety_str in {e.value for e in ProductVariety} else None
+
         errors = []
         if egg_count < 0:
             errors.append('Egg count cannot be negative.')
@@ -390,6 +402,8 @@ def log_edit(record_id: int):
         record.egg_price = egg_price
         record.mortality = mortality
         record.notes     = notes or None
+        record.size      = size
+        record.variety   = variety
         db.session.commit()
         flash('Production record updated.', 'success')
         return redirect(url_for('production.log'))

@@ -15,11 +15,20 @@ PoultryConnect{% endblock %} {% block extra_css %}
       font-size: 1.8rem;
       font-weight: 800;
       color: var(--on-surface);
-      margin-bottom: 1.5rem;
+      margin-bottom: 1rem;
     "
   >
     My Orders
   </h1>
+  
+  <div class="orders-filter" style="display: flex; gap: 0.5rem; margin-bottom: 2rem; overflow-x: auto; padding-bottom: 0.5rem; white-space: nowrap;">
+      <a href="{{ url_for('marketplace.orders', status='all') }}" class="btn btn-sm {{ 'btn-primary' if status_filter == 'all' else 'btn-secondary' }}" style="border-radius: 20px; padding: 0.4rem 1rem;">All</a>
+      <a href="{{ url_for('marketplace.orders', status='pending') }}" class="btn btn-sm {{ 'btn-primary' if status_filter == 'pending' else 'btn-secondary' }}" style="border-radius: 20px; padding: 0.4rem 1rem;">Pending</a>
+      <a href="{{ url_for('marketplace.orders', status='confirmed') }}" class="btn btn-sm {{ 'btn-primary' if status_filter == 'confirmed' else 'btn-secondary' }}" style="border-radius: 20px; padding: 0.4rem 1rem;">Confirmed</a>
+      <a href="{{ url_for('marketplace.orders', status='shipped') }}" class="btn btn-sm {{ 'btn-primary' if status_filter == 'shipped' else 'btn-secondary' }}" style="border-radius: 20px; padding: 0.4rem 1rem;">Shipped</a>
+      <a href="{{ url_for('marketplace.orders', status='delivered') }}" class="btn btn-sm {{ 'btn-primary' if status_filter == 'delivered' else 'btn-secondary' }}" style="border-radius: 20px; padding: 0.4rem 1rem;">Delivered</a>
+      <a href="{{ url_for('marketplace.orders', status='cancelled') }}" class="btn btn-sm {{ 'btn-primary' if status_filter == 'cancelled' else 'btn-secondary' }}" style="border-radius: 20px; padding: 0.4rem 1rem;">Cancelled</a>
+  </div>
 
   {% if orders %}
   <div class="orders-list">
