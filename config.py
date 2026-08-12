@@ -8,6 +8,9 @@ load_dotenv(os.path.join(basedir, '.env'))
 def _default_database_uri():
     database_url = os.environ.get('DATABASE_URL')
     if database_url:
+        # Vercel and cloud providers often provide 'mysql://', but we need 'mysql+pymysql://'
+        if database_url.startswith('mysql://'):
+            database_url = database_url.replace('mysql://', 'mysql+pymysql://', 1)
         return database_url
 
     mysql_user = os.environ.get('MYSQL_USER') or 'root'
