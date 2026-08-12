@@ -129,10 +129,20 @@
         // Hide the main page content initially via CSS body class if possible, or just cover it.
         // The overlay is full screen with high z-index.
         
-        // Make hammer follow mouse
+        // Make hammer follow mouse/touch
+        function updateHammerPosition(x, y) {
+            hammer.style.left = x + 'px';
+            hammer.style.top = y + 'px';
+        }
+        
         overlay.addEventListener('mousemove', function(e) {
-            hammer.style.left = e.clientX + 'px';
-            hammer.style.top = e.clientY + 'px';
+            updateHammerPosition(e.clientX, e.clientY);
+        });
+        
+        overlay.addEventListener('touchmove', function(e) {
+            if (e.touches.length > 0) {
+                updateHammerPosition(e.touches[0].clientX, e.touches[0].clientY);
+            }
         });
 
         egg.addEventListener('click', function() {

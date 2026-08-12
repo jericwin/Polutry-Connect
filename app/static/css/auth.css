@@ -640,3 +640,13 @@ a { text-decoration: none; color: inherit; }
     }
 }
 
+
+
+/* ================= RESPONSIVE EGG ================= */
+@media (max-width: 768px) {
+  .egg { width: 160px; height: 210px; }
+  .egg-glow { width: 300px; height: 300px; }
+  .overlay-text { font-size: 1.2rem; }
+  .hammer { width: 60px; height: 60px; }
+}
+
