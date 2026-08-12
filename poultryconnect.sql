@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Aug 05, 2026 at 06:12 PM
+-- Generation Time: Aug 09, 2026 at 05:22 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -90,15 +90,23 @@ CREATE TABLE `expenses` (
 --
 
 INSERT INTO `expenses` (`id`, `farm_id`, `user_id`, `expense_date`, `category`, `amount`, `description`, `created_at`, `updated_at`, `frequency`, `end_date`) VALUES
-(1, 1, 2, '2026-07-02', 'feed', 15750.00, 'Poultry starter feed purchase', '2026-07-15 16:04:04', '2026-07-15 16:04:04', 'one_time', NULL),
-(2, 1, 2, '2026-07-03', 'medicine', 3200.00, 'Vaccination medicine', '2026-07-15 16:04:04', '2026-07-15 16:04:04', 'one_time', NULL),
-(3, 4, 8, '2026-08-05', 'feed', 1176.34, 'Expense for 2026-08-05', '2026-08-05 14:07:45', '2026-08-05 14:07:45', 'one_time', NULL),
-(4, 4, 8, '2026-08-04', 'utilities', 1093.43, 'Expense for 2026-08-04', '2026-08-05 14:07:45', '2026-08-05 14:07:45', 'one_time', NULL),
-(5, 4, 8, '2026-08-03', 'feed', 1854.46, 'Expense for 2026-08-03', '2026-08-05 14:07:45', '2026-08-05 14:07:45', 'one_time', NULL),
-(6, 4, 8, '2026-08-02', 'medicine', 1839.40, 'Expense for 2026-08-02', '2026-08-05 14:07:45', '2026-08-05 14:07:45', 'one_time', NULL),
-(7, 4, 8, '2026-08-01', 'medicine', 524.81, 'Expense for 2026-08-01', '2026-08-05 14:07:45', '2026-08-05 14:07:45', 'one_time', NULL),
-(8, 4, 8, '2026-07-31', 'utilities', 1457.07, 'Expense for 2026-07-31', '2026-08-05 14:07:45', '2026-08-05 14:07:45', 'one_time', NULL),
-(9, 4, 8, '2026-07-30', 'medicine', 1841.44, 'Expense for 2026-07-30', '2026-08-05 14:07:45', '2026-08-05 14:07:45', 'one_time', NULL);
+(26, 5, 11, '2026-07-10', 'feed', 80.00, 'Daily Feed Cost (Adjusted for Profit)', '2026-08-09 15:17:49', '2026-08-09 15:17:49', 'daily', NULL),
+(27, 5, 11, '2026-07-10', 'medicine', 100.00, 'Maintenance & Operations - medicine', '2026-08-09 15:17:49', '2026-08-09 15:17:49', 'one_time', NULL),
+(28, 5, 11, '2026-07-18', 'medicine', 100.00, 'Maintenance & Operations - medicine', '2026-08-09 15:17:49', '2026-08-09 15:17:49', 'one_time', NULL),
+(29, 5, 11, '2026-07-24', 'medicine', 100.00, 'Maintenance & Operations - medicine', '2026-08-09 15:17:49', '2026-08-09 15:17:49', 'one_time', NULL),
+(30, 5, 11, '2026-07-11', 'labor', 100.00, 'Maintenance & Operations - labor', '2026-08-09 15:17:49', '2026-08-09 15:17:49', 'one_time', NULL),
+(31, 5, 11, '2026-07-12', 'medicine', 100.00, 'Maintenance & Operations - medicine', '2026-08-09 15:17:49', '2026-08-09 15:17:49', 'one_time', NULL),
+(32, 5, 11, '2026-08-05', 'medicine', 100.00, 'Maintenance & Operations - medicine', '2026-08-09 15:17:49', '2026-08-09 15:17:49', 'one_time', NULL),
+(33, 5, 11, '2026-07-20', 'other', 100.00, 'Maintenance & Operations - other', '2026-08-09 15:17:49', '2026-08-09 15:17:49', 'one_time', NULL),
+(34, 5, 11, '2026-07-21', 'utilities', 100.00, 'Maintenance & Operations - utilities', '2026-08-09 15:17:49', '2026-08-09 15:17:49', 'one_time', NULL),
+(35, 5, 11, '2026-07-15', 'medicine', 100.00, 'Maintenance & Operations - medicine', '2026-08-09 15:17:49', '2026-08-09 15:17:49', 'one_time', NULL),
+(36, 5, 11, '2026-07-16', 'medicine', 100.00, 'Maintenance & Operations - medicine', '2026-08-09 15:17:49', '2026-08-09 15:17:49', 'one_time', NULL),
+(37, 5, 11, '2026-08-03', 'medicine', 100.00, 'Maintenance & Operations - medicine', '2026-08-09 15:17:49', '2026-08-09 15:17:49', 'one_time', NULL),
+(38, 5, 11, '2026-07-10', 'labor', 100.00, 'Maintenance & Operations - labor', '2026-08-09 15:17:49', '2026-08-09 15:17:49', 'one_time', NULL),
+(39, 5, 11, '2026-08-09', 'labor', 100.00, 'Maintenance & Operations - labor', '2026-08-09 15:17:49', '2026-08-09 15:17:49', 'one_time', NULL),
+(40, 5, 11, '2026-07-20', 'labor', 100.00, 'Maintenance & Operations - labor', '2026-08-09 15:17:49', '2026-08-09 15:17:49', 'one_time', NULL),
+(41, 5, 11, '2026-08-04', 'feed', 100.00, 'Maintenance & Operations - feed', '2026-08-09 15:17:49', '2026-08-09 15:17:49', 'one_time', NULL),
+(42, 5, 11, '2026-08-01', 'other', 100.00, 'Maintenance & Operations - other', '2026-08-09 15:17:49', '2026-08-09 15:17:49', 'one_time', NULL);
 
 -- --------------------------------------------------------
 
@@ -126,7 +134,8 @@ INSERT INTO `farms` (`id`, `farmer_id`, `name`, `location`, `description`, `floc
 (1, 2, 'Sunrise Layer Farm', 'Cavite', 'Layer farm producing fresh eggs.', 1200, 1, '2026-07-15 16:04:04', '2026-07-15 16:04:04'),
 (2, 2, 'Green Feed Poultry', 'Laguna', 'Broiler and feed support farm.', 800, 1, '2026-07-15 16:04:04', '2026-07-15 16:04:04'),
 (3, 6, 'Paete Farm', 'Paete', NULL, 500, 1, '2026-07-15 09:06:02', '2026-07-15 09:06:02'),
-(4, 8, 'Juan Poultry Farm', 'San Jose, Batangas', 'A mid-sized layer poultry farm.', 5000, 1, '2026-08-05 14:07:45', '2026-08-05 14:07:45');
+(4, 8, 'Juan Poultry Farm', 'San Jose, Batangas', 'A mid-sized layer poultry farm.', 5000, 1, '2026-08-05 14:07:45', '2026-08-05 14:07:45'),
+(5, 11, 'Sunny Ridge Poultry', 'Batangas', NULL, 5000, 1, '2026-08-09 14:57:42', '2026-08-09 14:57:42');
 
 -- --------------------------------------------------------
 
@@ -229,7 +238,60 @@ INSERT INTO `orders` (`id`, `buyer_id`, `total_amount`, `status`, `delivery_addr
 (13, 10, 220.00, 'pending', '123 Market St., Cityville', '09123456789', 'Mock Order 1 for juan_farmer', '2026-08-05 15:19:19', '2026-08-05 15:19:19'),
 (14, 10, 440.00, 'confirmed', '123 Market St., Cityville', '09123456789', 'Mock Order 2 for juan_farmer', '2026-08-05 15:19:19', '2026-08-05 15:19:19'),
 (15, 10, 540.00, 'delivered', '123 Market St., Cityville', '09123456789', 'Mock Order 3 for juan_farmer', '2026-08-05 15:19:19', '2026-08-05 16:01:02'),
-(16, 10, 660.00, 'pending', '123 Market St., Cityville', '09123456789', 'Mock Order 4 for juan_farmer', '2026-08-05 15:19:19', '2026-08-05 15:19:19');
+(16, 10, 660.00, 'pending', '123 Market St., Cityville', '09123456789', 'Mock Order 4 for juan_farmer', '2026-08-05 15:19:19', '2026-08-05 15:19:19'),
+(17, 13, 420.00, 'shipped', 'Makati City', '09987654321', 'Handle with care', '2026-08-09 14:57:42', '2026-08-09 14:57:42'),
+(18, 13, 420.00, 'pending', 'Makati City', '09987654321', 'Handle with care', '2026-08-09 14:57:42', '2026-08-09 14:57:42'),
+(19, 13, 420.00, 'delivered', 'Makati City', '09987654321', 'Handle with care', '2026-08-09 14:57:42', '2026-08-09 14:57:42'),
+(20, 13, 420.00, 'cancelled', 'Makati City', '09987654321', 'Seed order 1', '2026-08-06 08:07:23', '2026-08-06 08:07:23'),
+(21, 13, 2100.00, 'shipped', 'Makati City', '09987654321', 'Seed order 2', '2026-08-04 10:07:23', '2026-08-04 10:07:23'),
+(22, 13, 840.00, 'cancelled', 'Makati City', '09987654321', 'Seed order 3', '2026-07-22 13:07:23', '2026-07-22 13:07:23'),
+(23, 13, 2100.00, 'delivered', 'Makati City', '09987654321', 'Seed order 4', '2026-07-22 07:07:23', '2026-07-22 07:07:23'),
+(24, 13, 420.00, 'pending', 'Makati City', '09987654321', 'Seed order 5', '2026-08-05 23:07:23', '2026-08-05 23:07:23'),
+(25, 13, 1680.00, 'shipped', 'Makati City', '09987654321', 'Seed order 6', '2026-07-18 18:07:23', '2026-07-18 18:07:23'),
+(26, 13, 1890.00, 'shipped', 'Makati City', '09987654321', 'Seed order 7', '2026-08-06 20:07:23', '2026-08-06 20:07:23'),
+(27, 13, 2100.00, 'confirmed', 'Makati City', '09987654321', 'Seed order 8', '2026-07-14 23:07:23', '2026-07-14 23:07:23'),
+(28, 13, 1680.00, 'cancelled', 'Makati City', '09987654321', 'Seed order 9', '2026-07-17 14:07:23', '2026-07-17 14:07:23'),
+(29, 13, 1890.00, 'delivered', 'Makati City', '09987654321', 'Seed order 10', '2026-07-20 02:07:23', '2026-07-20 02:07:23'),
+(30, 13, 1470.00, 'pending', 'Makati City', '09987654321', 'Seed order 11', '2026-07-29 14:07:23', '2026-07-29 14:07:23'),
+(31, 13, 420.00, 'shipped', 'Makati City', '09987654321', 'Seed order 12', '2026-08-07 23:07:23', '2026-08-07 23:07:23'),
+(32, 13, 840.00, 'cancelled', 'Makati City', '09987654321', 'Seed order 13', '2026-07-14 04:07:23', '2026-07-14 04:07:23'),
+(33, 13, 1680.00, 'confirmed', 'Makati City', '09987654321', 'Seed order 14', '2026-07-20 04:07:23', '2026-07-20 04:07:23'),
+(34, 13, 420.00, 'pending', 'Makati City', '09987654321', 'Seed order 15', '2026-08-09 10:07:23', '2026-08-09 10:07:23'),
+(35, 13, 1260.00, 'confirmed', 'Makati City', '09987654321', 'Seed order 16', '2026-07-31 16:07:23', '2026-07-31 16:07:23'),
+(36, 13, 2100.00, 'confirmed', 'Makati City', '09987654321', 'Seed order 17', '2026-07-22 14:07:23', '2026-07-22 14:07:23'),
+(37, 13, 1890.00, 'pending', 'Makati City', '09987654321', 'Seed order 18', '2026-07-30 12:07:23', '2026-07-30 12:07:23'),
+(38, 13, 2100.00, 'pending', 'Makati City', '09987654321', 'Seed order 19', '2026-07-12 03:07:23', '2026-07-12 03:07:23'),
+(39, 13, 1890.00, 'pending', 'Makati City', '09987654321', 'Seed order 20', '2026-08-01 11:07:23', '2026-08-01 11:07:23'),
+(40, 13, 1050.00, 'pending', 'Makati City', '09987654321', 'Seed order 21', '2026-07-15 15:07:23', '2026-07-15 15:07:23'),
+(41, 13, 420.00, 'pending', 'Makati City', '09987654321', 'Seed order 22', '2026-07-29 22:07:23', '2026-07-29 22:07:23'),
+(42, 13, 1050.00, 'confirmed', 'Makati City', '09987654321', 'Seed order 23', '2026-07-18 02:07:23', '2026-07-18 02:07:23'),
+(43, 13, 420.00, 'delivered', 'Makati City', '09987654321', 'Seed order 24', '2026-07-29 12:07:23', '2026-07-29 12:07:23'),
+(44, 13, 1470.00, 'pending', 'Makati City', '09987654321', 'Seed order 25', '2026-07-17 15:07:23', '2026-07-17 15:07:23'),
+(45, 13, 420.00, 'shipped', 'Makati City', '09987654321', 'Seed order 26', '2026-07-15 19:07:23', '2026-07-15 19:07:23'),
+(46, 13, 630.00, 'shipped', 'Makati City', '09987654321', 'Seed order 27', '2026-07-15 21:07:23', '2026-07-15 21:07:23'),
+(47, 13, 840.00, 'confirmed', 'Makati City', '09987654321', 'Seed order 28', '2026-07-22 06:07:23', '2026-07-22 06:07:23'),
+(48, 13, 1050.00, 'shipped', 'Makati City', '09987654321', 'Seed order 29', '2026-07-30 23:07:23', '2026-07-30 23:07:23'),
+(49, 13, 420.00, 'confirmed', 'Makati City', '09987654321', 'Seed order 30', '2026-07-12 03:07:23', '2026-07-12 03:07:23'),
+(50, 13, 2100.00, 'confirmed', 'Makati City', '09987654321', 'Seed order 31', '2026-07-13 00:07:23', '2026-07-13 00:07:23'),
+(51, 13, 1890.00, 'pending', 'Makati City', '09987654321', 'Seed order 32', '2026-07-23 08:07:23', '2026-07-23 08:07:23'),
+(52, 13, 1890.00, 'delivered', 'Makati City', '09987654321', 'Seed order 33', '2026-08-06 14:07:23', '2026-08-06 14:07:23'),
+(53, 13, 630.00, 'pending', 'Makati City', '09987654321', 'Seed order 34', '2026-07-23 16:07:23', '2026-07-23 16:07:23'),
+(54, 13, 420.00, 'delivered', 'Makati City', '09987654321', 'Seed order 35', '2026-07-26 16:07:23', '2026-07-26 16:07:23'),
+(55, 13, 2100.00, 'shipped', 'Makati City', '09987654321', 'Seed order 36', '2026-08-07 05:07:23', '2026-08-07 05:07:23'),
+(56, 13, 2100.00, 'cancelled', 'Makati City', '09987654321', 'Seed order 37', '2026-07-22 15:07:23', '2026-07-22 15:07:23'),
+(57, 13, 630.00, 'pending', 'Makati City', '09987654321', 'Seed order 38', '2026-08-07 04:07:23', '2026-08-07 04:07:23'),
+(58, 13, 2100.00, 'cancelled', 'Makati City', '09987654321', 'Seed order 39', '2026-07-13 04:07:23', '2026-07-13 04:07:23'),
+(59, 13, 420.00, 'confirmed', 'Makati City', '09987654321', 'Seed order 40', '2026-07-24 01:07:23', '2026-07-24 01:07:23'),
+(60, 13, 1260.00, 'delivered', 'Makati City', '09987654321', 'Seed order 41', '2026-08-02 02:07:23', '2026-08-02 02:07:23'),
+(61, 13, 630.00, 'cancelled', 'Makati City', '09987654321', 'Seed order 42', '2026-07-18 20:07:23', '2026-07-18 20:07:23'),
+(62, 13, 2100.00, 'confirmed', 'Makati City', '09987654321', 'Seed order 43', '2026-07-22 12:07:23', '2026-07-22 12:07:23'),
+(63, 13, 210.00, 'shipped', 'Makati City', '09987654321', 'Seed order 44', '2026-07-18 22:07:23', '2026-07-18 22:07:23'),
+(64, 13, 420.00, 'pending', 'Makati City', '09987654321', 'Seed order 45', '2026-07-30 17:07:23', '2026-07-30 17:07:23'),
+(65, 13, 1260.00, 'pending', 'Makati City', '09987654321', 'Seed order 46', '2026-07-13 04:07:23', '2026-07-13 04:07:23'),
+(66, 13, 1050.00, 'confirmed', 'Makati City', '09987654321', 'Seed order 47', '2026-08-04 00:07:23', '2026-08-04 00:07:23'),
+(67, 13, 1050.00, 'delivered', 'Makati City', '09987654321', 'Seed order 48', '2026-08-03 10:07:23', '2026-08-03 10:07:23'),
+(68, 13, 2100.00, 'delivered', 'Makati City', '09987654321', 'Seed order 49', '2026-07-30 00:07:23', '2026-07-30 00:07:23'),
+(69, 13, 840.00, 'delivered', 'Makati City', '09987654321', 'Seed order 50', '2026-08-09 15:07:23', '2026-08-09 15:07:23');
 
 -- --------------------------------------------------------
 
@@ -266,7 +328,60 @@ INSERT INTO `order_items` (`id`, `order_id`, `product_id`, `quantity`, `unit_pri
 (14, 13, 4, 1, 220.00),
 (15, 14, 4, 2, 220.00),
 (16, 15, 5, 3, 180.00),
-(17, 16, 4, 3, 220.00);
+(17, 16, 4, 3, 220.00),
+(18, 17, 6, 2, 210.00),
+(19, 18, 6, 2, 210.00),
+(20, 19, 6, 2, 210.00),
+(21, 20, 6, 2, 210.00),
+(22, 21, 6, 10, 210.00),
+(23, 22, 6, 4, 210.00),
+(24, 23, 6, 10, 210.00),
+(25, 24, 6, 2, 210.00),
+(26, 25, 6, 8, 210.00),
+(27, 26, 6, 9, 210.00),
+(28, 27, 6, 10, 210.00),
+(29, 28, 6, 8, 210.00),
+(30, 29, 6, 9, 210.00),
+(31, 30, 6, 7, 210.00),
+(32, 31, 6, 2, 210.00),
+(33, 32, 6, 4, 210.00),
+(34, 33, 6, 8, 210.00),
+(35, 34, 6, 2, 210.00),
+(36, 35, 6, 6, 210.00),
+(37, 36, 6, 10, 210.00),
+(38, 37, 6, 9, 210.00),
+(39, 38, 6, 10, 210.00),
+(40, 39, 6, 9, 210.00),
+(41, 40, 6, 5, 210.00),
+(42, 41, 6, 2, 210.00),
+(43, 42, 6, 5, 210.00),
+(44, 43, 6, 2, 210.00),
+(45, 44, 6, 7, 210.00),
+(46, 45, 6, 2, 210.00),
+(47, 46, 6, 3, 210.00),
+(48, 47, 6, 4, 210.00),
+(49, 48, 6, 5, 210.00),
+(50, 49, 6, 2, 210.00),
+(51, 50, 6, 10, 210.00),
+(52, 51, 6, 9, 210.00),
+(53, 52, 6, 9, 210.00),
+(54, 53, 6, 3, 210.00),
+(55, 54, 6, 2, 210.00),
+(56, 55, 6, 10, 210.00),
+(57, 56, 6, 10, 210.00),
+(58, 57, 6, 3, 210.00),
+(59, 58, 6, 10, 210.00),
+(60, 59, 6, 2, 210.00),
+(61, 60, 6, 6, 210.00),
+(62, 61, 6, 3, 210.00),
+(63, 62, 6, 10, 210.00),
+(64, 63, 6, 1, 210.00),
+(65, 64, 6, 2, 210.00),
+(66, 65, 6, 6, 210.00),
+(67, 66, 6, 5, 210.00),
+(68, 67, 6, 5, 210.00),
+(69, 68, 6, 10, 210.00),
+(70, 69, 6, 4, 210.00);
 
 -- --------------------------------------------------------
 
@@ -286,23 +401,75 @@ CREATE TABLE `production_records` (
   `mortality` int(11) DEFAULT 0,
   `notes` text DEFAULT NULL,
   `created_at` datetime NOT NULL DEFAULT current_timestamp(),
-  `updated_at` datetime NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+  `updated_at` datetime NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  `size` varchar(20) DEFAULT NULL,
+  `variety` varchar(20) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 --
 -- Dumping data for table `production_records`
 --
 
-INSERT INTO `production_records` (`id`, `farm_id`, `user_id`, `record_date`, `egg_count`, `feed_kg`, `feed_cost`, `egg_price`, `mortality`, `notes`, `created_at`, `updated_at`) VALUES
-(1, 1, 2, '2026-07-01', 980, 220.50, 15435.00, 5.50, 3, 'Steady production after vaccination.', '2026-07-15 16:04:04', '2026-07-15 16:04:04'),
-(2, 1, 2, '2026-07-02', 1010, 225.00, 15750.00, 5.50, 2, 'Improved feed conversion.', '2026-07-15 16:04:04', '2026-07-15 16:04:04'),
-(3, 4, 8, '2026-08-05', 4705, 598.59, 11949.94, 6.50, 4, 'Normal day', '2026-08-05 14:07:45', '2026-08-05 14:07:45'),
-(4, 4, 8, '2026-08-04', 4338, 526.08, 11189.15, 6.50, 4, 'Normal day', '2026-08-05 14:07:45', '2026-08-05 14:07:45'),
-(5, 4, 8, '2026-08-03', 4379, 527.57, 10739.45, 6.50, 1, 'Normal day', '2026-08-05 14:07:45', '2026-08-05 14:07:45'),
-(6, 4, 8, '2026-08-02', 4477, 552.03, 11928.89, 6.50, 1, 'Normal day', '2026-08-05 14:07:45', '2026-08-05 14:07:45'),
-(7, 4, 8, '2026-08-01', 4605, 557.92, 11758.45, 6.50, 4, 'Normal day', '2026-08-05 14:07:45', '2026-08-05 14:07:45'),
-(8, 4, 8, '2026-07-31', 4009, 596.14, 10807.02, 6.50, 5, 'Normal day', '2026-08-05 14:07:45', '2026-08-05 14:07:45'),
-(9, 4, 8, '2026-07-30', 4269, 526.75, 10047.90, 6.50, 3, 'Normal day', '2026-08-05 14:07:45', '2026-08-05 14:07:45');
+INSERT INTO `production_records` (`id`, `farm_id`, `user_id`, `record_date`, `egg_count`, `feed_kg`, `feed_cost`, `egg_price`, `mortality`, `notes`, `created_at`, `updated_at`, `size`, `variety`) VALUES
+(1, 1, 2, '2026-07-01', 980, 220.50, 15435.00, 5.50, 3, 'Steady production after vaccination.', '2026-07-15 16:04:04', '2026-07-15 16:04:04', NULL, NULL),
+(2, 1, 2, '2026-07-02', 1010, 225.00, 15750.00, 5.50, 2, 'Improved feed conversion.', '2026-07-15 16:04:04', '2026-07-15 16:04:04', NULL, NULL),
+(3, 4, 8, '2026-08-05', 4705, 598.59, 11949.94, 6.50, 4, 'Normal day', '2026-08-05 14:07:45', '2026-08-05 14:07:45', NULL, NULL),
+(4, 4, 8, '2026-08-04', 4338, 526.08, 11189.15, 6.50, 4, 'Normal day', '2026-08-05 14:07:45', '2026-08-05 14:07:45', NULL, NULL),
+(5, 4, 8, '2026-08-03', 4379, 527.57, 10739.45, 6.50, 1, 'Normal day', '2026-08-05 14:07:45', '2026-08-05 14:07:45', NULL, NULL),
+(6, 4, 8, '2026-08-02', 4477, 552.03, 11928.89, 6.50, 1, 'Normal day', '2026-08-05 14:07:45', '2026-08-05 14:07:45', NULL, NULL),
+(7, 4, 8, '2026-08-01', 4605, 557.92, 11758.45, 6.50, 4, 'Normal day', '2026-08-05 14:07:45', '2026-08-05 14:07:45', NULL, NULL),
+(8, 4, 8, '2026-07-31', 4009, 596.14, 10807.02, 6.50, 5, 'Normal day', '2026-08-05 14:07:45', '2026-08-05 14:07:45', NULL, NULL),
+(9, 4, 8, '2026-07-30', 4269, 526.75, 10047.90, 6.50, 3, 'Normal day', '2026-08-05 14:07:45', '2026-08-05 14:07:45', NULL, NULL),
+(10, 5, 11, '2026-06-20', 4692, 539.91, 15231.89, 7.24, 5, 'Daily routine check.', '2026-08-09 14:57:42', '2026-08-09 14:57:42', 'small', 'white'),
+(11, 5, 11, '2026-06-21', 4012, 530.16, 15961.86, 7.96, 3, 'Daily routine check.', '2026-08-09 14:57:42', '2026-08-09 14:57:42', 'medium', 'white'),
+(12, 5, 11, '2026-06-22', 4178, 536.15, 15348.65, 7.23, 4, 'Daily routine check.', '2026-08-09 14:57:42', '2026-08-09 14:57:42', 'extra_large', 'white'),
+(13, 5, 11, '2026-06-23', 4782, 541.27, 15808.44, 7.84, 3, 'Daily routine check.', '2026-08-09 14:57:42', '2026-08-09 14:57:42', 'jumbo', 'white'),
+(14, 5, 11, '2026-06-24', 4101, 536.02, 15087.26, 8.02, 0, 'Daily routine check.', '2026-08-09 14:57:42', '2026-08-09 14:57:42', 'extra_large', 'white'),
+(15, 5, 11, '2026-06-25', 4296, 520.46, 15255.88, 8.02, 1, 'Daily routine check.', '2026-08-09 14:57:42', '2026-08-09 14:57:42', 'extra_large', 'white'),
+(16, 5, 11, '2026-06-26', 4378, 539.49, 15440.54, 7.58, 2, 'Daily routine check.', '2026-08-09 14:57:42', '2026-08-09 14:57:42', 'extra_large', 'white'),
+(17, 5, 11, '2026-06-27', 4711, 501.54, 15721.48, 6.79, 1, 'Daily routine check.', '2026-08-09 14:57:42', '2026-08-09 14:57:42', 'jumbo', 'brown'),
+(18, 5, 11, '2026-06-28', 4387, 519.94, 15271.73, 7.76, 5, 'Daily routine check.', '2026-08-09 14:57:42', '2026-08-09 14:57:42', 'extra_large', 'brown'),
+(19, 5, 11, '2026-06-29', 4735, 535.63, 15615.61, 6.93, 4, 'Daily routine check.', '2026-08-09 14:57:42', '2026-08-09 14:57:42', 'small', 'brown'),
+(20, 5, 11, '2026-06-30', 4569, 502.02, 15607.62, 8.33, 1, 'Daily routine check.', '2026-08-09 14:57:42', '2026-08-09 14:57:42', 'jumbo', 'white'),
+(21, 5, 11, '2026-07-01', 4415, 539.37, 15288.69, 8.09, 0, 'Daily routine check.', '2026-08-09 14:57:42', '2026-08-09 14:57:42', 'medium', 'white'),
+(22, 5, 11, '2026-07-02', 4618, 500.03, 15911.54, 7.15, 4, 'Daily routine check.', '2026-08-09 14:57:42', '2026-08-09 14:57:42', 'medium', 'brown'),
+(23, 5, 11, '2026-07-03', 4749, 527.00, 15791.71, 7.09, 0, 'Daily routine check.', '2026-08-09 14:57:42', '2026-08-09 14:57:42', 'jumbo', 'white'),
+(24, 5, 11, '2026-07-04', 4438, 505.91, 15175.33, 7.64, 5, 'Daily routine check.', '2026-08-09 14:57:42', '2026-08-09 14:57:42', 'jumbo', 'brown'),
+(25, 5, 11, '2026-07-05', 4337, 534.85, 15051.85, 8.22, 1, 'Daily routine check.', '2026-08-09 14:57:42', '2026-08-09 14:57:42', 'extra_large', 'brown'),
+(26, 5, 11, '2026-07-06', 4765, 526.14, 15244.02, 7.56, 1, 'Daily routine check.', '2026-08-09 14:57:42', '2026-08-09 14:57:42', 'small', 'brown'),
+(27, 5, 11, '2026-07-07', 4712, 507.61, 15314.68, 7.62, 0, 'Daily routine check.', '2026-08-09 14:57:42', '2026-08-09 14:57:42', 'jumbo', 'white'),
+(28, 5, 11, '2026-07-08', 4456, 526.65, 15175.98, 7.55, 2, 'Daily routine check.', '2026-08-09 14:57:42', '2026-08-09 14:57:42', 'medium', 'white'),
+(29, 5, 11, '2026-07-09', 4381, 526.29, 15245.54, 7.13, 1, 'Daily routine check.', '2026-08-09 14:57:42', '2026-08-09 14:57:42', 'medium', 'white'),
+(30, 5, 11, '2026-07-10', 4733, 527.69, 15358.97, 6.79, 0, 'Daily routine check.', '2026-08-09 14:57:42', '2026-08-09 14:57:42', 'large', 'white'),
+(31, 5, 11, '2026-07-11', 4705, 525.71, 15759.86, 6.80, 3, 'Daily routine check.', '2026-08-09 14:57:42', '2026-08-09 14:57:42', 'extra_large', 'brown'),
+(32, 5, 11, '2026-07-12', 4681, 514.60, 15488.46, 8.29, 0, 'Daily routine check.', '2026-08-09 14:57:42', '2026-08-09 14:57:42', 'extra_large', 'white'),
+(33, 5, 11, '2026-07-13', 4563, 512.49, 15329.44, 7.51, 1, 'Daily routine check.', '2026-08-09 14:57:42', '2026-08-09 14:57:42', 'small', 'brown'),
+(34, 5, 11, '2026-07-14', 4583, 524.03, 15767.27, 6.71, 0, 'Daily routine check.', '2026-08-09 14:57:42', '2026-08-09 14:57:42', 'jumbo', 'brown'),
+(35, 5, 11, '2026-07-15', 4313, 515.05, 15808.03, 7.38, 1, 'Daily routine check.', '2026-08-09 14:57:42', '2026-08-09 14:57:42', 'extra_large', 'white'),
+(36, 5, 11, '2026-07-16', 4203, 513.43, 15628.83, 8.07, 0, 'Daily routine check.', '2026-08-09 14:57:42', '2026-08-09 14:57:42', 'jumbo', 'brown'),
+(37, 5, 11, '2026-07-17', 4347, 546.69, 15695.89, 7.23, 0, 'Daily routine check.', '2026-08-09 14:57:42', '2026-08-09 14:57:42', 'jumbo', 'brown'),
+(38, 5, 11, '2026-07-18', 4760, 521.06, 15503.03, 7.53, 1, 'Daily routine check.', '2026-08-09 14:57:42', '2026-08-09 14:57:42', 'large', 'white'),
+(39, 5, 11, '2026-07-19', 4142, 526.70, 15714.15, 8.29, 4, 'Daily routine check.', '2026-08-09 14:57:42', '2026-08-09 14:57:42', 'jumbo', 'brown'),
+(40, 5, 11, '2026-07-20', 4518, 503.40, 15184.21, 7.59, 5, 'Daily routine check.', '2026-08-09 14:57:42', '2026-08-09 14:57:42', 'jumbo', 'white'),
+(41, 5, 11, '2026-07-21', 4690, 516.80, 15700.21, 7.55, 2, 'Daily routine check.', '2026-08-09 14:57:42', '2026-08-09 14:57:42', 'extra_large', 'brown'),
+(42, 5, 11, '2026-07-22', 4386, 545.67, 15552.81, 6.55, 3, 'Daily routine check.', '2026-08-09 14:57:42', '2026-08-09 14:57:42', 'medium', 'white'),
+(43, 5, 11, '2026-07-23', 4044, 540.78, 15546.49, 7.49, 4, 'Daily routine check.', '2026-08-09 14:57:42', '2026-08-09 14:57:42', 'medium', 'brown'),
+(44, 5, 11, '2026-07-24', 4059, 549.88, 15472.47, 7.37, 3, 'Daily routine check.', '2026-08-09 14:57:42', '2026-08-09 14:57:42', 'medium', 'white'),
+(45, 5, 11, '2026-07-25', 4398, 507.50, 15551.25, 8.19, 5, 'Daily routine check.', '2026-08-09 14:57:42', '2026-08-09 14:57:42', 'extra_large', 'white'),
+(46, 5, 11, '2026-07-26', 4498, 543.65, 15811.58, 7.92, 3, 'Daily routine check.', '2026-08-09 14:57:42', '2026-08-09 14:57:42', 'large', 'brown'),
+(47, 5, 11, '2026-07-27', 4072, 520.57, 15507.92, 7.13, 1, 'Daily routine check.', '2026-08-09 14:57:42', '2026-08-09 14:57:42', 'medium', 'brown'),
+(48, 5, 11, '2026-07-28', 4559, 501.67, 15786.77, 8.47, 1, 'Daily routine check.', '2026-08-09 14:57:42', '2026-08-09 14:57:42', 'medium', 'brown'),
+(49, 5, 11, '2026-07-29', 4494, 501.72, 15324.05, 8.04, 1, 'Daily routine check.', '2026-08-09 14:57:42', '2026-08-09 14:57:42', 'jumbo', 'white'),
+(50, 5, 11, '2026-07-30', 4472, 515.51, 15226.47, 6.76, 0, 'Daily routine check.', '2026-08-09 14:57:42', '2026-08-09 14:57:42', 'jumbo', 'brown'),
+(51, 5, 11, '2026-07-31', 4134, 504.37, 15571.49, 7.28, 1, 'Daily routine check.', '2026-08-09 14:57:42', '2026-08-09 14:57:42', 'extra_large', 'white'),
+(52, 5, 11, '2026-08-01', 4505, 540.07, 15141.38, 7.90, 5, 'Daily routine check.', '2026-08-09 14:57:42', '2026-08-09 14:57:42', 'small', 'brown'),
+(53, 5, 11, '2026-08-02', 4104, 530.72, 15782.93, 7.57, 4, 'Daily routine check.', '2026-08-09 14:57:42', '2026-08-09 14:57:42', 'medium', 'white'),
+(54, 5, 11, '2026-08-03', 4390, 517.59, 15027.77, 6.58, 0, 'Daily routine check.', '2026-08-09 14:57:42', '2026-08-09 14:57:42', 'small', 'brown'),
+(55, 5, 11, '2026-08-04', 4345, 523.78, 15530.55, 7.69, 3, 'Daily routine check.', '2026-08-09 14:57:42', '2026-08-09 14:57:42', 'small', 'brown'),
+(56, 5, 11, '2026-08-05', 4074, 540.29, 15634.60, 8.48, 4, 'Daily routine check.', '2026-08-09 14:57:42', '2026-08-09 14:57:42', 'jumbo', 'white'),
+(57, 5, 11, '2026-08-06', 4785, 531.08, 15320.18, 7.03, 4, 'Daily routine check.', '2026-08-09 14:57:42', '2026-08-09 14:57:42', 'large', 'white'),
+(58, 5, 11, '2026-08-07', 4132, 536.92, 15128.98, 7.48, 4, 'Daily routine check.', '2026-08-09 14:57:42', '2026-08-09 14:57:42', 'small', 'brown'),
+(59, 5, 11, '2026-08-08', 4528, 540.75, 15919.32, 6.93, 0, 'Daily routine check.', '2026-08-09 14:57:42', '2026-08-09 14:57:42', 'large', 'brown');
 
 -- --------------------------------------------------------
 
@@ -336,7 +503,8 @@ INSERT INTO `products` (`id`, `farmer_id`, `farm_id`, `name`, `description`, `un
 (2, 2, 2, 'Broiler Chickens', 'Healthy broiler chickens ready for delivery.', 'head', 95.00, 45, 'Laguna', 1, '2026-07-15 16:04:04', '2026-07-15 16:04:04', 'medium', 'brown'),
 (3, 6, 3, 'Egg', NULL, 'tray', 7.00, 48, 'Paete', 1, '2026-07-15 09:41:23', '2026-07-15 09:57:39', 'small', 'brown'),
 (4, 8, 4, 'Premium Large Brown Eggs', 'Fresh daily harvest', 'tray', 220.00, 100, NULL, 1, '2026-08-05 15:19:19', '2026-08-05 15:19:19', 'large', 'brown'),
-(5, 8, 4, 'Medium White Eggs', 'Great for baking', 'tray', 180.00, 50, NULL, 1, '2026-08-05 15:19:19', '2026-08-05 15:19:19', 'medium', 'white');
+(5, 8, 4, 'Medium White Eggs', 'Great for baking', 'tray', 180.00, 50, NULL, 1, '2026-08-05 15:19:19', '2026-08-05 15:19:19', 'medium', 'white'),
+(6, 11, 5, 'Fresh Large Brown Eggs', 'Farm fresh brown eggs collected daily.', 'tray', 210.00, 100, 'Batangas', 1, '2026-08-09 14:57:42', '2026-08-09 14:57:42', 'large', 'brown');
 
 -- --------------------------------------------------------
 
@@ -363,7 +531,16 @@ CREATE TABLE `sales_records` (
 --
 
 INSERT INTO `sales_records` (`id`, `farm_id`, `user_id`, `sale_date`, `quantity_sold`, `price_per_egg`, `total_revenue`, `buyer_name`, `notes`, `created_at`, `updated_at`) VALUES
-(1, 4, 8, '2026-08-05', 3, 180.00, 540.00, 'Demo Buyer', 'Auto-generated from Order #15', '2026-08-05 16:01:02', '2026-08-05 16:01:02');
+(1, 4, 8, '2026-08-05', 3, 180.00, 540.00, 'Demo Buyer', 'Auto-generated from Order #15', '2026-08-05 16:01:02', '2026-08-05 16:01:02'),
+(2, 5, 11, '2026-07-22', 10, 210.00, 2100.00, 'Maria Clara', 'Fresh Large Brown Eggs (Order #23)', '2026-07-22 07:07:23', '2026-08-09 15:07:23'),
+(3, 5, 11, '2026-07-20', 9, 210.00, 1890.00, 'Maria Clara', 'Fresh Large Brown Eggs (Order #29)', '2026-07-20 02:07:23', '2026-08-09 15:07:23'),
+(4, 5, 11, '2026-07-29', 2, 210.00, 420.00, 'Maria Clara', 'Fresh Large Brown Eggs (Order #43)', '2026-07-29 12:07:23', '2026-08-09 15:07:23'),
+(5, 5, 11, '2026-08-06', 9, 210.00, 1890.00, 'Maria Clara', 'Fresh Large Brown Eggs (Order #52)', '2026-08-06 14:07:23', '2026-08-09 15:07:23'),
+(6, 5, 11, '2026-07-26', 2, 210.00, 420.00, 'Maria Clara', 'Fresh Large Brown Eggs (Order #54)', '2026-07-26 16:07:23', '2026-08-09 15:07:23'),
+(7, 5, 11, '2026-08-02', 6, 210.00, 1260.00, 'Maria Clara', 'Fresh Large Brown Eggs (Order #60)', '2026-08-02 02:07:23', '2026-08-09 15:07:23'),
+(8, 5, 11, '2026-08-03', 5, 210.00, 1050.00, 'Maria Clara', 'Fresh Large Brown Eggs (Order #67)', '2026-08-03 10:07:23', '2026-08-09 15:07:23'),
+(9, 5, 11, '2026-07-30', 10, 210.00, 2100.00, 'Maria Clara', 'Fresh Large Brown Eggs (Order #68)', '2026-07-30 00:07:23', '2026-08-09 15:07:23'),
+(10, 5, 11, '2026-08-09', 4, 210.00, 840.00, 'Maria Clara', 'Fresh Large Brown Eggs (Order #69)', '2026-08-09 15:07:23', '2026-08-09 15:07:23');
 
 -- --------------------------------------------------------
 
@@ -403,7 +580,9 @@ INSERT INTO `users` (`id`, `username`, `email`, `password_hash`, `role`, `first_
 (7, 'jeric', 'punay.jeric@gmail.com', 'scrypt:32768:8:1$Gk3kiVWefV5l9FdT$e1395bc712be122a14f345c79f8fe1a6149e5eb2c4029c3913ecf1917a159b2eab640bc2d70f74fc9105c82c7a3c50225d4a22cee05fec6c4c3d53db8ee6ee3d', 'buyer', 'Jeric', 'Punay', '09270196752', 1, 1, '2026-07-15 09:05:15', '2026-07-15 08:21:16', '2026-07-15 09:43:54', 'Santa Maria, Laguna', 'Near Plaza'),
 (8, 'juan_farmer', 'juan@example.com', 'scrypt:32768:8:1$BaVcTavr7DKgUwTy$82c5307c9b0990a42b7562595e0b1c67e2130455c8854ec1546c2359339c27f5d3f48dcecda070bcf46077d056ff8fd6c2d81031033b57122f213b64d4c8b8bb', 'farmer', 'Juan', 'Dela Cruz', '09123456789', 1, 1, '2026-08-05 16:04:33', '2026-08-05 14:07:45', '2026-08-05 16:04:33', 'San Jose, Batangas', NULL),
 (9, 'maria_buyer', 'maria@example.com', 'scrypt:32768:8:1$GuP9v4ZOHUWubK0T$1e90ccb7f67ef279891cb66478252981b20bce8c5fb9e0a8de51caa2882cacb11dbcdc828526a13be1c43ce5f51676295ce4cf7028b230ed5c273adf52884dad', 'buyer', 'Maria', 'Clara', '09987654321', 1, 0, NULL, '2026-08-05 14:07:45', '2026-08-05 14:07:45', 'Lipa City, Batangas', NULL),
-(10, 'demo_buyer', 'demo_buyer@example.com', 'scrypt:32768:8:1$k4tRW87MXsaOL2pa$2f2a9f3f7985e200ce80678d3e53bb38c6655eeb34657e843772f0570c6cc9559eab5957d31634d620ef8f613eca136aaad1f6b900ef5118ca4293e455740029', 'buyer', 'Demo', 'Buyer', '09123456789', 1, 0, NULL, '2026-08-05 15:19:19', '2026-08-05 15:19:19', '123 Market St.', 'Near Plaza');
+(10, 'demo_buyer', 'demo_buyer@example.com', 'scrypt:32768:8:1$k4tRW87MXsaOL2pa$2f2a9f3f7985e200ce80678d3e53bb38c6655eeb34657e843772f0570c6cc9559eab5957d31634d620ef8f613eca136aaad1f6b900ef5118ca4293e455740029', 'buyer', 'Demo', 'Buyer', '09123456789', 1, 0, NULL, '2026-08-05 15:19:19', '2026-08-05 15:19:19', '123 Market St.', 'Near Plaza'),
+(11, 'demo_farmer', 'farmer@demo.com', 'scrypt:32768:8:1$B9LwiUsRM5bH5Ufj$2fda8a18a0ea9afe17040d621522f1ef26c341cb6762687aab05ae17510de9d34b9c8f75ed86362947d519db3873198535dc7fa2483b73c69d6bdb1a295659d6', 'farmer', 'Juan', 'Dela Cruz', '09123456789', 1, 0, '2026-08-09 15:15:52', '2026-08-09 14:57:14', '2026-08-09 15:15:52', 'Brgy. San Jose, Batangas', NULL),
+(13, 'demo_buyer_2026', 'buyer@demo.com', 'scrypt:32768:8:1$pJAOxwe3TCkgcoWT$5747e771b5fc6d5a3128da40f8da2fa7eba5ae6d3447b3d5157840f7fb7f252d3093ac098445f93e9e419d7793d311804ba26f16351cb513365e2c27c833454e', 'buyer', 'Maria', 'Clara', '09987654321', 1, 1, '2026-08-09 15:18:48', '2026-08-09 14:57:42', '2026-08-09 15:18:48', 'Makati City', NULL);
 
 --
 -- Indexes for dumped tables
@@ -481,7 +660,7 @@ ALTER TABLE `order_items`
 --
 ALTER TABLE `production_records`
   ADD PRIMARY KEY (`id`),
-  ADD UNIQUE KEY `uq_farm_record_date` (`farm_id`,`record_date`),
+  ADD UNIQUE KEY `uq_farm_record_date_size_variety` (`farm_id`,`record_date`,`size`,`variety`),
   ADD KEY `idx_production_farm` (`farm_id`),
   ADD KEY `idx_production_user` (`user_id`),
   ADD KEY `idx_production_date` (`record_date`);
@@ -528,13 +707,13 @@ ALTER TABLE `conversations`
 -- AUTO_INCREMENT for table `expenses`
 --
 ALTER TABLE `expenses`
-  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=43;
 
 --
 -- AUTO_INCREMENT for table `farms`
 --
 ALTER TABLE `farms`
-  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
 
 --
 -- AUTO_INCREMENT for table `messages`
@@ -552,37 +731,37 @@ ALTER TABLE `notifications`
 -- AUTO_INCREMENT for table `orders`
 --
 ALTER TABLE `orders`
-  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=17;
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=70;
 
 --
 -- AUTO_INCREMENT for table `order_items`
 --
 ALTER TABLE `order_items`
-  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=18;
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=71;
 
 --
 -- AUTO_INCREMENT for table `production_records`
 --
 ALTER TABLE `production_records`
-  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=60;
 
 --
 -- AUTO_INCREMENT for table `products`
 --
 ALTER TABLE `products`
-  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
 
 --
 -- AUTO_INCREMENT for table `sales_records`
 --
 ALTER TABLE `sales_records`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
 
 --
 -- AUTO_INCREMENT for table `users`
 --
 ALTER TABLE `users`
-  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=14;
 
 --
 -- Constraints for dumped tables
