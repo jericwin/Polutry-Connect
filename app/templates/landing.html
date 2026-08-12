@@ -1157,6 +1157,40 @@
           grid-template-columns: 1fr;
         }
       }
+      @media (max-width: 600px) {
+        .navbar {
+          padding: 0.5rem 1rem;
+          height: auto;
+          flex-wrap: wrap;
+          gap: 0.5rem;
+        }
+        .navbar__logo {
+          font-size: 1.15rem;
+        }
+        .navbar__cta {
+          gap: 0.25rem;
+        }
+        .btn-ghost {
+          padding: 0.4rem 0.6rem;
+          font-size: 0.85rem;
+        }
+        .btn-primary {
+          padding: 0.4rem 0.8rem;
+          font-size: 0.85rem;
+        }
+      }
+      @media (max-width: 400px) {
+        .navbar__cta {
+          gap: 0.15rem;
+        }
+        .btn {
+          font-size: 0.75rem;
+          padding: 0.35rem 0.5rem;
+        }
+        .navbar__logo {
+          font-size: 1rem;
+        }
+      }
     </style>
   </head>
   <body>
