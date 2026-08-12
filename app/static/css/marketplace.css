@@ -1772,3 +1772,14 @@
         gap: 0.5rem;
     }
 }
+
+/* ================= RESPONSIVE LAYOUT ================= */
+@media (max-width: 768px) {
+  .market-layout { grid-template-columns: 1fr; }
+  .market-sidebar { position: static; height: auto; margin-bottom: 1rem; border-right: none; border-bottom: 1px solid var(--outline); padding-bottom: 1rem; }
+  .products-grid { grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); }
+  .cart-layout, .checkout-layout { grid-template-columns: 1fr; }
+  .cart-summary { position: static; margin-top: 1rem; }
+  .product-image { height: 150px; }
+}
+

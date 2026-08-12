@@ -1217,3 +1217,13 @@
     width: 95vw;
   }
 }
+
+
+/* ================= RESPONSIVE LAYOUT ================= */
+@media (max-width: 768px) {
+  .messaging-container { grid-template-columns: 1fr; }
+  .conversations-sidebar { display: none; }
+  /* A real responsive messenger requires JS to toggle between list and chat. For now, stack if we want, but hiding list is common when viewing chat */
+  .chat-main { display: flex; flex-direction: column; }
+}
+
