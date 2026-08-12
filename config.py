@@ -11,6 +11,15 @@ def _default_database_uri():
         # Vercel and cloud providers often provide 'mysql://', but we need 'mysql+pymysql://'
         if database_url.startswith('mysql://'):
             database_url = database_url.replace('mysql://', 'mysql+pymysql://', 1)
+        
+        # pymysql does not support the 'ssl-mode' keyword argument in the URL
+        if 'ssl-mode=' in database_url:
+            database_url = database_url.replace('?ssl-mode=REQUIRED', '')
+            database_url = database_url.replace('&ssl-mode=REQUIRED', '')
+            # fallback for any other ssl-mode
+            import re
+            database_url = re.sub(r'[?&]ssl-mode=[^&]*', '', database_url)
+
         return database_url
 
     mysql_user = os.environ.get('MYSQL_USER') or 'root'
