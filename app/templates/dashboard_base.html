@@ -17,7 +17,7 @@
     {% block extra_css %}{% endblock %}
   </head>
   <body>
-    <div class="dash-shell">
+    <div class="dash-shell"><div class="dash-sidebar-overlay" id="dashSidebarOverlay"></div>
       <!-- ═══════════════════ SIDEBAR ═══════════════════ -->
       <aside class="dash-sidebar" id="dashSidebar">
         <div class="sidebar-logo">
@@ -475,6 +475,12 @@
       if (mobileBtn && dashShell) {
         mobileBtn.addEventListener('click', () => {
           dashShell.classList.toggle('sidebar-open');
+        });
+      }
+      const dashOverlay = document.getElementById('dashSidebarOverlay');
+      if (dashOverlay && dashShell) {
+        dashOverlay.addEventListener('click', () => {
+          dashShell.classList.remove('sidebar-open');
         });
       }
     </script>
