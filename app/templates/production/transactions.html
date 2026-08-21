@@ -1,0 +1,150 @@
+{% extends 'dashboard_base.html' %}
+
+{% block title %}Transactions Log — PoultryConnect{% endblock %}
+
+{% block page_title %}Transactions Log{% endblock %}
+{% block breadcrumb %}PoultryConnect / Transactions{% endblock %}
+
+{% block topbar_actions %}
+    <a href="{{ url_for('production.onsite_sales_add') }}" class="btn btn-primary">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" width="16" height="16">
+            <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+        </svg>
+        Log On-site Sale
+    </a>
+{% endblock %}
+
+{% block content %}
+<div class="dash-content-header">
+    <div>
+        <h1 class="dash-title">Transactions Log</h1>
+        <p class="dash-subtitle">View both online marketplace and on-site sales transactions.</p>
+    </div>
+</div>
+
+<div style="display: flex; flex-direction: column; gap: 1rem; margin-bottom: 2rem;">
+    <!-- Farm Pills -->
+    <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+        <a href="{{ url_for('production.transactions', farm_id=0, type=selected_type, start_date=start_date_str, end_date=end_date_str) }}" 
+           class="btn btn-sm" 
+           style="border-radius: 99px; font-weight: 600; padding: 0.4rem 1.2rem; text-decoration: none; border: 1.5px solid {% if selected_farm_id == 0 or not selected_farm_id %}#15803d{% else %}var(--outline-variant){% endif %}; background: {% if selected_farm_id == 0 or not selected_farm_id %}#dcfce7{% else %}var(--surface){% endif %}; color: {% if selected_farm_id == 0 or not selected_farm_id %}#166534{% else %}var(--on-surface-variant){% endif %}; transition: all 0.2s;">
+           All Farms
+        </a>
+        {% for farm in farms %}
+        <a href="{{ url_for('production.transactions', farm_id=farm.id, type=selected_type, start_date=start_date_str, end_date=end_date_str) }}" 
+           class="btn btn-sm" 
+           style="border-radius: 99px; font-weight: 600; padding: 0.4rem 1.2rem; text-decoration: none; border: 1.5px solid {% if selected_farm_id == farm.id %}#15803d{% else %}var(--outline-variant){% endif %}; background: {% if selected_farm_id == farm.id %}#dcfce7{% else %}var(--surface){% endif %}; color: {% if selected_farm_id == farm.id %}#166534{% else %}var(--on-surface-variant){% endif %}; transition: all 0.2s;">
+           {{ farm.name }}
+        </a>
+        {% endfor %}
+    </div>
+
+    <!-- Date & Type Filter -->
+    <form method="GET" action="{{ url_for('production.transactions') }}" style="display:inline-flex; gap:1rem; align-items:center; background:var(--surface); padding:0.4rem 0.5rem 0.4rem 1.2rem; border-radius:99px; border:1px solid var(--outline-variant); width: fit-content; box-shadow: 0 1px 3px rgba(0,0,0,0.02);">
+        {% if selected_farm_id %}
+            <input type="hidden" name="farm_id" value="{{ selected_farm_id }}">
+        {% endif %}
+        
+        <div style="display:flex; align-items:center; gap:0.5rem;">
+            <label style="font-size:0.875rem; font-weight:600; color:var(--on-surface-variant); margin:0;">Type</label>
+            <select name="type" style="padding:0.3rem 0.5rem; border:1px solid var(--outline-variant); border-radius:0.5rem; outline:none; font-family:inherit; font-size:0.875rem; color:var(--text-dark); background:transparent;">
+                <option value="">All Types</option>
+                <option value="online" {% if selected_type == 'online' %}selected{% endif %}>Online</option>
+                <option value="onsite" {% if selected_type == 'onsite' %}selected{% endif %}>On-site</option>
+            </select>
+        </div>
+        
+        <div style="width:1px; height:24px; background:var(--outline-variant); margin:0 0.25rem;"></div>
+
+        <div style="display:flex; align-items:center; gap:0.5rem;">
+            <label for="start_date" style="font-size:0.875rem; font-weight:600; color:var(--on-surface-variant); margin:0;">From</label>
+            <input type="date" name="start_date" id="start_date" value="{{ start_date_str or '' }}" style="padding:0.3rem 0.5rem; border:1px solid var(--outline-variant); border-radius:0.5rem; outline:none; font-family:inherit; font-size:0.875rem; color:var(--text-dark);">
+        </div>
+        <div style="display:flex; align-items:center; gap:0.5rem;">
+            <label for="end_date" style="font-size:0.875rem; font-weight:600; color:var(--on-surface-variant); margin:0;">To</label>
+            <input type="date" name="end_date" id="end_date" value="{{ end_date_str or '' }}" style="padding:0.3rem 0.5rem; border:1px solid var(--outline-variant); border-radius:0.5rem; outline:none; font-family:inherit; font-size:0.875rem; color:var(--text-dark);">
+        </div>
+        <button type="submit" class="btn" style="background:#dcfce7; color:#166534; border:none; padding:0.4rem 1.2rem; font-size:0.875rem; border-radius:99px; font-weight: 700; cursor:pointer;">Filter</button>
+        {% if selected_farm_id or selected_type or start_date_str or end_date_str %}
+            <a href="{{ url_for('production.transactions') }}{% if selected_farm_id %}?farm_id={{ selected_farm_id }}{% endif %}" class="btn" style="padding:0.4rem 1rem; font-size:0.875rem; color:var(--text-muted); border-radius: 99px; text-decoration:none;">Clear</a>
+        {% endif %}
+    </form>
+</div>
+
+<div class="ds-card">
+    <div class="ds-card__header" style="display:flex; justify-content:space-between; align-items:center;">
+        <div style="display:flex; align-items:center; gap:0.75rem;">
+            <h3 class="ds-card__label" style="margin:0;">All Sales Records</h3>
+            <span class="ds-pill ds-pill--green" style="margin:0;">{{ sales|length }} Records</span>
+        </div>
+        <div style="display:flex; gap:0.5rem;">
+            <a href="{{ url_for('analytics.sales_report', farm_id=selected_farm_id, type=selected_type, start_date=start_date_str, end_date=end_date_str, format='pdf') }}" target="_blank" class="btn btn-sm" style="display:inline-flex; align-items:center; gap:0.4rem; border:1px solid var(--outline-variant); background:var(--surface); color:var(--on-surface);">
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:#dc2626;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+                PDF
+            </a>
+            <a href="{{ url_for('analytics.sales_report', farm_id=selected_farm_id, type=selected_type, start_date=start_date_str, end_date=end_date_str, format='excel') }}" class="btn btn-sm" style="display:inline-flex; align-items:center; gap:0.4rem; border:1px solid var(--outline-variant); background:var(--surface); color:var(--on-surface);">
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:#16a34a;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><path d="M8 13h2a2 2 0 0 1 2 2v2"></path><path d="M8 17h2a2 2 0 0 0 2-2v-2"></path><path d="M14 13h4"></path><path d="M16 17h2"></path></svg>
+                Excel
+            </a>
+        </div>
+    </div>
+
+    {% if sales %}
+    <div class="ds-table-wrapper" style="overflow-x:auto;">
+        <table class="ds-table" style="width:100%; text-align:left; border-collapse:collapse;">
+            <thead>
+                <tr style="border-bottom:2px solid var(--outline-variant); font-size:0.875rem; color:var(--on-surface-variant);">
+                    <th style="padding:1rem;">Date</th>
+                    <th style="padding:1rem;">Farm</th>
+                    <th style="padding:1rem;">Buyer</th>
+                    <th style="padding:1rem;">Type</th>
+                    <th style="padding:1rem; text-align:right;">Quantity</th>
+                    <th style="padding:1rem; text-align:right;">Price (₱)</th>
+                    <th style="padding:1rem; text-align:right;">Total (₱)</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for sale in sales %}
+                <tr style="border-bottom:1px solid var(--outline-variant); transition:background 0.2s;">
+                    <td style="padding:1rem;">{{ sale.sale_date.strftime('%b %d, %Y') }}</td>
+                    <td style="padding:1rem; font-weight:500;">
+                        <span style="display:inline-flex; align-items:center; gap:0.4rem; padding:0.25rem 0.75rem; background:var(--surface-container); border-radius:99px; font-size:0.85rem;">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+                            {{ sale.farm.name }}
+                        </span>
+                    </td>
+                    <td style="padding:1rem; color:var(--on-surface-variant);">
+                        {{ sale.buyer_name or 'N/A' }}
+                    </td>
+                    <td style="padding:1rem;">
+                        {% if sale.notes and '(Order #' in sale.notes %}
+                            <span class="ds-pill" style="background:#e0f2fe; color:#0369a1; border-color:#bae6fd;">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:4px;"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+                                Online
+                            </span>
+                        {% else %}
+                            <span class="ds-pill ds-pill--green">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:4px;"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
+                                On-site
+                            </span>
+                        {% endif %}
+                    </td>
+                    <td style="padding:1rem; text-align:right;">{{ "{:,}".format(sale.quantity_sold) }}</td>
+                    <td style="padding:1rem; text-align:right;">{{ "{:,.2f}".format(sale.price_per_egg) }}</td>
+                    <td style="padding:1rem; text-align:right; font-weight:600; color:var(--primary);">
+                        ₱{{ "{:,.2f}".format(sale.total_revenue) }}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div style="padding:3rem; text-align:center;">
+        <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="var(--on-surface-variant)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="margin:0 auto 1rem; opacity:0.5;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+        <h4 style="color:var(--on-surface-variant); margin-bottom:0.5rem;">No Transactions Found</h4>
+        <p style="color:var(--on-surface-variant); opacity:0.8;">You haven't logged any sales or received completed orders yet.</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

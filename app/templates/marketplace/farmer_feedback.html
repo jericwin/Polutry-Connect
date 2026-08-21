@@ -1,0 +1,251 @@
+{% extends "marketplace/marketplace_base.html" %}
+
+{% block title %}Buyer Feedback - PoultryConnect{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/marketplace.css') }}">
+<style>
+    .fo-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+        gap: 1.5rem;
+    }
+    .feedback-card {
+        background: var(--surface);
+        border: 1px solid var(--outline);
+        border-radius: var(--radius-lg);
+        padding: 1.5rem;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.02);
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .feedback-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 15px rgba(0,0,0,0.05);
+    }
+    .feedback-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 1rem;
+    }
+    .feedback-rating {
+        display: flex;
+        align-items: center;
+        gap: 0.25rem;
+        color: #eab308;
+        font-weight: 700;
+        font-size: 1.1rem;
+        background: rgba(234, 179, 8, 0.1);
+        padding: 0.25rem 0.75rem;
+        border-radius: 99px;
+    }
+    .feedback-date {
+        font-size: 0.8rem;
+        color: var(--text-muted);
+    }
+    .feedback-text {
+        font-size: 0.95rem;
+        color: var(--text-dark);
+        line-height: 1.5;
+        margin-bottom: 1.25rem;
+        font-style: italic;
+    }
+    .feedback-footer {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border-top: 1px solid var(--outline-variant);
+        padding-top: 1rem;
+        font-size: 0.85rem;
+        color: var(--text-muted);
+    }
+    .feedback-buyer {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-weight: 600;
+        color: var(--primary);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="mp-container" style="padding: 2rem 1.5rem; max-width: 1200px; margin: 0 auto;">
+    <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 2rem;">
+        <div>
+            <h1 style="font-family: var(--font-display); font-size: 1.8rem; font-weight: 800; color: var(--on-surface); margin-bottom: 0.4rem;">
+                Buyer Feedback
+            </h1>
+            <p style="color: var(--on-surface-variant); margin: 0;">See what buyers are saying about your service delivery.</p>
+        </div>
+    </div>
+
+    
+    <!-- Filters -->
+    <div style="background: var(--surface); padding: 1.5rem; border: 1px solid var(--outline); border-radius: var(--radius-lg); margin-bottom: 2rem;">
+        <form method="GET" action="{{ url_for('marketplace.farmer_feedback') }}" style="display: flex; gap: 1rem; align-items: flex-end; flex-wrap: nowrap; overflow-x: auto; padding-bottom: 0.5rem;">
+            
+            <div style="width: 200px;">
+                <label for="q" style="display: block; font-size: 0.85rem; font-weight: 600; color: var(--text-muted); margin-bottom: 0.5rem;">Search Comments</label>
+                <div style="position: relative;">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="position: absolute; left: 1rem; top: 50%; transform: translateY(-50%); color: var(--text-muted);"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                    <input type="text" id="q" name="q" value="{{ request.args.get('q', '') }}" placeholder="Search keywords..." style="width: 100%; height: 42px; padding: 0 1rem 0 2.5rem; border: 1px solid var(--outline-variant); border-radius: 6px; font-family: inherit;">
+                </div>
+            </div>
+
+            <div style="min-width: 140px;">
+                <label for="category" style="display: block; font-size: 0.85rem; font-weight: 600; color: var(--text-muted); margin-bottom: 0.5rem;">Category</label>
+                <select id="category" name="category" style="width: 100%; height: 42px; padding: 0 1rem; border: 1px solid var(--outline-variant); border-radius: 6px; font-family: inherit; background: var(--surface);">
+                    <option value="">All Categories</option>
+                    {% for cat in unique_categories %}
+                    <option value="{{ cat }}" {% if request.args.get('category') == cat %}selected{% endif %}>{{ cat|title }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div style="min-width: 140px;">
+                <label for="sentiment" style="display: block; font-size: 0.85rem; font-weight: 600; color: var(--text-muted); margin-bottom: 0.5rem;">Sentiment</label>
+                <select id="sentiment" name="sentiment" style="width: 100%; height: 42px; padding: 0 1rem; border: 1px solid var(--outline-variant); border-radius: 6px; font-family: inherit; background: var(--surface);">
+                    <option value="">All Sentiments</option>
+                    {% for sent in unique_sentiments %}
+                    <option value="{{ sent|lower }}" {% if request.args.get('sentiment') == sent|lower %}selected{% endif %}>{{ sent }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            
+            <div style="min-width: 140px;">
+                <label for="rating" style="display: block; font-size: 0.85rem; font-weight: 600; color: var(--text-muted); margin-bottom: 0.5rem;">Rating</label>
+                <select id="rating" name="rating" style="width: 100%; height: 42px; padding: 0 1rem; border: 1px solid var(--outline-variant); border-radius: 6px; font-family: inherit; background: var(--surface);">
+                    <option value="">All Ratings</option>
+                    <option value="5" {% if request.args.get('rating') == '5' %}selected{% endif %}>5 Stars</option>
+                    <option value="4" {% if request.args.get('rating') == '4' %}selected{% endif %}>4 Stars</option>
+                    <option value="3" {% if request.args.get('rating') == '3' %}selected{% endif %}>3 Stars</option>
+                    <option value="2" {% if request.args.get('rating') == '2' %}selected{% endif %}>2 Stars</option>
+                    <option value="1" {% if request.args.get('rating') == '1' %}selected{% endif %}>1 Star</option>
+                </select>
+            </div>
+
+            <div style="display: flex; gap: 0.5rem; align-items: center; flex-shrink: 0;">
+                <button type="submit" style="height: 42px; width: 90px; display: inline-flex; align-items: center; justify-content: center; background: var(--primary); color: var(--on-primary); border: 1px solid transparent; border-radius: 6px; font-weight: 600; cursor: pointer; box-sizing: border-box; font-family: inherit; font-size: 0.95rem;">
+                    Filter
+                </button>
+                {% if request.args %}
+                <a href="{{ url_for('marketplace.farmer_feedback') }}" style="padding: 0.75rem 1.5rem; background: var(--surface-container); color: var(--on-surface); border: 1px solid var(--outline-variant); border-radius: 6px; font-weight: 600; text-decoration: none;">Clear</a>
+                {% endif %}
+            </div>
+        </form>
+
+        {% if keywords_map %}
+        <div style="margin-top: 1.5rem; padding-top: 1rem; border-top: 1px solid var(--outline-variant);">
+            <div style="font-size: 0.85rem; font-weight: 600; color: var(--text-muted); margin-bottom: 0.75rem;">Trending Keywords</div>
+            <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+                {% for kw, count in keywords_map.items() %}
+                {% set is_active = request.args.get('q', '').lower() == kw %}
+                <a href="{{ url_for('marketplace.farmer_feedback', q='' if is_active else kw, category=request.args.get('category', ''), sentiment=request.args.get('sentiment', ''), rating=request.args.get('rating', '')) }}" style="display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.35rem 0.75rem; background: {{ '#e8f5e9' if is_active else 'var(--surface)' }}; color: {{ '#15803d' if is_active else 'var(--on-surface)' }}; border: 1px solid {{ '#bbf7d0' if is_active else 'var(--outline-variant)' }}; border-radius: 6px; font-size: 0.85rem; text-decoration: none; font-weight: 500; transition: all 0.2s;">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: {{ '#15803d' if is_active else 'var(--text-muted)' }};"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path><line x1="7" y1="7" x2="7.01" y2="7"></line></svg>
+                    {{ kw|title }}
+                    <span style="background: {{ '#bbf7d0' if is_active else 'var(--surface-container-highest)' }}; padding: 0.15rem 0.4rem; border-radius: 4px; font-size: 0.75rem; font-weight: 700; color: {{ '#15803d' if is_active else 'var(--text-muted)' }};">{{ count }}</span>
+                </a>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    {% if feedbacks_grouped %}
+    <div class="fo-grid">
+        {% for group in feedbacks_grouped %}
+        <div class="feedback-card" style="padding: 1.5rem; display: flex; flex-direction: column; gap: 1.5rem;">
+            <!-- Header for the grouped feedback -->
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 1px solid var(--outline-variant); padding-bottom: 1rem;">
+                <div>
+                    <h3 style="margin: 0; font-family: var(--font-display); font-size: 1.1rem; font-weight: 700; color: var(--on-surface);">Order #{{ group.order_id }}</h3>
+                    <div style="font-size: 0.85rem; color: var(--on-surface-variant); margin-top: 0.25rem;">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12" style="vertical-align: middle; margin-right: 0.25rem;"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                        {{ group.buyer.full_name }}
+                    </div>
+                </div>
+                <div style="font-size: 0.85rem; color: var(--text-muted);">
+                    {{ group.created_at.strftime('%b %d, %Y') }}
+                </div>
+            </div>
+
+            <!-- Website Feedback -->
+            {% if group.website %}
+            <div>
+                <div style="font-size: 0.8rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--primary); margin-bottom: 0.5rem;">Website Experience</div>
+                <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem;">
+                    <div style="display: flex; align-items: center; color: #f59e0b; font-weight: 700; font-size: 0.9rem;">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="16" height="16" style="margin-right: 0.25rem;"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+                        {{ group.website.rating }} / 5
+                    </div>
+                    {% if group.website.ai_sentiment %}
+                        {% set s = group.website.ai_sentiment.lower() %}
+                        <span style="font-size: 0.75rem; font-weight: 700; padding: 0.2rem 0.5rem; border-radius: 4px; background: {% if s == 'positive' %}#e8f5e9; color: #2e7d32;{% elif s == 'negative' %}#ffebee; color: #c62828;{% else %}#f5f5f5; color: #616161;{% endif %}">{{ group.website.ai_sentiment }}</span>
+                    {% endif %}
+                </div>
+                {% if group.website.feedback_text %}
+                    <div style="font-size: 0.95rem; color: var(--on-surface); line-height: 1.5; font-style: italic;">"{{ group.website.feedback_text }}"</div>
+                {% else %}
+                    <div style="font-size: 0.85rem; color: var(--text-muted); opacity: 0.7;">No comments provided.</div>
+                {% endif %}
+            </div>
+            {% endif %}
+
+            <!-- Product Feedback -->
+            {% if group.product %}
+            <div>
+                <div style="font-size: 0.8rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--primary); margin-bottom: 0.5rem;">Product</div>
+                <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem;">
+                    <div style="display: flex; align-items: center; color: #f59e0b; font-weight: 700; font-size: 0.9rem;">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="16" height="16" style="margin-right: 0.25rem;"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+                        {{ group.product.rating }} / 5
+                    </div>
+                    {% if group.product.ai_sentiment %}
+                        {% set s = group.product.ai_sentiment.lower() %}
+                        <span style="font-size: 0.75rem; font-weight: 700; padding: 0.2rem 0.5rem; border-radius: 4px; background: {% if s == 'positive' %}#e8f5e9; color: #2e7d32;{% elif s == 'negative' %}#ffebee; color: #c62828;{% else %}#f5f5f5; color: #616161;{% endif %}">{{ group.product.ai_sentiment }}</span>
+                    {% endif %}
+                </div>
+                {% if group.product.feedback_text %}
+                    <div style="font-size: 0.95rem; color: var(--on-surface); line-height: 1.5; font-style: italic;">"{{ group.product.feedback_text }}"</div>
+                {% else %}
+                    <div style="font-size: 0.85rem; color: var(--text-muted); opacity: 0.7;">No comments provided.</div>
+                {% endif %}
+            </div>
+            {% endif %}
+
+            <!-- Delivery Feedback -->
+            {% if group.delivery %}
+            <div>
+                <div style="font-size: 0.8rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--primary); margin-bottom: 0.5rem;">Delivery</div>
+                <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem;">
+                    <div style="display: flex; align-items: center; color: #f59e0b; font-weight: 700; font-size: 0.9rem;">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="16" height="16" style="margin-right: 0.25rem;"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+                        {{ group.delivery.rating }} / 5
+                    </div>
+                    {% if group.delivery.ai_sentiment %}
+                        {% set s = group.delivery.ai_sentiment.lower() %}
+                        <span style="font-size: 0.75rem; font-weight: 700; padding: 0.2rem 0.5rem; border-radius: 4px; background: {% if s == 'positive' %}#e8f5e9; color: #2e7d32;{% elif s == 'negative' %}#ffebee; color: #c62828;{% else %}#f5f5f5; color: #616161;{% endif %}">{{ group.delivery.ai_sentiment }}</span>
+                    {% endif %}
+                </div>
+                {% if group.delivery.feedback_text %}
+                    <div style="font-size: 0.95rem; color: var(--on-surface); line-height: 1.5; font-style: italic;">"{{ group.delivery.feedback_text }}"</div>
+                {% else %}
+                    <div style="font-size: 0.85rem; color: var(--text-muted); opacity: 0.7;">No comments provided.</div>
+                {% endif %}
+            </div>
+            {% endif %}
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="mp-empty">
+        <div class="mp-empty__icon">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+        </div>
+        <h3>No feedback yet</h3>
+        <p>You will see ratings and comments here once buyers start reviewing their orders.</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

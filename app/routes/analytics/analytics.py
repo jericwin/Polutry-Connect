@@ -31,9 +31,17 @@ import openpyxl
 from openpyxl.styles import Font, Alignment, PatternFill
 
 from app import db
-from app.models import Farm, ProductionRecord, Expense, SalesRecord, UserRole, ExpenseCategory, ExpenseFrequency
+from app.models import Farm, ProductionRecord, Expense, SalesRecord, UserRole, ExpenseCategory, ExpenseFrequency, FeedRecord, MortalityRecord, VerificationStatus
 
 analytics_bp = Blueprint('analytics', __name__)
+
+@analytics_bp.before_request
+def check_farmer_verification():
+    from flask import flash, redirect, url_for
+    if current_user.is_authenticated and current_user.role == UserRole.FARMER:
+        if not current_user.verification or current_user.verification.status != VerificationStatus.APPROVED:
+            flash('Your account is pending verification. Please wait for an administrator to approve your account before accessing analytics.', 'warning')
+            return redirect(url_for('dashboard.farmer'))
 
 # Target gross margin for the recommendation engine (20%)
 RECOMMENDED_MARGIN = Decimal('0.20')
@@ -161,7 +169,12 @@ def _calculate_revenue(farm_ids, start_date, end_date):
 @login_required
 def index():
     _require_farmer()
-    farm_ids = _get_farm_ids()
+    farms = Farm.query.filter_by(farmer_id=current_user.id, is_active=True).all()
+    farm_ids = [f.id for f in farms]
+    
+    selected_farm_id = request.args.get('farm_id', type=int, default=0)
+    if selected_farm_id and selected_farm_id in farm_ids:
+        farm_ids = [selected_farm_id]
 
     # ── month selector ────────────────────────────────────────────────────
     today    = date.today()
@@ -176,8 +189,8 @@ def index():
     next_month_date = date(year, month, 28) + timedelta(days=4)
     next_month_date = next_month_date.replace(day=1)
 
-    prev_link = url_for('analytics.index', year=prev_month_date.year, month=prev_month_date.month)
-    next_link = url_for('analytics.index', year=next_month_date.year, month=next_month_date.month)
+    prev_link = url_for('analytics.index', year=prev_month_date.year, month=prev_month_date.month, farm_id=selected_farm_id)
+    next_link = url_for('analytics.index', year=next_month_date.year, month=next_month_date.month, farm_id=selected_farm_id)
     is_current_month = (year == today.year and month == today.month)
 
     # ── monthly revenue (from SalesRecord) ────────────────────────────────
@@ -202,19 +215,35 @@ def index():
     monthly_mortality = 0
     
     if farm_ids:
-        result = db.session.query(
-            func.sum(ProductionRecord.egg_count),
-            func.sum(ProductionRecord.feed_kg),
-            func.sum(ProductionRecord.mortality)
+        # Get eggs
+        result_eggs = db.session.query(
+            func.sum(ProductionRecord.egg_count)
         ).filter(
             ProductionRecord.farm_id.in_(farm_ids),
             ProductionRecord.record_date >= month_start,
             ProductionRecord.record_date <= month_end,
         ).first()
+        monthly_eggs = int(result_eggs[0] or 0) if result_eggs else 0
         
-        monthly_eggs = int(result[0] or 0) if result else 0
-        monthly_feed_kg = float(result[1] or 0.0) if result else 0.0
-        monthly_mortality = int(result[2] or 0) if result else 0
+        # Get feed
+        result_feed = db.session.query(
+            func.sum(FeedRecord.feed_consumed_kg)
+        ).filter(
+            FeedRecord.farm_id.in_(farm_ids),
+            FeedRecord.record_date >= month_start,
+            FeedRecord.record_date <= month_end,
+        ).first()
+        monthly_feed_kg = float(result_feed[0] or 0.0) if result_feed else 0.0
+        
+        # Get mortality
+        result_mortality = db.session.query(
+            func.sum(MortalityRecord.quantity_died)
+        ).filter(
+            MortalityRecord.farm_id.in_(farm_ids),
+            MortalityRecord.record_date >= month_start,
+            MortalityRecord.record_date <= month_end,
+        ).first()
+        monthly_mortality = int(result_mortality[0] or 0) if result_mortality else 0
 
     # Calculate Feed Efficiency (grams of feed per egg)
     feed_efficiency = 0
@@ -316,9 +345,183 @@ def index():
     # ── farms quick summary ────────────────────────────────────────────────
     farms = Farm.query.filter_by(farmer_id=current_user.id, is_active=True).all()
 
+    # ── daily sales report ───────────────────────────────────────────────
+    daily_sales = []
+    if farm_ids:
+        daily_res = db.session.query(
+            SalesRecord.sale_date,
+            func.sum(SalesRecord.total_revenue)
+        ).filter(
+            SalesRecord.farm_id.in_(farm_ids),
+            SalesRecord.sale_date >= month_start,
+            SalesRecord.sale_date <= month_end
+        ).group_by(SalesRecord.sale_date).order_by(SalesRecord.sale_date).all()
+        daily_sales = [{'date': r[0].strftime('%b %d'), 'revenue': float(r[1])} for r in daily_res]
+
+    daily_sales_labels = [s['date'] for s in daily_sales]
+    daily_sales_data = [s['revenue'] for s in daily_sales]
+
+    # ── sales by egg size ───────────────────────────────────────────────
+    from app.models import Order, OrderItem, Product, OrderStatus
+    sales_by_size = {}
+    if farm_ids:
+        size_res = db.session.query(
+            Product.size,
+            func.sum(OrderItem.quantity)
+        ).join(OrderItem, OrderItem.product_id == Product.id) \
+         .join(Order, Order.id == OrderItem.order_id) \
+         .filter(
+            Product.farm_id.in_(farm_ids),
+            Order.status == OrderStatus.DELIVERED,
+            Order.payment_date >= month_start,
+            Order.payment_date <= month_end
+        ).group_by(Product.size).all()
+        sales_by_size = {r[0].value.replace('_', ' ').title(): int(r[1]) for r in size_res}
+        
+    size_labels = list(sales_by_size.keys())
+    size_data = list(sales_by_size.values())
+
+    # ══════════════════════════════════════════════════════════════════════
+    # DECISION SUPPORT & FORECASTING
+    # ══════════════════════════════════════════════════════════════════════
+
+    # ── A. 30-Day Production Forecast (Weighted Moving Average) ───────────
+    # Fetch last 90 days of daily egg production
+    forecast_eggs_next30 = 0
+    forecast_revenue_next30 = 0.0
+    forecast_confidence = 'low'  # 'low' | 'medium' | 'high'
+    wma_history = []   # (date, egg_count) pairs
+
+    if farm_ids:
+        ninety_days_ago = today - timedelta(days=89)
+        raw_prod = db.session.query(
+            ProductionRecord.record_date,
+            func.sum(ProductionRecord.egg_count)
+        ).filter(
+            ProductionRecord.farm_id.in_(farm_ids),
+            ProductionRecord.record_date >= ninety_days_ago,
+            ProductionRecord.record_date <= today,
+        ).group_by(ProductionRecord.record_date).order_by(ProductionRecord.record_date).all()
+
+        wma_history = [(r[0], int(r[1])) for r in raw_prod]
+
+    if len(wma_history) >= 7:
+        # Weighted Moving Average: more recent days carry heavier weight
+        # Window = min(30, available days)
+        window = min(30, len(wma_history))
+        recent = [v for _, v in wma_history[-window:]]
+        weights = list(range(1, window + 1))   # [1, 2, 3, …, window]
+        wma_daily = sum(r * w for r, w in zip(recent, weights)) / sum(weights)
+        forecast_eggs_next30 = int(round(wma_daily * 30))
+
+        if current_avg_price:
+            forecast_revenue_next30 = round(float(current_avg_price) * forecast_eggs_next30, 2)
+        elif recommended_price:
+            forecast_revenue_next30 = round(float(recommended_price) * forecast_eggs_next30, 2)
+
+        # Confidence based on data coverage
+        if len(wma_history) >= 60:
+            forecast_confidence = 'high'
+        elif len(wma_history) >= 21:
+            forecast_confidence = 'medium'
+        else:
+            forecast_confidence = 'low'
+
+    # ── B. Feed Cost Trend ─────────────────────────────────────────────────
+    prev_month_date   = date(year, month, 1) - timedelta(days=1)
+    prev_m_start, prev_m_end = _month_bounds(prev_month_date.year, prev_month_date.month)
+
+    prev_feed_cost = 0.0
+    this_feed_cost = 0.0
+    feed_cost_change_pct = 0.0
+    feed_cost_alert = None   # None | 'rising' | 'stable' | 'falling'
+    feed_cost_per_egg = 0.0
+
+    if farm_ids:
+        r_prev = db.session.query(func.sum(FeedRecord.feed_cost)).filter(
+            FeedRecord.farm_id.in_(farm_ids),
+            FeedRecord.record_date >= prev_m_start,
+            FeedRecord.record_date <= prev_m_end,
+        ).scalar()
+        prev_feed_cost = float(r_prev or 0.0)
+
+        r_this = db.session.query(func.sum(FeedRecord.feed_cost)).filter(
+            FeedRecord.farm_id.in_(farm_ids),
+            FeedRecord.record_date >= month_start,
+            FeedRecord.record_date <= month_end,
+        ).scalar()
+        this_feed_cost = float(r_this or 0.0)
+
+    if prev_feed_cost > 0:
+        feed_cost_change_pct = round(((this_feed_cost - prev_feed_cost) / prev_feed_cost) * 100, 1)
+        if feed_cost_change_pct > 10:
+            feed_cost_alert = 'rising'
+        elif feed_cost_change_pct < -5:
+            feed_cost_alert = 'falling'
+        else:
+            feed_cost_alert = 'stable'
+
+    if monthly_eggs > 0 and this_feed_cost > 0:
+        feed_cost_per_egg = round(this_feed_cost / monthly_eggs, 4)
+
+    # ── C. Mortality Risk Signal ───────────────────────────────────────────
+    total_flock = sum(f.flock_size for f in farms) if farms else 0
+    mortality_rate_pct = 0.0
+    mortality_signal = 'normal'    # 'normal' | 'elevated' | 'high'
+
+    if total_flock > 0 and monthly_mortality > 0:
+        mortality_rate_pct = round((monthly_mortality / total_flock) * 100, 2)
+        if mortality_rate_pct > 2.0:
+            mortality_signal = 'high'
+        elif mortality_rate_pct >= 0.5:
+            mortality_signal = 'elevated'
+
+    # ── D. Sales Trend Direction ───────────────────────────────────────────
+    prev_revenue = _calculate_revenue(farm_ids, prev_m_start, prev_m_end)
+    sales_trend_pct = 0.0
+    sales_trend_dir = 'flat'   # 'up' | 'down' | 'flat'
+
+    if prev_revenue > 0:
+        sales_trend_pct = round(((monthly_revenue - float(prev_revenue)) / float(prev_revenue)) * 100, 1)
+        if sales_trend_pct > 2:
+            sales_trend_dir = 'up'
+        elif sales_trend_pct < -2:
+            sales_trend_dir = 'down'
+
+    # ── Farm classification summary & performance ────────────────────────
+    farm_classifications = []
+    for f in farms:
+        f_rev = _calculate_revenue([f.id], month_start, month_end)
+        f_exp = _calculate_expenses([f.id], month_start, month_end)
+        f_profit = f_rev - f_exp
+        
+        result_eggs = db.session.query(func.sum(ProductionRecord.egg_count)).filter(
+            ProductionRecord.farm_id == f.id,
+            ProductionRecord.record_date >= month_start,
+            ProductionRecord.record_date <= month_end,
+        ).first()
+        f_eggs = int(result_eggs[0] or 0) if result_eggs else 0
+
+        farm_classifications.append({
+            'name': f.name,
+            'flock_size': f.flock_size,
+            'scale_label': f.scale_label,
+            'scale_class': f.scale_class,
+            'scale_icon': f.scale_icon,
+            'revenue': f_rev,
+            'expenses': f_exp,
+            'profit': f_profit,
+            'eggs': f_eggs,
+        })
+        
+    # Sort by profit descending so best performing farm is first
+    farm_classifications.sort(key=lambda x: x['profit'], reverse=True)
+
     return render_template(
         'analytics/analytics.html',
         title='Analytics',
+        farms=farms,
+        selected_farm_id=selected_farm_id,
 
         year=year, month=month,
         month_label=date(year, month, 1).strftime('%B %Y'),
@@ -350,9 +553,34 @@ def index():
         category_labels=category_labels,
         category_data=category_data,
 
-        farms=farms,
+        daily_sales_labels=daily_sales_labels,
+        daily_sales_data=daily_sales_data,
+        size_labels=size_labels,
+        size_data=size_data,
+
         today=today,
+
+        # ── Decision Support ──────────────────────────────────────────────
+        forecast_eggs_next30=forecast_eggs_next30,
+        forecast_revenue_next30=forecast_revenue_next30,
+        forecast_confidence=forecast_confidence,
+
+        feed_cost_change_pct=feed_cost_change_pct,
+        feed_cost_alert=feed_cost_alert,
+        feed_cost_per_egg=feed_cost_per_egg,
+        this_feed_cost=this_feed_cost,
+
+        mortality_rate_pct=mortality_rate_pct,
+        mortality_signal=mortality_signal,
+        total_flock=total_flock,
+
+        sales_trend_pct=sales_trend_pct,
+        sales_trend_dir=sales_trend_dir,
+        prev_revenue=float(prev_revenue),
+
+        farm_classifications=farm_classifications,
     )
+
 
 
 @analytics_bp.route('/report/sales')
@@ -360,17 +588,28 @@ def index():
 def sales_report():
     """Generate Excel or PDF-printable HTML report for Sales."""
     _require_farmer()
-    farm_ids = _get_farm_ids()
+    farms = _get_my_farms()
+    farm_ids = [f.id for f in farms]
     if not farm_ids:
         flash('You have no registered farms.', 'error')
         return redirect(url_for('analytics.index'))
 
     start_date_str = request.args.get('start_date')
     end_date_str = request.args.get('end_date')
+    selected_farm_id = request.args.get('farm_id')
+    selected_type = request.args.get('type')
     format_type = request.args.get('format', 'pdf')
     
-    query = SalesRecord.query.filter(SalesRecord.farm_id.in_(farm_ids))
+    query = SalesRecord.query.filter_by(user_id=current_user.id)
     
+    if selected_farm_id:
+        try:
+            fid = int(selected_farm_id)
+            if fid in farm_ids:
+                query = query.filter(SalesRecord.farm_id == fid)
+        except ValueError:
+            pass
+            
     start_date = None
     end_date = None
     
@@ -388,8 +627,14 @@ def sales_report():
         except ValueError:
             pass
             
-    sales = query.order_by(SalesRecord.sale_date.desc()).all()
+    sales = query.order_by(SalesRecord.sale_date.desc(), SalesRecord.created_at.desc()).all()
     
+    # Filter by type (Online/On-site)
+    if selected_type == 'online':
+        sales = [s for s in sales if s.notes and '(Order #' in s.notes]
+    elif selected_type == 'onsite':
+        sales = [s for s in sales if not s.notes or '(Order #' not in s.notes]
+        
     total_qty = sum(s.quantity_sold for s in sales)
     total_rev = sum(s.total_revenue for s in sales)
     
@@ -401,7 +646,7 @@ def sales_report():
         header_fill = PatternFill(start_color="0D631B", end_color="0D631B", fill_type="solid")
         header_font = Font(color="FFFFFF", bold=True)
         
-        headers = ["Date", "Farm", "Buyer", "Egg Type / Notes", "Quantity (Eggs)", "Price per Egg (PHP)", "Total Revenue (PHP)"]
+        headers = ["Date", "Type", "Farm", "Buyer", "Egg Type / Notes", "Quantity (Eggs)", "Price per Egg (PHP)", "Total Revenue (PHP)"]
         ws.append(headers)
         
         for col_num, cell in enumerate(ws[1], 1):
@@ -411,8 +656,10 @@ def sales_report():
             ws.column_dimensions[openpyxl.utils.get_column_letter(col_num)].width = 20
             
         for s in sales:
+            is_online = s.notes and '(Order #' in s.notes
             ws.append([
                 s.sale_date.strftime('%Y-%m-%d'),
+                "Online" if is_online else "On-site",
                 s.farm.name,
                 s.buyer_name or 'Walk-in / Unknown',
                 s.notes or '',
@@ -422,9 +669,9 @@ def sales_report():
             ])
             
         ws.append([])
-        ws.append(["TOTALS", "", "", "", total_qty, "", float(total_rev)])
+        ws.append(["TOTALS", "", "", "", "", total_qty, "", float(total_rev)])
         totals_row = ws.max_row
-        for col_num in range(1, 8):
+        for col_num in range(1, 9):
             ws.cell(row=totals_row, column=col_num).font = Font(bold=True)
             
         mem = io.BytesIO()
@@ -449,3 +696,117 @@ def sales_report():
             total_rev=total_rev,
             today=datetime.now()
         )
+
+@analytics_bp.route('/report/expenses')
+@login_required
+def expenses_report():
+    """Generate Excel or PDF-printable HTML report for Expenses."""
+    from app.models import Expense
+    _require_farmer()
+    farms = _get_my_farms()
+    farm_ids = [f.id for f in farms]
+    if not farm_ids:
+        flash('You have no registered farms.', 'error')
+        return redirect(url_for('analytics.index'))
+
+    start_date_str = request.args.get('start_date')
+    end_date_str = request.args.get('end_date')
+    selected_farm_id = request.args.get('farm_id')
+    format_type = request.args.get('format', 'pdf')
+    
+    query = Expense.query.filter(Expense.farm_id.in_(farm_ids))
+    
+    if selected_farm_id:
+        try:
+            fid = int(selected_farm_id)
+            if fid in farm_ids:
+                query = query.filter(Expense.farm_id == fid)
+        except ValueError:
+            pass
+            
+    start_date = None
+    end_date = None
+    
+    if start_date_str:
+        try:
+            start_date = datetime.strptime(start_date_str, '%Y-%m-%d').date()
+            query = query.filter(Expense.expense_date >= start_date)
+        except ValueError:
+            pass
+            
+    if end_date_str:
+        try:
+            end_date = datetime.strptime(end_date_str, '%Y-%m-%d').date()
+            query = query.filter(Expense.expense_date <= end_date)
+        except ValueError:
+            pass
+            
+    expenses = query.order_by(Expense.expense_date.desc(), Expense.created_at.desc()).all()
+    
+    total_amount = sum(e.amount for e in expenses)
+    
+    if format_type == 'excel':
+        import openpyxl
+        from openpyxl.styles import Font, PatternFill, Alignment
+        import io
+        
+        wb = openpyxl.Workbook()
+        ws = wb.active
+        ws.title = "Expenses Report"
+        
+        header_fill = PatternFill(start_color="B91C1C", end_color="B91C1C", fill_type="solid")
+        header_font = Font(color="FFFFFF", bold=True)
+        
+        headers = ["Date", "Farm", "Category", "Description", "Frequency", "Amount (PHP)"]
+        ws.append(headers)
+        
+        for col_num, cell in enumerate(ws[1], 1):
+            cell.fill = header_fill
+            cell.font = header_font
+            cell.alignment = Alignment(horizontal="center")
+            ws.column_dimensions[openpyxl.utils.get_column_letter(col_num)].width = 20
+            
+        for e in expenses:
+            ws.append([
+                e.expense_date.strftime('%Y-%m-%d'),
+                e.farm.name,
+                e.category.value if e.category else '',
+                e.description or '',
+                e.frequency.value if e.frequency else '',
+                float(e.amount)
+            ])
+            
+        ws.append([])
+        ws.append(["TOTAL", "", "", "", "", float(total_amount)])
+        totals_row = ws.max_row
+        for col_num in range(1, 7):
+            ws.cell(row=totals_row, column=col_num).font = Font(bold=True)
+            
+        mem = io.BytesIO()
+        wb.save(mem)
+        mem.seek(0)
+        
+        return send_file(
+            mem,
+            as_attachment=True,
+            download_name=f"Expenses_Report_{datetime.utcnow().strftime('%Y%m%d')}.xlsx",
+            mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        )
+
+    # Otherwise render PDF
+    html_out = render_template(
+        'analytics/expenses_report_pdf.html',
+        expenses=expenses,
+        total_amount=total_amount,
+        start_date=start_date,
+        end_date=end_date,
+        report_date=datetime.utcnow()
+    )
+
+    pdf_file = _generate_pdf(html_out)
+    return send_file(
+        pdf_file,
+        as_attachment=False,
+        download_name=f"Expenses_Report_{datetime.utcnow().strftime('%Y%m%d')}.pdf",
+        mimetype='application/pdf'
+    )

@@ -3,23 +3,23 @@ from datetime import datetime, timedelta
 from app import create_app, db
 from app.models import (User, Farm, ProductionRecord, Expense, SalesRecord, 
                         Product, Order, OrderItem, UserRole, ExpenseCategory, ExpenseFrequency,
-                        ProductSize, ProductVariety, ProductUnit, OrderStatus)
+                        ProductSize, ProductVariety, ProductUnit, OrderStatus, FlockHistory)
 
 app = create_app()
 
 with app.app_context():
     print("Clearing database...")
-    db.session.execute(db.text("SET FOREIGN_KEY_CHECKS = 0;"))
+    db.session.execute(db.text("PRAGMA foreign_keys = OFF;"))
     
     tables = [
         'messages', 'conversations', 'notifications', 'order_items', 'orders',
-        'products', 'sales_records', 'expenses', 'production_records', 'farms', 'users'
+        'products', 'sales_records', 'expenses', 'production_records', 'flock_history', 'farms', 'users'
     ]
     
     for table in tables:
-        db.session.execute(db.text(f"TRUNCATE TABLE {table};"))
+        db.session.execute(db.text(f"DELETE FROM {table};"))
         
-    db.session.execute(db.text("SET FOREIGN_KEY_CHECKS = 1;"))
+    db.session.execute(db.text("PRAGMA foreign_keys = ON;"))
     db.session.commit()
 
     print("Creating Farmer...")
@@ -29,8 +29,7 @@ with app.app_context():
         role=UserRole.FARMER,
         first_name='Juan',
         last_name='Dela Cruz',
-        phone='09171234567',
-        address='San Jose, Batangas'
+        phone='09171234567'
     )
     farmer.set_password('password123')
     db.session.add(farmer)
@@ -42,8 +41,7 @@ with app.app_context():
         role=UserRole.BUYER,
         first_name='Maria',
         last_name='Reyes',
-        phone='09189876543',
-        address='Quezon City, Metro Manila'
+        phone='09189876543'
     )
     buyer.set_password('password123')
     db.session.add(buyer)
@@ -52,12 +50,24 @@ with app.app_context():
     print("Creating Farm...")
     farm = Farm(
         farmer_id=farmer.id,
-        name='Sunny Side Poultry Farm',
+        name='Sunshine Poultry Farm',
         location='San Jose, Batangas',
-        description='A mid-sized farm focusing on high-quality brown eggs.',
-        flock_size=5000
+        description='Family-owned layer farm specializing in fresh eggs.',
+        flock_size=5000,
+        is_active=True
     )
     db.session.add(farm)
+    db.session.commit()
+    
+    fh = FlockHistory(
+        farm_id=farm.id,
+        user_id=farmer.id,
+        date=datetime.now().date() - timedelta(days=90),
+        change_type='initial',
+        quantity=5000,
+        notes='Initial batch of layer hens.'
+    )
+    db.session.add(fh)
     db.session.commit()
 
     print("Creating Products...")
@@ -122,6 +132,7 @@ with app.app_context():
         selected_products = random.sample(products_to_add, 2)
         for sel_product in selected_products:
             egg_count = random.randint(1500, 2500)
+            mort = random.randint(0, 2)
             prod = ProductionRecord(
                 farm_id=farm.id,
                 user_id=farmer.id,
@@ -132,9 +143,19 @@ with app.app_context():
                 feed_kg=random.uniform(250, 300),
                 feed_cost=random.uniform(1000, 1250), # Approximate daily feed cost
                 egg_price=sel_product.price / 30, # price per egg (tray is 30)
-                mortality=random.randint(0, 2)
+                mortality=mort
             )
             db.session.add(prod)
+            if mort > 0:
+                farm.flock_size -= mort
+                db.session.add(FlockHistory(
+                    farm_id=farm.id,
+                    user_id=farmer.id,
+                    date=current_date,
+                    change_type='mortality',
+                    quantity=-mort,
+                    notes='Daily mortality.'
+                ))
              
     print("Generating Orders and Sales...")
     for _ in range(70):
@@ -158,7 +179,7 @@ with app.app_context():
             buyer_id=buyer.id,
             total_amount=total_amt,
             status=status,
-            delivery_address=buyer.address,
+            delivery_address='123 Buyer St, Manila',
             contact_phone=buyer.phone,
             created_at=order_time,
             updated_at=order_time

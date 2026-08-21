@@ -32,6 +32,7 @@ def create_app(config_class=Config):
     from app.routes.messaging.messaging import messaging_bp
     from app.routes.supplier.supplier import supplier_bp
     from app.routes.vet.vet import vet_bp
+    from app.routes.dashboard.buyer import buyer_bp
 
     app.register_blueprint(auth_bp, url_prefix='/auth')
     app.register_blueprint(dashboard_bp, url_prefix='/dashboard')
@@ -43,24 +44,26 @@ def create_app(config_class=Config):
     app.register_blueprint(messaging_bp, url_prefix='/messaging')
     app.register_blueprint(supplier_bp, url_prefix='/supplier')
     app.register_blueprint(vet_bp, url_prefix='/vet')
+    app.register_blueprint(buyer_bp, url_prefix='/buyer')
 
     # Main index / Landing page route
     @app.route('/')
     def index():
         from flask import render_template
-        from app.models import Product
-        # Fetch latest marketplace products for landing preview
-        preview_products = Product.query.filter_by(
-            is_available=True
-        ).filter(Product.stock > 0).order_by(
-            Product.created_at.desc()
-        ).limit(4).all()
+        from app.models import Farm
+        # Fetch latest active farms for landing preview
+        preview_farms = Farm.query.filter_by(
+            is_active=True
+        ).order_by(
+            Farm.created_at.desc()
+        ).limit(6).all()
         return render_template(
             'landing.html',
             title='PoultryConnect — Smart Farming, Better Living',
-            preview_products=preview_products,
+            preview_farms=preview_farms,
         )
 
     return app
 
 from app import models
+

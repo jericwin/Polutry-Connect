@@ -22,39 +22,55 @@
 </div>
 
 {% if farms %}
-<div style="display:flex; flex-wrap:wrap; gap:1.5rem; justify-content:space-between; align-items:center; margin-bottom:1.5rem;">
-    <div class="filter-chips" style="margin-bottom:0;">
-        <a href="{{ url_for('production.expenses') }}"
-           class="filter-chip {% if not selected_farm_id %}active{% endif %}">All Farms</a>
+<div style="display: flex; flex-direction: column; gap: 1rem; margin-bottom: 2rem;">
+    <!-- Farm Pills -->
+    <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+        <a href="{{ url_for('production.expenses', farm_id=0, start_date=start_date_str, end_date=end_date_str) }}" 
+           class="btn btn-sm" 
+           style="border-radius: 99px; font-weight: 600; padding: 0.4rem 1.2rem; text-decoration: none; border: 1.5px solid {% if selected_farm_id == 0 or not selected_farm_id %}#15803d{% else %}var(--outline-variant){% endif %}; background: {% if selected_farm_id == 0 or not selected_farm_id %}#dcfce7{% else %}var(--surface){% endif %}; color: {% if selected_farm_id == 0 or not selected_farm_id %}#166534{% else %}var(--on-surface-variant){% endif %}; transition: all 0.2s;">
+           All Farms
+        </a>
         {% for farm in farms %}
-        <a href="{{ url_for('production.expenses') }}?farm_id={{ farm.id }}{% if start_date_str %}&start_date={{ start_date_str }}{% endif %}{% if end_date_str %}&end_date={{ end_date_str }}{% endif %}"
-           class="filter-chip {% if selected_farm_id == farm.id %}active{% endif %}">
-            {{ farm.name }}
+        <a href="{{ url_for('production.expenses', farm_id=farm.id, start_date=start_date_str, end_date=end_date_str) }}" 
+           class="btn btn-sm" 
+           style="border-radius: 99px; font-weight: 600; padding: 0.4rem 1.2rem; text-decoration: none; border: 1.5px solid {% if selected_farm_id == farm.id %}#15803d{% else %}var(--outline-variant){% endif %}; background: {% if selected_farm_id == farm.id %}#dcfce7{% else %}var(--surface){% endif %}; color: {% if selected_farm_id == farm.id %}#166534{% else %}var(--on-surface-variant){% endif %}; transition: all 0.2s;">
+           {{ farm.name }}
         </a>
         {% endfor %}
     </div>
 
-    <form method="GET" action="{{ url_for('production.expenses') }}" style="display:flex; gap:0.75rem; align-items:center; background:var(--surface); padding:0.5rem 1rem; border-radius:1rem; border:1px solid rgba(0,31,42,0.1);">
+    <!-- Date Filter -->
+    <form method="GET" action="{{ url_for('production.expenses') }}" style="display:inline-flex; gap:1rem; align-items:center; background:var(--surface); padding:0.4rem 0.5rem 0.4rem 1.2rem; border-radius:99px; border:1px solid var(--outline-variant); width: fit-content; box-shadow: 0 1px 3px rgba(0,0,0,0.02);">
         {% if selected_farm_id %}
             <input type="hidden" name="farm_id" value="{{ selected_farm_id }}">
         {% endif %}
         <div style="display:flex; align-items:center; gap:0.5rem;">
-            <label for="start_date" style="font-size:0.85rem; font-weight:600; color:var(--on-surface-variant);">From</label>
-            <input type="date" name="start_date" id="start_date" value="{{ start_date_str or '' }}" style="padding:0.3rem 0.5rem; border:1px solid #daedf7; border-radius:0.5rem; outline:none; font-family:'Public Sans'; font-size:0.85rem;">
+            <label for="start_date" style="font-size:0.875rem; font-weight:600; color:var(--on-surface-variant); margin:0;">From</label>
+            <input type="date" name="start_date" id="start_date" value="{{ start_date_str or '' }}" style="padding:0.3rem 0.5rem; border:1px solid var(--outline-variant); border-radius:0.5rem; outline:none; font-family:inherit; font-size:0.875rem; color:var(--text-dark);">
         </div>
         <div style="display:flex; align-items:center; gap:0.5rem;">
-            <label for="end_date" style="font-size:0.85rem; font-weight:600; color:var(--on-surface-variant);">To</label>
-            <input type="date" name="end_date" id="end_date" value="{{ end_date_str or '' }}" style="padding:0.3rem 0.5rem; border:1px solid #daedf7; border-radius:0.5rem; outline:none; font-family:'Public Sans'; font-size:0.85rem;">
+            <label for="end_date" style="font-size:0.875rem; font-weight:600; color:var(--on-surface-variant); margin:0;">To</label>
+            <input type="date" name="end_date" id="end_date" value="{{ end_date_str or '' }}" style="padding:0.3rem 0.5rem; border:1px solid var(--outline-variant); border-radius:0.5rem; outline:none; font-family:inherit; font-size:0.875rem; color:var(--text-dark);">
         </div>
-        <button type="submit" class="btn btn-secondary" style="padding:0.3rem 0.75rem; font-size:0.85rem; border-radius:0.5rem;">Filter</button>
+        <button type="submit" class="btn" style="background:#dcfce7; color:#166534; border:none; padding:0.4rem 1.2rem; font-size:0.875rem; border-radius:99px; font-weight: 700; cursor:pointer;">Filter</button>
         {% if start_date_str or end_date_str %}
-            <a href="{{ url_for('production.expenses') }}{% if selected_farm_id %}?farm_id={{ selected_farm_id }}{% endif %}" class="btn" style="padding:0.3rem 0.75rem; font-size:0.85rem; color:var(--text-muted);">Clear</a>
+            <a href="{{ url_for('production.expenses') }}{% if selected_farm_id %}?farm_id={{ selected_farm_id }}{% endif %}" class="btn" style="padding:0.4rem 1rem; font-size:0.875rem; color:var(--text-muted); border-radius: 99px; text-decoration:none;">Clear</a>
         {% endif %}
     </form>
 </div>
 {% endif %}
 
 {% if expenses %}
+<div style="display:flex; justify-content:flex-end; gap:0.5rem; margin-bottom: 1rem;">
+    <a href="{{ url_for('analytics.expenses_report', farm_id=selected_farm_id, start_date=start_date_str, end_date=end_date_str, format='pdf') }}" target="_blank" class="btn btn-sm" style="display:inline-flex; align-items:center; gap:0.4rem; border:1px solid var(--outline-variant); background:var(--surface); color:var(--on-surface);">
+        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:#dc2626;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+        PDF
+    </a>
+    <a href="{{ url_for('analytics.expenses_report', farm_id=selected_farm_id, start_date=start_date_str, end_date=end_date_str, format='excel') }}" class="btn btn-sm" style="display:inline-flex; align-items:center; gap:0.4rem; border:1px solid var(--outline-variant); background:var(--surface); color:var(--on-surface);">
+        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:#16a34a;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><path d="M8 13h2a2 2 0 0 1 2 2v2"></path><path d="M8 17h2a2 2 0 0 0 2-2v-2"></path><path d="M14 13h4"></path><path d="M16 17h2"></path></svg>
+        Excel
+    </a>
+</div>
 <div class="table-card">
     <table class="data-table">
         <thead>
@@ -120,8 +136,7 @@
     <div class="empty-page__icon">
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
              stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-            <line x1="12" y1="1" x2="12" y2="23"/>
-            <path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/>
+            <path d="M20 11H4"/><path d="M20 7H4"/><path d="M7 21V3h8a4 4 0 0 1 0 8H7"/>
         </svg>
     </div>
     <h3>No expenses recorded yet</h3>

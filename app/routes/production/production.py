@@ -25,9 +25,16 @@ from datetime import date, datetime
 from decimal import Decimal, InvalidOperation
 
 from app import db
-from app.models import Farm, ProductionRecord, Expense, UserRole, ExpenseCategory, ExpenseFrequency, SalesRecord, ProductSize, ProductVariety
+from app.models import Farm, ProductionRecord, Expense, UserRole, ExpenseCategory, ExpenseFrequency, SalesRecord, ProductSize, ProductVariety, FeedRecord, FlockHistory, Product, VerificationStatus
 
 production_bp = Blueprint('production', __name__)
+
+@production_bp.before_request
+def check_farmer_verification():
+    if current_user.is_authenticated and current_user.role == UserRole.FARMER:
+        if not current_user.verification or current_user.verification.status != VerificationStatus.APPROVED:
+            flash('Your account is pending verification. Please wait for an administrator to approve your account before accessing farmer features.', 'warning')
+            return redirect(url_for('dashboard.farmer'))
 
 
 # ─── helpers ────────────────────────────────────────────────────────────────
@@ -431,6 +438,60 @@ def log_delete(record_id: int):
 
 
 # ════════════════════════════════════════════════════════════════════════════
+# TRANSACTIONS LOG
+# ════════════════════════════════════════════════════════════════════════════
+
+@production_bp.route('/transactions')
+@login_required
+def transactions():
+    """Unified view of all sales (both online and on-site)."""
+    _require_farmer()
+    farms = _get_my_farms()
+    farm_ids = [f.id for f in farms]
+    farm_map = {f.id: f.name for f in farms}
+
+    selected_farm_id = _safe_int(request.args.get('farm_id'), default=0)
+    selected_type = request.args.get('type', '')
+    start_date_str = request.args.get('start_date')
+    end_date_str = request.args.get('end_date')
+
+    query = SalesRecord.query.filter_by(user_id=current_user.id)
+
+    if selected_farm_id and selected_farm_id in farm_ids:
+        query = query.filter(SalesRecord.farm_id == selected_farm_id)
+
+    if start_date_str:
+        try:
+            query = query.filter(SalesRecord.sale_date >= datetime.strptime(start_date_str, '%Y-%m-%d').date())
+        except ValueError:
+            pass
+    if end_date_str:
+        try:
+            query = query.filter(SalesRecord.sale_date <= datetime.strptime(end_date_str, '%Y-%m-%d').date())
+        except ValueError:
+            pass
+            
+    sales = query.order_by(SalesRecord.sale_date.desc(), SalesRecord.created_at.desc()).all()
+    
+    # Filter by type (Online/On-site) in python since it relies on 'notes' content
+    if selected_type == 'online':
+        sales = [s for s in sales if s.notes and '(Order #' in s.notes]
+    elif selected_type == 'onsite':
+        sales = [s for s in sales if not s.notes or '(Order #' not in s.notes]
+
+    return render_template(
+        'production/transactions.html',
+        title='Transactions Log',
+        sales=sales,
+        farms=farms,
+        selected_farm_id=selected_farm_id,
+        selected_type=selected_type,
+        start_date_str=start_date_str,
+        end_date_str=end_date_str,
+    )
+
+
+# ════════════════════════════════════════════════════════════════════════════
 # EXPENSE LOG
 # ════════════════════════════════════════════════════════════════════════════
 
@@ -716,3 +777,233 @@ def sales_add():
     db.session.commit()
     flash('Sale logged successfully.', 'success')
     return redirect(url_for('dashboard.farmer'))
+
+@production_bp.route('/sales/onsite/add', methods=['GET', 'POST'])
+@login_required
+def onsite_sales_add():
+    """Log an on-site sale, deducting product stock and creating a SalesRecord."""
+    _require_farmer()
+    farms = _get_my_farms()
+    farm_ids = [f.id for f in farms]
+
+    if not farms:
+        flash('You need to register a farm before logging sales.', 'error')
+        return redirect(url_for('production.farm_add'))
+
+    products = Product.query.filter(Product.farm_id.in_(farm_ids), Product.is_available==True, Product.stock > 0).all()
+
+    if request.method == 'POST':
+        product_id     = _safe_int(request.form.get('product_id'))
+        sale_date      = _parse_date(request.form.get('sale_date'))
+        quantity_sold  = _safe_int(request.form.get('quantity_sold'))
+        buyer_name     = request.form.get('buyer_name', '').strip()
+        notes          = request.form.get('notes', '').strip()
+
+        errors = []
+        product = Product.query.get(product_id)
+        if not product or product.farm_id not in farm_ids:
+            errors.append('Invalid product selected.')
+        if not sale_date or sale_date > date.today():
+            errors.append('Invalid sale date.')
+        if quantity_sold <= 0:
+            errors.append('Quantity must be greater than zero.')
+        elif product and quantity_sold > product.stock:
+            errors.append(f'Not enough stock. Only {product.stock} available for {product.name}.')
+
+        if errors:
+            for e in errors:
+                flash(e, 'error')
+            return render_template(
+                'production/onsite_sale_form.html',
+                title='Log On-site Sale',
+                farms=farms,
+                products=products,
+                form_data=request.form,
+                today=date.today(),
+            )
+
+        price_per_egg = product.price
+        total_revenue = Decimal(quantity_sold) * price_per_egg
+        product.stock -= quantity_sold
+
+        sale = SalesRecord(
+            farm_id=product.farm_id,
+            user_id=current_user.id,
+            sale_date=sale_date,
+            quantity_sold=quantity_sold,
+            price_per_egg=price_per_egg,
+            total_revenue=total_revenue,
+            buyer_name=buyer_name or None,
+            notes=f"On-site sale. {notes}" if notes else "On-site sale",
+        )
+        db.session.add(sale)
+        db.session.commit()
+        flash('On-site sale logged successfully. Stock deducted.', 'success')
+        return redirect(url_for('production.transactions'))
+
+    return render_template(
+        'production/onsite_sale_form.html',
+        title='Log On-site Sale',
+        farms=farms,
+        products=products,
+        form_data={'sale_date': date.today().isoformat()},
+        today=date.today(),
+    )
+
+# ════════════════════════════════════════════════════════════════════════════
+# FEED LOG
+# ════════════════════════════════════════════════════════════════════════════
+
+@production_bp.route('/feed')
+@login_required
+def feed():
+    """View all feed records."""
+    _require_farmer()
+    farms = _get_my_farms()
+    farm_ids = [f.id for f in farms]
+    farm_map = {f.id: f.name for f in farms}
+
+    selected_farm_id = _safe_int(request.args.get('farm_id'), default=0)
+    query = FeedRecord.query.filter(FeedRecord.farm_id.in_(farm_ids))
+    if selected_farm_id and selected_farm_id in farm_ids:
+        query = query.filter(FeedRecord.farm_id == selected_farm_id)
+
+    start_date_str = request.args.get('start_date')
+    end_date_str = request.args.get('end_date')
+    if start_date_str:
+        try:
+            query = query.filter(FeedRecord.record_date >= datetime.strptime(start_date_str, '%Y-%m-%d').date())
+        except ValueError:
+            pass
+    if end_date_str:
+        try:
+            query = query.filter(FeedRecord.record_date <= datetime.strptime(end_date_str, '%Y-%m-%d').date())
+        except ValueError:
+            pass
+
+    records = query.order_by(FeedRecord.record_date.desc()).limit(60).all()
+
+    return render_template(
+        'production/feed_log.html',
+        farms=farms,
+        farm_map=farm_map,
+        records=records,
+        selected_farm_id=selected_farm_id,
+        start_date_str=start_date_str,
+        end_date_str=end_date_str,
+        today=date.today(),
+    )
+
+@production_bp.route('/feed/add', methods=['POST'])
+@login_required
+def feed_add():
+    """Add a feed record."""
+    _require_farmer()
+    farms = _get_my_farms()
+    farm_ids = [f.id for f in farms]
+
+    farm_id = _safe_int(request.form.get('farm_id'))
+    record_date = _parse_date(request.form.get('record_date'))
+    feed_type = request.form.get('feed_type', '').strip()
+    feed_consumed_kg = _safe_decimal(request.form.get('feed_consumed_kg'))
+    feed_cost = _safe_decimal(request.form.get('feed_cost'))
+    notes = request.form.get('notes', '').strip()
+
+    if farm_id not in farm_ids:
+        flash('Invalid farm selected.', 'error')
+        return redirect(url_for('production.feed'))
+    if not record_date:
+        flash('A valid date is required.', 'error')
+        return redirect(url_for('production.feed'))
+    
+    record = FeedRecord(
+        farm_id=farm_id,
+        user_id=current_user.id,
+        record_date=record_date,
+        feed_type=feed_type,
+        feed_consumed_kg=feed_consumed_kg,
+        feed_cost=feed_cost,
+        notes=notes or None
+    )
+    db.session.add(record)
+    db.session.commit()
+    flash('Feed record saved.', 'success')
+    return redirect(url_for('production.feed'))
+
+# ════════════════════════════════════════════════════════════════════════════
+# MORTALITY LOG (FLOCK HISTORY)
+# ════════════════════════════════════════════════════════════════════════════
+
+@production_bp.route('/mortality')
+@login_required
+def mortality():
+    """View all flock history/mortality records."""
+    _require_farmer()
+    farms = _get_my_farms()
+    farm_ids = [f.id for f in farms]
+    farm_map = {f.id: f.name for f in farms}
+
+    selected_farm_id = _safe_int(request.args.get('farm_id'), default=0)
+    query = FlockHistory.query.filter(FlockHistory.farm_id.in_(farm_ids))
+    if selected_farm_id and selected_farm_id in farm_ids:
+        query = query.filter(FlockHistory.farm_id == selected_farm_id)
+
+    start_date_str = request.args.get('start_date')
+    end_date_str = request.args.get('end_date')
+    if start_date_str:
+        try:
+            query = query.filter(FlockHistory.date >= datetime.strptime(start_date_str, '%Y-%m-%d').date())
+        except ValueError:
+            pass
+    if end_date_str:
+        try:
+            query = query.filter(FlockHistory.date <= datetime.strptime(end_date_str, '%Y-%m-%d').date())
+        except ValueError:
+            pass
+
+    records = query.order_by(FlockHistory.date.desc()).limit(60).all()
+
+    return render_template(
+        'production/mortality_log.html',
+        farms=farms,
+        farm_map=farm_map,
+        records=records,
+        selected_farm_id=selected_farm_id,
+        start_date_str=start_date_str,
+        end_date_str=end_date_str,
+        today=date.today(),
+    )
+
+@production_bp.route('/mortality/add', methods=['POST'])
+@login_required
+def mortality_add():
+    """Add a flock history record."""
+    _require_farmer()
+    farms = _get_my_farms()
+    farm_ids = [f.id for f in farms]
+
+    farm_id = _safe_int(request.form.get('farm_id'))
+    record_date = _parse_date(request.form.get('date'))
+    change_type = request.form.get('change_type', '').strip()
+    quantity = _safe_int(request.form.get('quantity'))
+    notes = request.form.get('notes', '').strip()
+
+    if farm_id not in farm_ids:
+        flash('Invalid farm selected.', 'error')
+        return redirect(url_for('production.mortality'))
+    if not record_date:
+        flash('A valid date is required.', 'error')
+        return redirect(url_for('production.mortality'))
+    
+    record = FlockHistory(
+        farm_id=farm_id,
+        user_id=current_user.id,
+        date=record_date,
+        change_type=change_type,
+        quantity=quantity,
+        notes=notes or None
+    )
+    db.session.add(record)
+    db.session.commit()
+    flash('Mortality/Flock record saved.', 'success')
+    return redirect(url_for('production.mortality'))

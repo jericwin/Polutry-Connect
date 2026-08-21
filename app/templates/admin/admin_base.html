@@ -1,0 +1,169 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{% block title %}{{ title }} — PoultryConnect Admin{% endblock %}</title>
+    <meta name="description" content="PoultryConnect Admin Panel — Manage the platform." />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}" />
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <style>
+      :root {
+        --admin-accent: #15803d;
+        --admin-accent-light: #dcfce7;
+        --admin-accent-border: #86efac;
+        --admin-danger: #dc2626;
+        --admin-danger-light: #fee2e2;
+        --admin-warning: #d97706;
+        --admin-warning-light: #fef3c7;
+        --admin-success: #16a34a;
+        --admin-success-light: #dcfce7;
+        --admin-info: #0284c7;
+        --admin-info-light: #e0f2fe;
+      }
+      .admin-sidebar-badge {
+        font-size: 0.62rem; font-weight: 700; border-radius: 99px;
+        min-width: 16px; height: 16px; padding: 0 4px;
+        display: inline-flex; align-items: center; justify-content: center;
+        margin-left: auto; flex-shrink: 0; background: var(--admin-danger); color: #fff;
+      }
+      .stat-card {
+        background: white; border: 1px solid var(--outline);
+        border-radius: var(--radius-md); padding: 1.25rem;
+        display: flex; flex-direction: column; gap: 0.5rem;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+        transition: transform 0.15s, box-shadow 0.15s;
+      }
+      .stat-card:hover { transform: translateY(-1px); box-shadow: 0 4px 6px rgba(0,0,0,0.04); }
+      .stat-card__icon {
+        width: 40px; height: 40px; border-radius: var(--radius-sm);
+        display: flex; align-items: center; justify-content: center; margin-bottom: 0.25rem;
+      }
+      .stat-card__value { font-size: 1.75rem; font-weight: 700; font-family: var(--font-display); color: var(--on-surface); line-height: 1; }
+      .stat-card__label { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--on-surface-variant); font-weight: 700; }
+      .stat-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 1rem; }
+      .admin-table { width: 100%; border-collapse: collapse; }
+      .admin-table th { text-align: left; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.06em; font-weight: 700; color: var(--on-surface-variant); padding: 0.75rem 1rem; border-bottom: 2px solid var(--outline); }
+      .admin-table td { padding: 0.85rem 1rem; border-bottom: 1px solid var(--surface-container-high); font-size: 0.9rem; vertical-align: middle; }
+      .admin-table tr:last-child td { border-bottom: none; }
+      .admin-table tr:hover td { background: var(--surface-container-low); }
+      .badge { font-size: 0.7rem; font-weight: 700; padding: 0.2rem 0.6rem; border-radius: 99px; display: inline-block; }
+      .badge-pending  { background: var(--admin-warning-light); color: var(--admin-warning); }
+      .badge-approved { background: var(--admin-success-light); color: var(--admin-success); }
+      .badge-rejected { background: var(--admin-danger-light);  color: var(--admin-danger); }
+      .badge-flagged  { background: var(--admin-warning-light); color: var(--admin-warning); }
+      .filter-tabs { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 1.5rem; }
+      .filter-tab {
+        padding: 0.5rem 1rem; border-radius: 99px; font-size: 0.85rem; font-weight: 600;
+        border: 1.5px solid var(--outline); color: var(--on-surface-variant);
+        text-decoration: none; cursor: pointer; transition: all 0.15s;
+      }
+      .filter-tab:hover { border-color: var(--admin-accent); color: var(--admin-accent); }
+      .filter-tab.active { background: var(--admin-accent); color: white; border-color: var(--admin-accent); }
+      .content-card { background: white; border: 1px solid var(--outline); border-radius: var(--radius-md); padding: 1.25rem; box-shadow: 0 1px 3px rgba(0,0,0,0.02); }
+    </style>
+    {% block extra_css %}{% endblock %}
+  </head>
+  <body>
+    <div class="dash-shell">
+      <div class="dash-sidebar-overlay" id="dashSidebarOverlay"></div>
+
+      <!-- ADMIN SIDEBAR -->
+      <aside class="dash-sidebar" id="dashSidebar">
+        <div class="sidebar-logo">
+          <a href="{{ url_for('admin.index') }}" title="Admin Dashboard">
+            <span class="sidebar-logo-dot" style="background: var(--admin-accent)"></span>
+            Admin Panel
+          </a>
+        </div>
+
+        <nav class="sidebar-nav">
+          <a href="{{ url_for('admin.index') }}" class="nav-item {% if request.endpoint == 'admin.index' %}active{% endif %}">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+            Dashboard
+          </a>
+
+          <a href="{{ url_for('admin.farmer_verification') }}" class="nav-item {% if request.endpoint == 'admin.farmer_verification' %}active{% endif %}">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+            Farmer Verification
+          </a>
+
+          <a href="{{ url_for('admin.users') }}" class="nav-item {% if request.endpoint == 'admin.users' %}active{% endif %}">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg>
+            Account Management
+          </a>
+          <a href="{{ url_for('index') }}" class="nav-item">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+            Back to Site
+          </a>
+        </nav>
+
+        <!-- User footer -->
+        <div class="sidebar-user">
+          <div class="sidebar-user-avatar">
+            {{ current_user.first_name[0]|upper if current_user.first_name else current_user.username[0]|upper }}
+          </div>
+          <div class="sidebar-user-info">
+            <div class="sidebar-user-name">{{ current_user.full_name }}</div>
+            <div class="sidebar-user-role" style="color: var(--admin-accent); font-weight: 700; font-size: 0.7rem;">ADMIN</div>
+          </div>
+          <a href="{{ url_for('auth.logout') }}" class="sidebar-logout" title="Sign out">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+          </a>
+        </div>
+      </aside>
+
+      <!-- MAIN -->
+      <main class="dash-main">
+        <div class="dash-topbar">
+          <div style="display: flex; align-items: center; gap: 1rem;">
+            <button class="mobile-menu-btn" id="mobileMenuBtn" aria-label="Toggle menu" style="display: none; background: none; border: none; cursor: pointer; color: var(--on-surface);">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+            </button>
+            <div>
+              <div class="topbar-page-title">{% block page_title %}Admin{% endblock %}</div>
+              <div class="topbar-breadcrumb">PoultryConnect / {% block breadcrumb %}Admin{% endblock %}</div>
+            </div>
+          </div>
+          <div class="topbar-actions">
+            <span class="topbar-date" id="topbarDate"></span>
+          </div>
+        </div>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+        <div class="dash-content" style="padding-bottom: 0; padding-top: 1rem">
+          <div class="dash-flash-wrap">
+            {% for category, message in messages %}
+            <div class="dash-flash {{ category }}">{{ message }}</div>
+            {% endfor %}
+          </div>
+        </div>
+        {% endif %}
+        {% endwith %}
+
+        <div class="dash-content">{% block content %}{% endblock %}</div>
+      </main>
+    </div>
+
+    <script>
+      document.addEventListener('DOMContentLoaded', () => {
+        const d = new Date();
+        const el = document.getElementById('topbarDate');
+        if (el) el.textContent = d.toLocaleDateString('en-PH', {weekday:'short', year:'numeric', month:'short', day:'numeric'});
+
+        const btn = document.getElementById('mobileMenuBtn');
+        const sidebar = document.getElementById('dashSidebar');
+        const overlay = document.getElementById('dashSidebarOverlay');
+        if (btn && sidebar) {
+          btn.style.display = 'flex';
+          btn.addEventListener('click', () => sidebar.classList.toggle('open'));
+          overlay && overlay.addEventListener('click', () => sidebar.classList.remove('open'));
+        }
+      });
+    </script>
+    {% block extra_js %}{% endblock %}
+  </body>
+</html>

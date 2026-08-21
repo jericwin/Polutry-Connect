@@ -1,0 +1,115 @@
+{% extends "dashboard_base.html" %}
+
+{% block title %}{{ title }} — PoultryConnect{% endblock %}
+{% block page_title %}{{ title }}{% endblock %}
+{% block breadcrumb %}PoultryConnect / Transactions / {{ title }}{% endblock %}
+
+{% block content %}
+
+<div class="form-page">
+    <div class="form-card">
+
+        <div class="form-card__header">
+            <h2 class="form-card__title">On-site Sale Details</h2>
+            <p class="form-card__sub">Log an on-site sale to deduct from your marketplace stock and accurately record your revenue.</p>
+        </div>
+
+        {% if products %}
+        <form method="POST" action="{{ url_for('production.onsite_sales_add') }}" class="data-form">
+            <div class="form-row">
+                <!-- Product Selection -->
+                <div class="form-group" style="flex: 1 1 100%;">
+                    <label for="product_id">Select Product to Deduct Stock <span class="required">*</span></label>
+                    <div class="select-wrap">
+                        <select name="product_id" id="product_id" required>
+                            <option value="">— Select a Product —</option>
+                            {% for p in products %}
+                            <option value="{{ p.id }}" data-stock="{{ p.stock }}" data-price="{{ p.price }}" {% if form_data.get('product_id')|string == p.id|string %}selected{% endif %}>
+                                [{{ p.farm.name }}] {{ p.name }} (Stock: {{ p.stock }}, ₱{{ p.price }})
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <!-- Date -->
+                <div class="form-group">
+                    <label for="sale_date">Sale Date <span class="required">*</span></label>
+                    <input type="date" name="sale_date" id="sale_date" 
+                           value="{{ form_data.get('sale_date', today.isoformat()) }}" 
+                           max="{{ today.isoformat() }}" required>
+                </div>
+
+                <!-- Quantity -->
+                <div class="form-group">
+                    <label for="quantity_sold">Quantity Sold <span class="required">*</span></label>
+                    <input type="number" name="quantity_sold" id="quantity_sold" 
+                           value="{{ form_data.get('quantity_sold', '') }}" 
+                           min="1" required>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <!-- Buyer Name -->
+                <div class="form-group" style="flex: 1 1 100%;">
+                    <label for="buyer_name">Buyer Name <span style="font-weight:400; color:var(--text-muted);">(Optional)</span></label>
+                    <input type="text" name="buyer_name" id="buyer_name" 
+                           value="{{ form_data.get('buyer_name', '') }}" placeholder="e.g. John Doe">
+                </div>
+            </div>
+
+            <div class="form-row">
+                <!-- Notes -->
+                <div class="form-group" style="flex: 1 1 100%;">
+                    <label for="notes">Notes <span style="font-weight:400; color:var(--text-muted);">(Optional)</span></label>
+                    <textarea name="notes" id="notes" rows="3" placeholder="Additional details about this sale...">{{ form_data.get('notes', '') }}</textarea>
+                </div>
+            </div>
+
+            <div class="form-actions">
+                <a href="{{ url_for('production.transactions') }}" class="btn btn-secondary">Cancel</a>
+                <button type="submit" class="btn btn-primary">Complete Sale</button>
+            </div>
+        </form>
+        {% else %}
+        <div class="empty-state" style="padding: 3rem; text-align: center;">
+            <div class="empty-state__icon" style="margin-bottom: 1rem;">
+                <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="color: var(--text-muted);">
+                    <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
+                    <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline>
+                    <line x1="12" y1="22.08" x2="12" y2="12"></line>
+                </svg>
+            </div>
+            <h3 style="color: var(--text-dark); margin-bottom: 0.5rem;">No Available Products</h3>
+            <p style="color: var(--text-muted); font-size: 0.95rem; margin-bottom: 1.5rem;">You need to list products in your Marketplace inventory (with available stock) before you can log an on-site sale and deduct stock.</p>
+            <a href="{{ url_for('marketplace.manage_add') }}" class="btn btn-primary" style="display: inline-flex; justify-content: center;">List a Product</a>
+        </div>
+        {% endif %}
+
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const productSelect = document.getElementById('product_id');
+    const qtyInput = document.getElementById('quantity_sold');
+
+    if(productSelect && qtyInput) {
+        productSelect.addEventListener('change', function() {
+            const selectedOpt = this.options[this.selectedIndex];
+            if(selectedOpt && selectedOpt.value) {
+                const maxStock = parseInt(selectedOpt.getAttribute('data-stock'), 10);
+                qtyInput.setAttribute('max', maxStock);
+                if(parseInt(qtyInput.value, 10) > maxStock) {
+                    qtyInput.value = maxStock;
+                }
+            } else {
+                qtyInput.removeAttribute('max');
+            }
+        });
+    }
+});
+</script>
+{% endblock %}

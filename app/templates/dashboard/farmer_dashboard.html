@@ -5,11 +5,11 @@
 {% block breadcrumb %}PoultryConnect / Farmer / Overview{% endblock %}
 
 {% block topbar_actions %}
-    <a href="#" class="btn btn-secondary" onclick="document.getElementById('quickSaleModal').style.display='flex'; return false;">
+    <a href="{{ url_for('production.onsite_sales_add') }}" class="btn btn-secondary">
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-            <line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+            <path d="M20 11H4"/><path d="M20 7H4"/><path d="M7 21V3h8a4 4 0 0 1 0 8H7"/>
         </svg>
-        Log Sale
+        Log On-site Sale
     </a>
     <a href="{{ url_for('production.log_add') }}" class="btn btn-primary">
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
@@ -36,20 +36,24 @@
 </div>
 
 <!-- ── Farm Chips ─────────────────────────────────── -->
-{% if farms %}
-<div class="farms-chips">
+<!-- Farm Pills -->
+<div style="display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 2rem;">
+    <a href="{{ url_for('dashboard.farmer', farm_id=0) }}" 
+       class="btn btn-sm" 
+       style="border-radius: 99px; font-weight: 600; padding: 0.4rem 1.2rem; text-decoration: none; border: 1.5px solid {% if selected_farm_id == 0 or not selected_farm_id %}#15803d{% else %}var(--outline-variant){% endif %}; background: {% if selected_farm_id == 0 or not selected_farm_id %}#dcfce7{% else %}var(--surface){% endif %}; color: {% if selected_farm_id == 0 or not selected_farm_id %}#166534{% else %}var(--on-surface-variant){% endif %}; transition: all 0.2s;">
+       All Farms ({{ farms_count }})
+    </a>
     {% for farm in farms %}
-    <div class="farm-chip">
-        <span class="farm-chip-dot"></span>
-        {{ farm.name }}
-        {% if farm.location %}<span style="color: var(--text-muted); font-weight:400;">· {{ farm.location }}</span>{% endif %}
-    </div>
+    <a href="{{ url_for('dashboard.farmer', farm_id=farm.id) }}" 
+       class="btn btn-sm" 
+       style="border-radius: 99px; font-weight: 600; padding: 0.4rem 1.2rem; text-decoration: none; border: 1.5px solid {% if selected_farm_id == farm.id %}#15803d{% else %}var(--outline-variant){% endif %}; background: {% if selected_farm_id == farm.id %}#dcfce7{% else %}var(--surface){% endif %}; color: {% if selected_farm_id == farm.id %}#166534{% else %}var(--on-surface-variant){% endif %}; transition: all 0.2s;">
+       {{ farm.name }}
+    </a>
     {% endfor %}
-    <a href="{{ url_for('production.farm_add') }}" class="farm-chip add-chip">
+    <a href="{{ url_for('production.farm_add') }}" class="btn btn-sm" style="border-radius: 99px; font-weight: 600; padding: 0.4rem 1.2rem; text-decoration: none; border: 1.5px dashed var(--outline-variant); background: transparent; color: var(--text-muted); transition: all 0.2s;">
         + Add Farm
     </a>
 </div>
-{% endif %}
 
 <!-- ── KPI Cards ──────────────────────────────────── -->
 <div class="kpi-grid animate-fade-in delay-2">
@@ -90,7 +94,7 @@
     <div class="kpi-card" data-accent="red">
         <div class="kpi-icon">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/>
+                <path d="M20 11H4"/><path d="M20 7H4"/><path d="M7 21V3h8a4 4 0 0 1 0 8H7"/>
             </svg>
         </div>
         <div class="kpi-label">Total Expenses</div>
@@ -102,7 +106,7 @@
     <div class="kpi-card" data-accent="blue">
         <div class="kpi-icon">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/>
+                <path d="M20 11H4"/><path d="M20 7H4"/><path d="M7 21V3h8a4 4 0 0 1 0 8H7"/>
             </svg>
         </div>
         <div class="kpi-label">Total Revenue</div>
@@ -264,7 +268,7 @@
             <div class="insight-card-title-row">
                 <div class="insight-card-icon" style="color: #0d631b;">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+                        <path d="M20 11H4"/><path d="M20 7H4"/><path d="M7 21V3h8a4 4 0 0 1 0 8H7"/>
                     </svg>
                 </div>
                 <div>

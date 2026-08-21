@@ -1,0 +1,298 @@
+{% extends "dashboard_base.html" %}
+
+{% block title %}Feed Tracking - PoultryConnect{% endblock %}
+{% block page_title %}Feed Tracking{% endblock %}
+{% block breadcrumb %}PoultryConnect / Farm Operations / Feed Tracking{% endblock %}
+
+{% block topbar_actions %}
+<button class="btn btn-primary" onclick="openModal('feedModal')">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
+         stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+    </svg>
+    Log Feed
+</button>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+/* ── Modal Overlay ── */
+.modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 20, 10, 0.55);
+    backdrop-filter: blur(4px);
+    z-index: 9999;
+    align-items: center;
+    justify-content: center;
+    animation: fadeIn 0.2s ease;
+}
+.modal-overlay.active {
+    display: flex;
+}
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+}
+
+/* ── Modal Card ── */
+.modal-card {
+    background: var(--surface, #fff);
+    border-radius: 1.25rem;
+    padding: 2rem;
+    width: 100%;
+    max-width: 500px;
+    margin: 1rem;
+    box-shadow: 0 24px 60px rgba(0,31,42,0.2);
+    animation: slideUp 0.25s cubic-bezier(0.4,0,0.2,1);
+}
+@keyframes slideUp {
+    from { transform: translateY(24px); opacity: 0; }
+    to   { transform: translateY(0);    opacity: 1; }
+}
+
+.modal-card__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 1.5rem;
+}
+.modal-card__title {
+    font-size: 1.2rem;
+    font-weight: 800;
+    color: var(--on-surface, #001f2a);
+    margin: 0;
+}
+.modal-card__close {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--on-surface-variant, #6b8a9a);
+    padding: 0.3rem;
+    border-radius: 50%;
+    display: flex;
+    transition: background 0.15s;
+}
+.modal-card__close:hover { background: var(--surface-container-low, #f0f4f6); }
+
+/* ── Form inside modal ── */
+.modal-form .form-group {
+    margin-bottom: 1rem;
+}
+.modal-form label {
+    display: block;
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: var(--on-surface-variant, #4d7080);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    margin-bottom: 0.35rem;
+}
+.modal-form input,
+.modal-form select,
+.modal-form textarea {
+    width: 100%;
+    padding: 0.65rem 0.9rem;
+    border: 1.5px solid var(--outline, #c8dce6);
+    border-radius: 0.6rem;
+    font-size: 0.9rem;
+    font-family: var(--font-body, 'Public Sans', sans-serif);
+    background: var(--surface, #fff);
+    color: var(--on-surface, #001f2a);
+    transition: border-color 0.15s, box-shadow 0.15s;
+    box-sizing: border-box;
+}
+.modal-form input:focus,
+.modal-form select:focus {
+    outline: none;
+    border-color: var(--primary, #1a7a3a);
+    box-shadow: 0 0 0 3px rgba(26,122,58,0.12);
+}
+.modal-form .form-row-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.75rem;
+}
+.modal-card__footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.75rem;
+    margin-top: 1.5rem;
+    padding-top: 1.25rem;
+    border-top: 1px solid var(--outline-variant, #e0eef4);
+}
+</style>
+{% endblock %}
+
+{% block content %}
+
+<div class="section-header">
+    <h2>Daily Feed Records</h2>
+    <p>Your last 60 feed tracking entries.</p>
+</div>
+
+{% if farms %}
+<div style="display: flex; flex-direction: column; gap: 1rem; margin-bottom: 2rem;">
+    <!-- Farm Pills -->
+    <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+        <a href="{{ url_for('production.feed', farm_id=0, start_date=start_date_str, end_date=end_date_str) }}" 
+           class="btn btn-sm" 
+           style="border-radius: 99px; font-weight: 600; padding: 0.4rem 1.2rem; text-decoration: none; border: 1.5px solid {% if selected_farm_id == 0 or not selected_farm_id %}#15803d{% else %}var(--outline-variant){% endif %}; background: {% if selected_farm_id == 0 or not selected_farm_id %}#dcfce7{% else %}var(--surface){% endif %}; color: {% if selected_farm_id == 0 or not selected_farm_id %}#166534{% else %}var(--on-surface-variant){% endif %}; transition: all 0.2s;">
+           All Farms
+        </a>
+        {% for farm in farms %}
+        <a href="{{ url_for('production.feed', farm_id=farm.id, start_date=start_date_str, end_date=end_date_str) }}" 
+           class="btn btn-sm" 
+           style="border-radius: 99px; font-weight: 600; padding: 0.4rem 1.2rem; text-decoration: none; border: 1.5px solid {% if selected_farm_id == farm.id %}#15803d{% else %}var(--outline-variant){% endif %}; background: {% if selected_farm_id == farm.id %}#dcfce7{% else %}var(--surface){% endif %}; color: {% if selected_farm_id == farm.id %}#166534{% else %}var(--on-surface-variant){% endif %}; transition: all 0.2s;">
+           {{ farm.name }}
+        </a>
+        {% endfor %}
+    </div>
+
+    <!-- Date Filter -->
+    <form method="GET" action="{{ url_for('production.feed') }}" style="display:inline-flex; gap:1rem; align-items:center; background:var(--surface); padding:0.4rem 0.5rem 0.4rem 1.2rem; border-radius:99px; border:1px solid var(--outline-variant); width: fit-content; box-shadow: 0 1px 3px rgba(0,0,0,0.02);">
+        {% if selected_farm_id %}
+            <input type="hidden" name="farm_id" value="{{ selected_farm_id }}">
+        {% endif %}
+        <div style="display:flex; align-items:center; gap:0.5rem;">
+            <label for="start_date" style="font-size:0.875rem; font-weight:600; color:var(--on-surface-variant); margin:0;">From</label>
+            <input type="date" name="start_date" id="start_date" value="{{ start_date_str or '' }}" style="padding:0.3rem 0.5rem; border:1px solid var(--outline-variant); border-radius:0.5rem; outline:none; font-family:inherit; font-size:0.875rem; color:var(--text-dark);">
+        </div>
+        <div style="display:flex; align-items:center; gap:0.5rem;">
+            <label for="end_date" style="font-size:0.875rem; font-weight:600; color:var(--on-surface-variant); margin:0;">To</label>
+            <input type="date" name="end_date" id="end_date" value="{{ end_date_str or '' }}" style="padding:0.3rem 0.5rem; border:1px solid var(--outline-variant); border-radius:0.5rem; outline:none; font-family:inherit; font-size:0.875rem; color:var(--text-dark);">
+        </div>
+        <button type="submit" class="btn" style="background:#dcfce7; color:#166534; border:none; padding:0.4rem 1.2rem; font-size:0.875rem; border-radius:99px; font-weight: 700; cursor:pointer;">Filter</button>
+        {% if start_date_str or end_date_str %}
+            <a href="{{ url_for('production.feed') }}{% if selected_farm_id %}?farm_id={{ selected_farm_id }}{% endif %}" class="btn" style="padding:0.4rem 1rem; font-size:0.875rem; color:var(--text-muted); border-radius: 99px; text-decoration:none;">Clear</a>
+        {% endif %}
+    </form>
+</div>
+{% endif %}
+
+{% if records %}
+<div class="table-card">
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th>Date</th>
+                <th>Farm</th>
+                <th>Feed Type</th>
+                <th>Consumed (kg)</th>
+                <th>Cost (₱)</th>
+                <th>Notes</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for rec in records %}
+            <tr>
+                <td>
+                    <span class="date-pill">{{ rec.record_date.strftime('%b %d, %Y') }}</span>
+                </td>
+                <td class="muted">{{ farm_map.get(rec.farm_id, '—') }}</td>
+                <td><strong>{{ rec.feed_type }}</strong></td>
+                <td>{{ rec.feed_consumed_kg }} kg</td>
+                <td>₱{{ "{:,.2f}".format(rec.feed_cost) }}</td>
+                <td class="muted">{{ rec.notes or '—' }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% else %}
+<div class="empty-page">
+    <div class="empty-page__icon">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/>
+            <polyline points="14 2 14 8 20 8"/>
+        </svg>
+    </div>
+    <h3>No feed records yet</h3>
+    <p>Track your daily feed consumption and costs.</p>
+    <button class="btn btn-primary" onclick="openModal('feedModal')">Log First Record</button>
+</div>
+{% endif %}
+
+<!-- ── FEED MODAL ── -->
+<div id="feedModal" class="modal-overlay" onclick="handleOverlayClick(event, 'feedModal')">
+    <div class="modal-card" onclick="event.stopPropagation()">
+        <div class="modal-card__header">
+            <h3 class="modal-card__title">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-3px; margin-right:6px; color:var(--primary)"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/></svg>
+                Log Feed Record
+            </h3>
+            <button class="modal-card__close" onclick="closeModal('feedModal')" title="Close">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            </button>
+        </div>
+
+        <form method="POST" action="{{ url_for('production.feed_add') }}" class="modal-form">
+            <div class="form-group">
+                <label>Farm</label>
+                <select name="farm_id" required>
+                    {% for farm in farms %}
+                    <option value="{{ farm.id }}" {% if selected_farm_id == farm.id %}selected{% endif %}>{{ farm.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>Date</label>
+                <input type="date" name="record_date" value="{{ today.isoformat() }}" required max="{{ today.isoformat() }}">
+            </div>
+
+            <div class="form-group">
+                <label>Feed Type</label>
+                <input type="text" name="feed_type" placeholder="e.g. Grower Mash, Starter, Layer" required>
+            </div>
+
+            <div class="form-row-2">
+                <div class="form-group">
+                    <label>Amount Consumed (kg)</label>
+                    <input type="number" name="feed_consumed_kg" step="0.1" min="0" placeholder="0.0" required>
+                </div>
+                <div class="form-group">
+                    <label>Total Cost (₱)</label>
+                    <input type="number" name="feed_cost" step="0.01" min="0" placeholder="0.00" required>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>Notes <span style="font-weight:400; text-transform:none;">(Optional)</span></label>
+                <input type="text" name="notes" placeholder="e.g. Purchased from supplier X">
+            </div>
+
+            <div class="modal-card__footer">
+                <button type="button" class="btn btn-secondary" onclick="closeModal('feedModal')">Cancel</button>
+                <button type="submit" class="btn btn-primary">Save Record</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function openModal(id) {
+    document.getElementById(id).classList.add('active');
+    document.body.style.overflow = 'hidden';
+}
+function closeModal(id) {
+    document.getElementById(id).classList.remove('active');
+    document.body.style.overflow = '';
+}
+function handleOverlayClick(e, id) {
+    if (e.target === document.getElementById(id)) closeModal(id);
+}
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+        document.querySelectorAll('.modal-overlay.active').forEach(m => {
+            m.classList.remove('active');
+            document.body.style.overflow = '';
+        });
+    }
+});
+</script>
+{% endblock %}

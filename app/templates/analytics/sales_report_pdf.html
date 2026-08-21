@@ -216,7 +216,8 @@
             <thead>
                 <tr>
                     <th>Date</th>
-                    <th>Farm</th>
+                    <th>Type</th>
+                <th>Farm</th>
                     <th>Buyer</th>
                     <th>Egg Type / Notes</th>
                     <th>Qty (Eggs)</th>
@@ -228,6 +229,7 @@
                 {% for s in sales %}
                 <tr>
                     <td>{{ s.sale_date.strftime('%Y-%m-%d') }}</td>
+                    <td>{% if s.notes and '(Order #' in s.notes %}Online{% else %}On-site{% endif %}</td>
                     <td>{{ s.farm.name }}</td>
                     <td>{{ s.buyer_name or 'Unknown' }}</td>
                     <td>{{ s.notes or '-' }}</td>

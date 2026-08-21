@@ -1,7 +1,7 @@
 from flask import Blueprint, render_template, redirect, url_for, flash, request
 from flask_login import login_required, current_user
-from app.models import UserRole, Farm, ProductionRecord, Expense, SalesRecord, ExpenseFrequency
-from datetime import date, timedelta
+from app.models import UserRole, Farm, ProductionRecord, Expense, SalesRecord, ExpenseFrequency, VerificationStatus, FarmerVerification
+from datetime import date, timedelta, datetime
 from sqlalchemy import func
 from app import db
 from decimal import Decimal
@@ -228,6 +228,13 @@ def farmer():
     if guard:
         return guard
 
+    # Check Verification Status
+    if not current_user.verification or current_user.verification.status != VerificationStatus.APPROVED:
+        return render_template(
+            'dashboard/farmer_verification_status.html',
+            verification=current_user.verification
+        )
+
     today = date.today()
     month_start = today.replace(day=1)
     week_ago = today - timedelta(days=6)
@@ -235,6 +242,10 @@ def farmer():
     # Fetch farmer's farms
     farms = Farm.query.filter_by(farmer_id=current_user.id, is_active=True).all()
     farm_ids = [f.id for f in farms]
+
+    selected_farm_id = request.args.get('farm_id', type=int, default=0)
+    if selected_farm_id and selected_farm_id in farm_ids:
+        farm_ids = [selected_farm_id]
 
     # ── KPI: Total eggs this month ────────────────────────────────────────────
     eggs_this_month = 0
@@ -334,6 +345,7 @@ def farmer():
         trend_revenue=trend_revenue,
         trend_expenses=trend_expenses,
         today=today,
+        selected_farm_id=selected_farm_id,
     )
 
 @dashboard_bp.route('/notifications', methods=['GET', 'POST'])

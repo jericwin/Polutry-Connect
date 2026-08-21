@@ -107,32 +107,9 @@
                            value="{{ form_data.get('egg_count') or (record.egg_count if action == 'edit' else '') }}">
                     <span class="form-hint">Total eggs from all flocks on this date.</span>
                 </div>
-
-                <div class="form-group">
-                    <label for="mortality">Mortality (birds)</label>
-                    <input type="number" id="mortality" name="mortality"
-                           min="0" step="1" placeholder="0"
-                           value="{{ form_data.get('mortality') or (record.mortality if action == 'edit' else '0') }}">
-                    <span class="form-hint">Number of birds that died today.</span>
-                </div>
             </div>
 
-            <div class="form-row">
-                <div class="form-group">
-                    <label for="feed_kg">Feed Consumed (kg)</label>
-                    <input type="number" id="feed_kg" name="feed_kg"
-                           min="0" step="0.5" placeholder="e.g. 12.5"
-                           value="{{ form_data.get('feed_kg') or (record.feed_kg if action == 'edit' else '') }}">
-                </div>
 
-                <div class="form-group">
-                    <label for="feed_cost">Feed Cost (₱)</label>
-                    <input type="number" id="feed_cost" name="feed_cost"
-                           min="0" step="0.01" placeholder="e.g. 750.00"
-                           value="{{ form_data.get('feed_cost') or (record.feed_cost if action == 'edit' else '') }}">
-                    <span class="form-hint">Total cost of feed purchased/used today.</span>
-                </div>
-            </div>
 
             <div class="form-group">
                 <label for="egg_price">

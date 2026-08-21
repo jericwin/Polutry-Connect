@@ -1549,7 +1549,7 @@
     </section>
 
     <!-- ============================================================
-     MARKETPLACE PREVIEW
+     MARKETPLACE PREVIEW — FARMS
 ============================================================ -->
     <section
       class="marketplace__section"
@@ -1561,104 +1561,111 @@
           <div>
             <div class="section-label">
               <i
-                data-lucide="shopping-cart"
+                data-lucide="map-pin"
                 style="width: 14px; height: 14px"
               ></i>
-              Fresh from the Farm
+              Local Poultry Farms
             </div>
             <h2 class="section-title">
-              Shop Direct from<br />Local Poultry Farmers
+              Discover Farms Near You.<br />Buy Fresh, Direct.
             </h2>
           </div>
           <a href="{{ url_for('marketplace.index') }}" class="btn btn-secondary"
-            >View All Products →</a
+            >Browse All Farms →</a
           >
         </div>
 
         <div class="marketplace__grid">
-          {% if preview_products and preview_products|length > 0 %} {% for
-          product in preview_products %}
-          <a
-            href="{{ url_for('marketplace.product_detail', product_id=product.id) }}"
-            class="product-card"
-            style="text-decoration: none"
-          >
-            <div class="product-card__img">
-              🥚
+          {% if preview_farms and preview_farms|length > 0 %}
+            {% for farm in preview_farms %}
+            <a
+              href="{{ url_for('marketplace.farm_profile', farm_id=farm.id) }}"
+              class="product-card"
+              style="text-decoration: none"
+            >
+              <div class="product-card__img" style="background: linear-gradient(135deg,#f0faf0,#e8f5e9); display:flex; align-items:center; justify-content:center;">
+                <i data-lucide="home" style="width:32px;height:32px;color:var(--primary)"></i>
+              </div>
+              <div class="product-card__body">
+                <div class="product-card__tag">🐔 Poultry Farm</div>
+                <div class="product-card__name">{{ farm.name }}</div>
+                <div class="product-card__farmer">
+                  📍 {{ farm.location or 'Location not specified' }}
+                </div>
+                <div class="product-card__footer">
+                  <div class="product-card__price" style="font-size:0.8rem; color:var(--on-surface-variant);">
+                    {{ "{:,}".format(farm.flock_size) }} birds
+                  </div>
+                  <span style="font-size:0.75rem; font-weight:700; color:var(--primary); background:var(--surface-container-low); padding:0.3rem 0.65rem; border-radius:2rem;">View Products →</span>
+                </div>
+              </div>
+            </a>
+            {% endfor %}
+          {% else %}
+          <a href="{{ url_for('marketplace.index') }}" class="product-card" style="text-decoration:none;">
+            <div class="product-card__img" style="background:linear-gradient(135deg,#f0faf0,#e8f5e9);display:flex;align-items:center;justify-content:center;">
+              <i data-lucide="home" style="width:32px;height:32px;color:var(--primary)"></i>
             </div>
             <div class="product-card__body">
-              <div class="product-card__tag">{{ product.size_label }} • {{ product.variety_label }}</div>
-              <div class="product-card__name">{{ product.name }}</div>
-              <div class="product-card__farmer">
-                {{ product.farm.name }}{% if product.location %}, {{
-                product.location }}{% endif %}
-              </div>
+              <div class="product-card__tag">🐔 Poultry Farm</div>
+              <div class="product-card__name">Maria Santos Farm</div>
+              <div class="product-card__farmer">📍 Batangas City</div>
               <div class="product-card__footer">
-                <div class="product-card__price">
-                  ₱{{ "%.2f"|format(product.price) }} / {{ product.unit_label }}
-                </div>
-                <button class="product-card__btn">+</button>
+                <div class="product-card__price" style="font-size:0.8rem;color:var(--on-surface-variant);">500 birds</div>
+                <span style="font-size:0.75rem;font-weight:700;color:var(--primary);background:var(--surface-container-low);padding:0.3rem 0.65rem;border-radius:2rem;">View Products →</span>
               </div>
             </div>
           </a>
-          {% endfor %} {% else %}
-          <div class="product-card">
-            <div class="product-card__img"><i data-lucide="egg"></i></div>
-            <div class="product-card__body">
-              <div class="product-card__tag">Farm Fresh Eggs</div>
-              <div class="product-card__name">Native Free-Range Eggs</div>
-              <div class="product-card__farmer">
-                Maria Santos Farm, Batangas
-              </div>
-              <div class="product-card__footer">
-                <div class="product-card__price">₱8.50 / pc</div>
-                <button class="product-card__btn">+</button>
-              </div>
-            </div>
-          </div>
 
-          <div class="product-card">
-            <div class="product-card__img"><i data-lucide="bird"></i></div>
+          <a href="{{ url_for('marketplace.index') }}" class="product-card" style="text-decoration:none;">
+            <div class="product-card__img" style="background:linear-gradient(135deg,#f0faf0,#e8f5e9);display:flex;align-items:center;justify-content:center;">
+              <i data-lucide="home" style="width:32px;height:32px;color:var(--primary)"></i>
+            </div>
             <div class="product-card__body">
-              <div class="product-card__tag">Live Birds</div>
-              <div class="product-card__name">Broiler Chicken (2–2.5 kg)</div>
-              <div class="product-card__farmer">Reyes Poultry, Laguna</div>
+              <div class="product-card__tag">🐔 Poultry Farm</div>
+              <div class="product-card__name">Reyes Poultry Farm</div>
+              <div class="product-card__farmer">📍 Laguna</div>
               <div class="product-card__footer">
-                <div class="product-card__price">₱240 / head</div>
-                <button class="product-card__btn">+</button>
+                <div class="product-card__price" style="font-size:0.8rem;color:var(--on-surface-variant);">1,200 birds</div>
+                <span style="font-size:0.75rem;font-weight:700;color:var(--primary);background:var(--surface-container-low);padding:0.3rem 0.65rem;border-radius:2rem;">View Products →</span>
               </div>
             </div>
-          </div>
+          </a>
 
-          <div class="product-card">
-            <div class="product-card__img"><i data-lucide="egg"></i></div>
+          <a href="{{ url_for('marketplace.index') }}" class="product-card" style="text-decoration:none;">
+            <div class="product-card__img" style="background:linear-gradient(135deg,#f0faf0,#e8f5e9);display:flex;align-items:center;justify-content:center;">
+              <i data-lucide="home" style="width:32px;height:32px;color:var(--primary)"></i>
+            </div>
             <div class="product-card__body">
-              <div class="product-card__tag">Farm Fresh Eggs</div>
-              <div class="product-card__name">Commercial Eggs (Tray of 30)</div>
-              <div class="product-card__farmer">Del Valle Farm, Cavite</div>
+              <div class="product-card__tag">🐔 Poultry Farm</div>
+              <div class="product-card__name">Del Valle Farm</div>
+              <div class="product-card__farmer">📍 Cavite</div>
               <div class="product-card__footer">
-                <div class="product-card__price">₱210 / tray</div>
-                <button class="product-card__btn">+</button>
+                <div class="product-card__price" style="font-size:0.8rem;color:var(--on-surface-variant);">800 birds</div>
+                <span style="font-size:0.75rem;font-weight:700;color:var(--primary);background:var(--surface-container-low);padding:0.3rem 0.65rem;border-radius:2rem;">View Products →</span>
               </div>
             </div>
-          </div>
+          </a>
 
-          <div class="product-card">
-            <div class="product-card__img"><i data-lucide="bird"></i></div>
+          <a href="{{ url_for('marketplace.index') }}" class="product-card" style="text-decoration:none;">
+            <div class="product-card__img" style="background:linear-gradient(135deg,#f0faf0,#e8f5e9);display:flex;align-items:center;justify-content:center;">
+              <i data-lucide="home" style="width:32px;height:32px;color:var(--primary)"></i>
+            </div>
             <div class="product-card__body">
-              <div class="product-card__tag">Live Birds</div>
-              <div class="product-card__name">Dressed Native Chicken</div>
-              <div class="product-card__farmer">Mabini Poultry, Bulacan</div>
+              <div class="product-card__tag">🐔 Poultry Farm</div>
+              <div class="product-card__name">Mabini Poultry</div>
+              <div class="product-card__farmer">📍 Bulacan</div>
               <div class="product-card__footer">
-                <div class="product-card__price">₱380 / kg</div>
-                <button class="product-card__btn">+</button>
+                <div class="product-card__price" style="font-size:0.8rem;color:var(--on-surface-variant);">650 birds</div>
+                <span style="font-size:0.75rem;font-weight:700;color:var(--primary);background:var(--surface-container-low);padding:0.3rem 0.65rem;border-radius:2rem;">View Products →</span>
               </div>
             </div>
-          </div>
+          </a>
           {% endif %}
         </div>
       </div>
     </section>
+
 
     <!-- ============================================================
      HOW IT WORKS

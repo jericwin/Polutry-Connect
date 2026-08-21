@@ -1,9 +1,161 @@
 {% extends "marketplace/marketplace_base.html" %} {% block title %}Order #{{
-order.id }} — PoultryConnect{% endblock %} {% block extra_css %}
+order.id }} — PoultryConnect
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('feedback') === 'auto') {
+        const modal = document.getElementById('feedbackModal');
+        if (modal) modal.style.display = 'flex';
+        // Remove param from url cleanly
+        window.history.replaceState({}, document.title, window.location.pathname);
+    }
+});
+</script>
+
+
+<!-- Success Animation Modal -->
+<style>
+.success-checkmark {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    background: var(--primary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    animation: scaleIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+}
+.success-checkmark svg {
+    color: white;
+    width: 44px;
+    height: 44px;
+    stroke-dasharray: 48;
+    stroke-dashoffset: 48;
+    animation: drawCheck 0.4s 0.3s ease-out forwards;
+}
+@keyframes scaleIn {
+    0% { transform: scale(0); }
+    100% { transform: scale(1); }
+}
+@keyframes drawCheck {
+    0% { stroke-dashoffset: 48; }
+    100% { stroke-dashoffset: 0; }
+}
+@keyframes fadeInUp {
+    to { opacity: 1; transform: translateY(0); }
+}
+</style>
+<div id="successAnimationModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 10000; align-items: center; justify-content: center; flex-direction: column;">
+    <div class="success-checkmark">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="20 6 9 17 4 12"></polyline>
+        </svg>
+    </div>
+    <h2 style="color: white; margin-top: 1.5rem; font-family: var(--font-display); font-weight: 800; animation: fadeInUp 0.4s 0.4s forwards; opacity: 0; transform: translateY(15px);">Thank You!</h2>
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    const feedbackForm = document.getElementById('feedbackForm');
+    if (feedbackForm) {
+        feedbackForm.addEventListener('submit', function(e) {
+            // Check if all radio buttons required are filled (HTML5 validation does this but just in case)
+            if (this.checkValidity()) {
+                e.preventDefault();
+                document.getElementById('feedbackModal').style.display = 'none';
+                document.getElementById('successAnimationModal').style.display = 'flex';
+                
+                // Wait for animation to finish then actually submit
+                setTimeout(() => {
+                    this.submit();
+                }, 1300);
+            }
+        });
+    }
+});
+</script>
+
+{% endblock %} {% block extra_css %}
 <link
   rel="stylesheet"
   href="{{ url_for('static', filename='css/marketplace.css') }}"
 />
+
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('feedback') === 'auto') {
+        const modal = document.getElementById('feedbackModal');
+        if (modal) modal.style.display = 'flex';
+        // Remove param from url cleanly
+        window.history.replaceState({}, document.title, window.location.pathname);
+    }
+});
+</script>
+
+
+<!-- Success Animation Modal -->
+<style>
+.success-checkmark {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    background: var(--primary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    animation: scaleIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+}
+.success-checkmark svg {
+    color: white;
+    width: 44px;
+    height: 44px;
+    stroke-dasharray: 48;
+    stroke-dashoffset: 48;
+    animation: drawCheck 0.4s 0.3s ease-out forwards;
+}
+@keyframes scaleIn {
+    0% { transform: scale(0); }
+    100% { transform: scale(1); }
+}
+@keyframes drawCheck {
+    0% { stroke-dashoffset: 48; }
+    100% { stroke-dashoffset: 0; }
+}
+@keyframes fadeInUp {
+    to { opacity: 1; transform: translateY(0); }
+}
+</style>
+<div id="successAnimationModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 10000; align-items: center; justify-content: center; flex-direction: column;">
+    <div class="success-checkmark">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="20 6 9 17 4 12"></polyline>
+        </svg>
+    </div>
+    <h2 style="color: white; margin-top: 1.5rem; font-family: var(--font-display); font-weight: 800; animation: fadeInUp 0.4s 0.4s forwards; opacity: 0; transform: translateY(15px);">Thank You!</h2>
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    const feedbackForm = document.getElementById('feedbackForm');
+    if (feedbackForm) {
+        feedbackForm.addEventListener('submit', function(e) {
+            // Check if all radio buttons required are filled (HTML5 validation does this but just in case)
+            if (this.checkValidity()) {
+                e.preventDefault();
+                document.getElementById('feedbackModal').style.display = 'none';
+                document.getElementById('successAnimationModal').style.display = 'flex';
+                
+                // Wait for animation to finish then actually submit
+                setTimeout(() => {
+                    this.submit();
+                }, 1300);
+            }
+        });
+    }
+});
+</script>
+
 {% endblock %} {% block content %}
 <div
   class="mp-container"
@@ -104,7 +256,216 @@ order.id }} — PoultryConnect{% endblock %} {% block extra_css %}
           </tfoot>
         </table>
       </div>
+    
+      <!-- ═══ Feedback Section ═══ -->
+      {% if order.status.name in ['DELIVERED', 'COMPLETED'] %}
+      <style>
+        .feedback-card {
+          margin-top: 2rem;
+          background: white;
+          border-radius: var(--radius-lg);
+          border: 1px solid var(--outline);
+          overflow: hidden;
+          box-shadow: 0 4px 12px rgba(0,0,0,0.02);
+        }
+        .feedback-header {
+          padding: 1.25rem 1.5rem;
+          border-bottom: 1px solid var(--outline);
+          background: var(--surface-container-low);
+          display: flex;
+          align-items: center;
+          gap: 0.5rem;
+        }
+        .feedback-header svg {
+          color: var(--primary);
+        }
+        .feedback-header h3 {
+          font-family: var(--font-display);
+          font-size: 1.15rem;
+          font-weight: 800;
+          color: var(--on-surface);
+          margin: 0;
+        }
+        .feedback-body {
+          padding: 1.5rem;
+        }
+        /* Star Rating Logic */
+        .star-rating {
+          display: flex;
+          flex-direction: row-reverse;
+          justify-content: flex-end;
+          gap: 0.5rem;
+        }
+        .star-rating input {
+          display: none;
+        }
+        .star-rating label {
+          cursor: pointer;
+          color: #e5e7eb;
+          transition: color 0.2s, transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        .star-rating label svg {
+          width: 36px;
+          height: 36px;
+          fill: currentColor;
+          stroke: currentColor;
+          stroke-width: 1.5;
+          stroke-linejoin: round;
+        }
+        .star-rating label:hover,
+        .star-rating label:hover ~ label,
+        .star-rating input:checked ~ label {
+          color: #f59e0b;
+        }
+        .star-rating label:hover {
+          transform: scale(1.15);
+        }
+        .feedback-textarea {
+          width: 100%;
+          padding: 1rem;
+          border-radius: var(--radius-md);
+          border: 1px solid var(--outline);
+          font-family: var(--font-body);
+          resize: vertical;
+          background: #f8fafc;
+          transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
+        }
+        .feedback-textarea:focus {
+          outline: none;
+          background: white;
+          border-color: var(--primary);
+          box-shadow: 0 0 0 4px var(--primary-fixed);
+        }
+      </style>
+
+
+      {% if order.status.value == 'delivered' and current_user.id == order.buyer_id %}
+      <div class="feedback-card" style="text-align: center; padding: 2rem;">
+        <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom: 1rem;"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+        <h3 style="margin: 0 0 0.5rem 0; color: var(--on-surface);">Your Order has been Delivered!</h3>
+        <p style="color: var(--on-surface-variant); margin-bottom: 1.5rem;">Please confirm that you have successfully received your order.</p>
+        <form action="{{ url_for('marketplace.confirm_receipt', order_id=order.id) }}" method="POST">
+            <button type="submit" class="btn btn-primary" style="height: 42px; display: inline-flex; align-items: center; justify-content: center; padding: 0 1.5rem; font-size: 1rem;">Confirm Order Received</button>
+        </form>
+      </div>
+      {% elif order.status.value == 'completed' and current_user.id == order.buyer_id %}
+      <div class="feedback-card" style="text-align: center; padding: 2rem;">
+          {% if order.rating %}
+            <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom: 1rem;"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+            <h3 style="margin: 0 0 0.5rem 0; color: var(--on-surface);">Feedback Submitted</h3>
+            <p style="color: var(--on-surface-variant); margin: 0;">Thank you for sharing your experience! Your ratings have been recorded.</p>
+          {% else %}
+            <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom: 1rem;"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+            <h3 style="margin: 0 0 0.5rem 0; color: var(--on-surface);">Order Completed</h3>
+            <p style="color: var(--on-surface-variant); margin-bottom: 1.5rem;">How was your experience? Please leave us some feedback.</p>
+            <button onclick="document.getElementById('feedbackModal').style.display='flex'" class="btn btn-primary" style="height: 42px; display: inline-flex; align-items: center; justify-content: center; padding: 0 1.5rem; font-size: 1rem;">Leave Feedback</button>
+          {% endif %}
+      </div>
+      {% endif %}
+      {% endif %}
     </div>
+
+    <!-- Modal Form -->
+    <div id="feedbackModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 9999; align-items: center; justify-content: center; padding: 1rem;">
+        <div style="background: var(--surface); width: 100%; max-width: 600px; border-radius: var(--radius-lg); box-shadow: 0 10px 25px rgba(0,0,0,0.1); max-height: 90vh; overflow-y: auto;">
+            <div style="padding: 1.5rem; border-bottom: 1px solid var(--outline-variant); display: flex; justify-content: space-between; align-items: center; background: var(--surface-container-low); border-radius: var(--radius-lg) var(--radius-lg) 0 0;">
+                <h3 style="margin: 0; font-family: var(--font-display); font-size: 1.25rem; font-weight: 800; color: var(--on-surface);">Order Feedback</h3>
+                <button type="button" onclick="document.getElementById('feedbackModal').style.display='none'" style="background: none; border: none; cursor: pointer; color: var(--text-muted);">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                </button>
+            </div>
+            
+            <div style="padding: 1.5rem;">
+                <form id="feedbackForm" action="{{ url_for('marketplace.order_feedback', order_id=order.id) }}" method="POST">
+                    <p style="color: var(--on-surface-variant); margin-top: 0; margin-bottom: 1.5rem;">Rate your experience with this order.</p>
+                    
+                    <!-- Category: Website Experience -->
+                    <div style="margin-bottom: 1.5rem; padding-bottom: 1.5rem; border-bottom: 1px solid var(--outline-variant);">
+                        <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 1rem;">
+                            <div style="flex: 1; min-width: 200px;">
+                                <h4 style="margin: 0 0 0.5rem 0; font-size: 1.05rem; color: var(--on-surface);">Website Experience</h4>
+                            </div>
+                            <div>
+                                <div class="star-rating">
+                                  <input type="radio" id="star5_web" name="rating_website" value="5" required />
+                                  <label for="star5_web" title="5 stars"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg></label>
+                                  <input type="radio" id="star4_web" name="rating_website" value="4" />
+                                  <label for="star4_web" title="4 stars"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg></label>
+                                  <input type="radio" id="star3_web" name="rating_website" value="3" />
+                                  <label for="star3_web" title="3 stars"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg></label>
+                                  <input type="radio" id="star2_web" name="rating_website" value="2" />
+                                  <label for="star2_web" title="2 stars"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg></label>
+                                  <input type="radio" id="star1_web" name="rating_website" value="1" />
+                                  <label for="star1_web" title="1 star"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg></label>
+                                </div>
+                            </div>
+                        </div>
+                        <div style="margin-top: 0.5rem;">
+                            <textarea name="comment_website" rows="2" class="feedback-textarea" placeholder="Optional comment"></textarea>
+                        </div>
+                    </div>
+
+                    <!-- Category: Product Feedback -->
+                    <div style="margin-bottom: 1.5rem; padding-bottom: 1.5rem; border-bottom: 1px solid var(--outline-variant);">
+                        <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 1rem;">
+                            <div style="flex: 1; min-width: 200px;">
+                                <h4 style="margin: 0 0 0.5rem 0; font-size: 1.05rem; color: var(--on-surface);">Product</h4>
+                            </div>
+                            <div>
+                                <div class="star-rating">
+                                  <input type="radio" id="star5_prod" name="rating_product" value="5" required />
+                                  <label for="star5_prod" title="5 stars"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg></label>
+                                  <input type="radio" id="star4_prod" name="rating_product" value="4" />
+                                  <label for="star4_prod" title="4 stars"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg></label>
+                                  <input type="radio" id="star3_prod" name="rating_product" value="3" />
+                                  <label for="star3_prod" title="3 stars"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg></label>
+                                  <input type="radio" id="star2_prod" name="rating_product" value="2" />
+                                  <label for="star2_prod" title="2 stars"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg></label>
+                                  <input type="radio" id="star1_prod" name="rating_product" value="1" />
+                                  <label for="star1_prod" title="1 star"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg></label>
+                                </div>
+                            </div>
+                        </div>
+                        <div style="margin-top: 0.5rem;">
+                            <textarea name="comment_product" rows="2" class="feedback-textarea" placeholder="Optional comment"></textarea>
+                        </div>
+                    </div>
+
+                    <!-- Category: Delivery Experience -->
+                    <div style="margin-bottom: 2rem;">
+                        <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 1rem;">
+                            <div style="flex: 1; min-width: 200px;">
+                                <h4 style="margin: 0 0 0.5rem 0; font-size: 1.05rem; color: var(--on-surface);">Delivery</h4>
+                            </div>
+                            <div>
+                                <div class="star-rating">
+                                  <input type="radio" id="star5_del" name="rating_delivery" value="5" required />
+                                  <label for="star5_del" title="5 stars"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg></label>
+                                  <input type="radio" id="star4_del" name="rating_delivery" value="4" />
+                                  <label for="star4_del" title="4 stars"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg></label>
+                                  <input type="radio" id="star3_del" name="rating_delivery" value="3" />
+                                  <label for="star3_del" title="3 stars"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg></label>
+                                  <input type="radio" id="star2_del" name="rating_delivery" value="2" />
+                                  <label for="star2_del" title="2 stars"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg></label>
+                                  <input type="radio" id="star1_del" name="rating_delivery" value="1" />
+                                  <label for="star1_del" title="1 star"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg></label>
+                                </div>
+                            </div>
+                        </div>
+                        <div style="margin-top: 0.5rem;">
+                            <textarea name="comment_delivery" rows="2" class="feedback-textarea" placeholder="Optional comment"></textarea>
+                        </div>
+                    </div>
+
+                    <div style="display: flex; gap: 1rem; align-items: center; justify-content: flex-end;">
+                        <button type="button" onclick="document.getElementById('feedbackModal').style.display='none'" style="height: 42px; display: inline-flex; align-items: center; justify-content: center; padding: 0 1.5rem; background: var(--surface-container); color: var(--on-surface); border: 1px solid var(--outline-variant); border-radius: 6px; font-weight: 600; cursor: pointer; box-sizing: border-box; font-family: inherit;">Cancel</button>
+                        <button type="submit" style="height: 42px; display: inline-flex; align-items: center; justify-content: center; padding: 0 1.5rem; background: var(--primary); color: var(--on-primary); border: 1px solid transparent; border-radius: 6px; font-weight: 600; cursor: pointer; box-sizing: border-box; font-family: inherit;">Submit Feedback</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
 
     <!-- ═══ Order Info Sidebar ═══ -->
     <div class="od-sidebar">
@@ -210,5 +571,81 @@ order.id }} — PoultryConnect{% endblock %} {% block extra_css %}
     </div>
   </div>
 </div>
+
+
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('feedback') === 'auto') {
+        const modal = document.getElementById('feedbackModal');
+        if (modal) modal.style.display = 'flex';
+        // Remove param from url cleanly
+        window.history.replaceState({}, document.title, window.location.pathname);
+    }
+});
+</script>
+
+
+<!-- Success Animation Modal -->
+<style>
+.success-checkmark {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    background: var(--primary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    animation: scaleIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+}
+.success-checkmark svg {
+    color: white;
+    width: 44px;
+    height: 44px;
+    stroke-dasharray: 48;
+    stroke-dashoffset: 48;
+    animation: drawCheck 0.4s 0.3s ease-out forwards;
+}
+@keyframes scaleIn {
+    0% { transform: scale(0); }
+    100% { transform: scale(1); }
+}
+@keyframes drawCheck {
+    0% { stroke-dashoffset: 48; }
+    100% { stroke-dashoffset: 0; }
+}
+@keyframes fadeInUp {
+    to { opacity: 1; transform: translateY(0); }
+}
+</style>
+<div id="successAnimationModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 10000; align-items: center; justify-content: center; flex-direction: column;">
+    <div class="success-checkmark">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="20 6 9 17 4 12"></polyline>
+        </svg>
+    </div>
+    <h2 style="color: white; margin-top: 1.5rem; font-family: var(--font-display); font-weight: 800; animation: fadeInUp 0.4s 0.4s forwards; opacity: 0; transform: translateY(15px);">Thank You!</h2>
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    const feedbackForm = document.getElementById('feedbackForm');
+    if (feedbackForm) {
+        feedbackForm.addEventListener('submit', function(e) {
+            // Check if all radio buttons required are filled (HTML5 validation does this but just in case)
+            if (this.checkValidity()) {
+                e.preventDefault();
+                document.getElementById('feedbackModal').style.display = 'none';
+                document.getElementById('successAnimationModal').style.display = 'flex';
+                
+                // Wait for animation to finish then actually submit
+                setTimeout(() => {
+                    this.submit();
+                }, 1300);
+            }
+        });
+    }
+});
+</script>
 
 {% endblock %}

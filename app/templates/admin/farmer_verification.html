@@ -1,0 +1,188 @@
+{% extends "admin/admin_base.html" %}
+
+{% block page_title %}Farmer Verification{% endblock %}
+{% block breadcrumb %}Admin / Farmer Verification{% endblock %}
+
+{% block extra_css %}
+<style>
+  .farmer-card {
+    background: white; border: 1px solid var(--outline);
+    border-radius: var(--radius-lg); padding: 1.25rem 1.5rem;
+    display: flex; align-items: center; gap: 1.25rem;
+    transition: box-shadow 0.2s;
+  }
+  .farmer-card:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.06); }
+  .farmer-avatar {
+    width: 48px; height: 48px; border-radius: 50%;
+    background: var(--admin-accent-light); color: var(--admin-accent);
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 800; font-size: 1.1rem; flex-shrink: 0;
+    font-family: var(--font-display);
+  }
+  .modal-overlay {
+    position: fixed; inset: 0; background: rgba(0,0,0,0.5);
+    display: flex; align-items: center; justify-content: center;
+    z-index: 9999; padding: 1rem;
+    opacity: 0; pointer-events: none; transition: opacity 0.2s;
+  }
+  .modal-overlay.open { opacity: 1; pointer-events: all; }
+  .modal-box {
+    background: white; border-radius: var(--radius-lg);
+    padding: 2rem; max-width: 480px; width: 100%;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+    transform: translateY(20px); transition: transform 0.2s;
+  }
+  .modal-overlay.open .modal-box { transform: translateY(0); }
+</style>
+{% endblock %}
+
+{% block content %}
+<div style="display: flex; flex-direction: column; gap: 1.5rem;">
+
+  <!-- Stats Row -->
+  <div class="stat-grid">
+    <a href="{{ url_for('admin.farmer_verification', status='pending') }}" style="text-decoration:none;">
+      <div class="stat-card" style="{% if status_filter == 'pending' %}border-color: var(--admin-warning); box-shadow: 0 0 0 2px var(--admin-warning-light);{% endif %}">
+        <div class="stat-card__value" style="color: var(--admin-warning);">{{ total_pending }}</div>
+        <div class="stat-card__label">Pending</div>
+      </div>
+    </a>
+    <a href="{{ url_for('admin.farmer_verification', status='approved') }}" style="text-decoration:none;">
+      <div class="stat-card" style="{% if status_filter == 'approved' %}border-color: var(--admin-success); box-shadow: 0 0 0 2px var(--admin-success-light);{% endif %}">
+        <div class="stat-card__value" style="color: var(--admin-success);">{{ total_approved }}</div>
+        <div class="stat-card__label">Approved</div>
+      </div>
+    </a>
+    <a href="{{ url_for('admin.farmer_verification', status='rejected') }}" style="text-decoration:none;">
+      <div class="stat-card" style="{% if status_filter == 'rejected' %}border-color: var(--admin-danger); box-shadow: 0 0 0 2px var(--admin-danger-light);{% endif %}">
+        <div class="stat-card__value" style="color: var(--admin-danger);">{{ total_rejected }}</div>
+        <div class="stat-card__label">Rejected</div>
+      </div>
+    </a>
+  </div>
+
+  <!-- Filter Tabs -->
+  <div class="filter-tabs">
+    <a href="{{ url_for('admin.farmer_verification', status='pending') }}" class="filter-tab {% if status_filter == 'pending' %}active{% endif %}" style="display: inline-flex; align-items: center; gap: 0.35rem;">
+      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+      Pending ({{ total_pending }})
+    </a>
+    <a href="{{ url_for('admin.farmer_verification', status='approved') }}" class="filter-tab {% if status_filter == 'approved' %}active{% endif %}" style="display: inline-flex; align-items: center; gap: 0.35rem;">
+      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+      Approved ({{ total_approved }})
+    </a>
+    <a href="{{ url_for('admin.farmer_verification', status='rejected') }}" class="filter-tab {% if status_filter == 'rejected' %}active{% endif %}" style="display: inline-flex; align-items: center; gap: 0.35rem;">
+      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+      Rejected ({{ total_rejected }})
+    </a>
+    <a href="{{ url_for('admin.farmer_verification', status='all') }}" class="filter-tab {% if status_filter == 'all' %}active{% endif %}">All</a>
+  </div>
+
+  <!-- Farmer List -->
+  {% if farmers %}
+  <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+    {% for farmer in farmers %}
+    <div class="farmer-card">
+      <div class="farmer-avatar">
+        {{ (farmer.first_name or farmer.username)[0]|upper }}
+      </div>
+      <div style="flex: 1; min-width: 0;">
+        <div style="font-weight: 700; font-size: 1rem;">{{ farmer.full_name }}</div>
+        <div style="font-size: 0.8rem; color: var(--on-surface-variant); margin-top: 0.1rem;">
+          {{ farmer.email }}
+          {% if farmer.phone %} · {{ farmer.phone }}{% endif %}
+        </div>
+        {% if farmer.address %}
+        <div style="font-size: 0.78rem; color: var(--on-surface-variant); margin-top: 0.1rem;">📍 {{ farmer.address }}</div>
+        {% endif %}
+        <div style="font-size: 0.75rem; color: var(--on-surface-variant); margin-top: 0.2rem;">
+          Registered: {{ farmer.created_at.strftime('%B %d, %Y at %I:%M %p') }}
+          · Farms: {{ farmer.farms.count() }}
+        </div>
+        {% if farmer.verification and farmer.verification.rejection_reason %}
+        <div style="font-size: 0.78rem; background: var(--admin-danger-light); color: var(--admin-danger); padding: 0.3rem 0.6rem; border-radius: var(--radius-sm); margin-top: 0.4rem; display: inline-block;">
+          Rejection reason: {{ farmer.verification.rejection_reason }}
+        </div>
+        {% endif %}
+      </div>
+      <div style="display: flex; align-items: center; gap: 0.75rem; flex-shrink: 0;">
+        {% if farmer.verification %}
+          <span class="badge badge-{{ farmer.verification.status.value }}">{{ farmer.verification.status.value|title }}</span>
+        {% else %}
+          <span class="badge badge-pending">Unreviewed</span>
+        {% endif %}
+
+        {% if status_filter != 'approved' %}
+        <form action="{{ url_for('admin.approve_farmer', farmer_id=farmer.id) }}" method="POST" style="display:inline;">
+          <button type="submit" class="btn btn-sm" style="background: var(--admin-success); color: white; border: none; padding: 0.45rem 0.9rem; border-radius: var(--radius-md); font-weight: 600; cursor: pointer; font-size: 0.8rem; display: flex; align-items: center; gap: 0.35rem;">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+            Approve
+          </button>
+        </form>
+        {% endif %}
+
+        {% if status_filter != 'rejected' %}
+        <button type="button" onclick="openRejectModal({{ farmer.id }}, '{{ farmer.full_name }}')"
+          class="btn btn-sm" style="background: var(--admin-danger-light); color: var(--admin-danger); border: 1.5px solid var(--admin-danger); padding: 0.45rem 0.9rem; border-radius: var(--radius-md); font-weight: 600; cursor: pointer; font-size: 0.8rem; display: flex; align-items: center; gap: 0.35rem;">
+          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          Reject
+        </button>
+        {% endif %}
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+
+  {% else %}
+  <div style="text-align: center; padding: 4rem 2rem; background: var(--surface); border: 1px dashed var(--outline); border-radius: var(--radius-lg);">
+    <div style="margin-bottom: 1rem; color: var(--on-surface-variant);">
+      {% if status_filter == 'pending' %}
+      <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+      {% elif status_filter == 'approved' %}
+      <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+      {% else %}
+      <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg>
+      {% endif %}
+    </div>
+    <h3 style="font-family: var(--font-display); font-size: 1.2rem; font-weight: 700; margin-bottom: 0.5rem;">No {{ status_filter }} farmers</h3>
+    <p style="color: var(--on-surface-variant);">There are no farmers with {{ status_filter }} verification status at this time.</p>
+  </div>
+  {% endif %}
+
+</div>
+
+<!-- Reject Modal -->
+<div class="modal-overlay" id="rejectModal">
+  <div class="modal-box">
+    <h3 style="font-family: var(--font-display); font-size: 1.2rem; font-weight: 800; margin-bottom: 0.5rem; color: var(--admin-danger);">Reject Farmer</h3>
+    <p style="color: var(--on-surface-variant); font-size: 0.9rem; margin-bottom: 1.5rem;">
+      Please provide a reason for rejecting <strong id="rejectFarmerName"></strong>. This reason will be visible to the farmer.
+    </p>
+    <form id="rejectForm" method="POST">
+      <textarea name="reason" id="rejectReason" required rows="4" placeholder="e.g. Insufficient farm documentation, incomplete registration details..."
+        style="width: 100%; padding: 0.75rem; border: 1.5px solid var(--outline); border-radius: var(--radius-md); font-family: var(--font-body); font-size: 0.9rem; resize: vertical; box-sizing: border-box; margin-bottom: 1rem;"></textarea>
+      <div style="display: flex; gap: 0.75rem; justify-content: flex-end;">
+        <button type="button" onclick="closeRejectModal()" class="btn btn-secondary">Cancel</button>
+        <button type="submit" class="btn" style="background: var(--admin-danger); color: white; border: none; cursor: pointer;">Confirm Rejection</button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  function openRejectModal(farmerId, farmerName) {
+    document.getElementById('rejectFarmerName').textContent = farmerName;
+    document.getElementById('rejectForm').action = '/admin/farmers/' + farmerId + '/reject';
+    document.getElementById('rejectReason').value = '';
+    document.getElementById('rejectModal').classList.add('open');
+  }
+  function closeRejectModal() {
+    document.getElementById('rejectModal').classList.remove('open');
+  }
+  document.getElementById('rejectModal').addEventListener('click', function(e) {
+    if (e.target === this) closeRejectModal();
+  });
+</script>
+{% endblock %}

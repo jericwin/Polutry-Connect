@@ -1,0 +1,161 @@
+{% extends "admin/admin_base.html" %}
+
+{% block page_title %}Admin Dashboard{% endblock %}
+{% block breadcrumb %}Admin / Overview{% endblock %}
+
+{% block content %}
+<div style="display: flex; flex-direction: column; gap: 2rem;">
+
+  <!-- Insights Section -->
+  <div>
+    <h2 style="font-family: var(--font-display); font-size: 1.05rem; font-weight: 700; margin-bottom: 1rem; color: var(--on-surface-variant); text-transform: uppercase; letter-spacing: 0.05em;">Decision Insights</h2>
+    <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+      {% for insight in insights %}
+      <div style="background: white; border-left: 4px solid var(--admin-{{ insight.type }}); border-radius: var(--radius-md); padding: 1.25rem 1.5rem; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 2px 8px rgba(0,0,0,0.03);">
+        <div>
+          <div style="font-weight: 700; font-size: 1.05rem; color: var(--on-surface); margin-bottom: 0.25rem;">{{ insight.title }}</div>
+          <div style="font-size: 0.9rem; color: var(--on-surface-variant);">{{ insight.desc }}</div>
+        </div>
+        {% if insight.action_url != '#' %}
+        <a href="{{ insight.action_url }}" class="btn btn-sm" style="background: var(--admin-{{ insight.type }}-light); color: var(--admin-{{ insight.type }}); border: 1.5px solid var(--admin-{{ insight.type }}); flex-shrink: 0;">
+          {{ insight.action_text }} →
+        </a>
+        {% endif %}
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+
+  <!-- Key Metrics -->
+  <div>
+    <h2 style="font-family: var(--font-display); font-size: 1.05rem; font-weight: 700; margin-bottom: 1rem; color: var(--on-surface-variant); text-transform: uppercase; letter-spacing: 0.05em;">Key Metrics</h2>
+    <div class="stat-grid">
+      <div class="stat-card">
+        <div class="stat-card__icon" style="background: var(--admin-accent-light); color: var(--admin-accent);">
+          <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg>
+        </div>
+        <div class="stat-card__value">{{ total_users }}</div>
+        <div class="stat-card__label">Total Users</div>
+      </div>
+      
+      <div class="stat-card">
+        <div class="stat-card__icon" style="background: var(--admin-accent-light); color: var(--admin-accent);">
+          <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 22l5-5m10 5l5-5M12 2l-2.5 10-5 2.5 5 2.5L12 22l2.5-5 5-2.5-5-2.5z"/></svg>
+        </div>
+        <div class="stat-card__value">{{ total_farmers }}</div>
+        <div class="stat-card__label">Total Farmers</div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-card__icon" style="background: var(--admin-success-light); color: var(--admin-success);">
+          <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+        </div>
+        <div class="stat-card__value">{{ approved_verifications }}</div>
+        <div class="stat-card__label">Verified Farmers</div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-card__icon" style="background: var(--admin-warning-light); color: var(--admin-warning);">
+          <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        </div>
+        <div class="stat-card__value">{{ pending_verifications }}</div>
+        <div class="stat-card__label">Pending Farmers</div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Analytics Charts -->
+  <div>
+    <h2 style="font-family: var(--font-display); font-size: 1.05rem; font-weight: 700; margin-bottom: 1rem; color: var(--on-surface-variant); text-transform: uppercase; letter-spacing: 0.05em;">Analytics & Trends</h2>
+    <div style="display: grid; grid-template-columns: 1fr; gap: 1.5rem; flex-wrap: wrap;">
+      
+      <!-- Line Chart -->
+      <div class="content-card">
+        <h3 style="font-family: var(--font-display); font-size: 1rem; font-weight: 700; margin-bottom: 1rem;">Farmer Registration Trend (Last 30 Days)</h3>
+        <div style="height: 250px; width: 100%;">
+          <canvas id="regChart"></canvas>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Recent Activity -->
+  <div>
+    <h2 style="font-family: var(--font-display); font-size: 1.05rem; font-weight: 700; margin-bottom: 1rem; color: var(--on-surface-variant); text-transform: uppercase; letter-spacing: 0.05em;">Recent Activity</h2>
+    <div style="display: grid; grid-template-columns: 1fr; gap: 1.5rem; flex-wrap: wrap;">
+
+      <!-- Recent Farmers -->
+      <div class="content-card">
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.25rem;">
+          <h3 style="font-family: var(--font-display); font-size: 1rem; font-weight: 700;">Recent Farmer Registrations</h3>
+          <a href="{{ url_for('admin.farmer_verification') }}" style="font-size: 0.8rem; color: var(--admin-accent); font-weight: 600; text-decoration: none;">View all →</a>
+        </div>
+        {% if recent_farmers %}
+        <table class="admin-table">
+          <thead><tr><th>Farmer</th><th>Joined</th><th>Status</th></tr></thead>
+          <tbody>
+            {% for farmer in recent_farmers %}
+            <tr>
+              <td>
+                <div style="font-weight: 600;">{{ farmer.full_name }}</div>
+                <div style="font-size: 0.78rem; color: var(--on-surface-variant);">{{ farmer.email }}</div>
+              </td>
+              <td style="font-size: 0.8rem; color: var(--on-surface-variant);">{{ farmer.created_at.strftime('%b %d, %Y') }}</td>
+              <td>
+                {% if farmer.verification %}
+                  <span class="badge badge-{{ farmer.verification.status.value }}">{{ farmer.verification.status.value|title }}</span>
+                {% else %}
+                  <span class="badge badge-pending">Pending</span>
+                {% endif %}
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+        {% else %}
+        <p style="color: var(--on-surface-variant); font-size: 0.9rem;">No farmers registered yet.</p>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  // Line Chart for Farmer Registrations
+  const regCtx = document.getElementById('regChart').getContext('2d');
+  new Chart(regCtx, {
+    type: 'line',
+    data: {
+      labels: {{ farmer_reg_labels|default([])|tojson }},
+      datasets: [{
+        label: 'New Farmers',
+        data: {{ farmer_reg_data|default([])|tojson }},
+        borderColor: '#15803d',
+        backgroundColor: 'rgba(21, 128, 61, 0.1)',
+        tension: 0.3,
+        fill: true,
+        pointBackgroundColor: '#15803d',
+        borderWidth: 2
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false }
+      },
+      scales: {
+        y: { beginAtZero: true, ticks: { precision: 0 } },
+        x: { grid: { display: false }, ticks: { maxTicksLimit: 7 } }
+      }
+    }
+  });
+});
+</script>
+{% endblock %}

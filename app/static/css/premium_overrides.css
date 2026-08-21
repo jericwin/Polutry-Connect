@@ -1,9 +1,16 @@
-
 /* ── Animated Background ──────────────────────────────────────── */
 @keyframes gradientMesh {
-    0% { background-position: 0% 50%; }
-    50% { background-position: 100% 50%; }
-    100% { background-position: 0% 50%; }
+    0% {
+        background-position: 0% 50%;
+    }
+
+    50% {
+        background-position: 100% 50%;
+    }
+
+    100% {
+        background-position: 0% 50%;
+    }
 }
 
 .animated-bg-container {
@@ -17,8 +24,15 @@
 
 /* ── Staggered Fade-in Animations ─────────────────────────────── */
 @keyframes fadeInUp {
-    from { opacity: 0; transform: translateY(20px); }
-    to { opacity: 1; transform: translateY(0); }
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 .animate-fade-in {
@@ -26,14 +40,33 @@
     animation: fadeInUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
-.delay-1 { animation-delay: 0.1s; }
-.delay-2 { animation-delay: 0.2s; }
-.delay-3 { animation-delay: 0.3s; }
-.delay-4 { animation-delay: 0.4s; }
-.delay-5 { animation-delay: 0.5s; }
+.delay-1 {
+    animation-delay: 0.1s;
+}
+
+.delay-2 {
+    animation-delay: 0.2s;
+}
+
+.delay-3 {
+    animation-delay: 0.3s;
+}
+
+.delay-4 {
+    animation-delay: 0.4s;
+}
+
+.delay-5 {
+    animation-delay: 0.5s;
+}
 
 /* ── Glassmorphism & Hover Effects ────────────────────────────── */
-.kpi-card, .insight-card, .chart-card, .recent-card, .quick-log-card, .section-header-card {
+.kpi-card,
+.insight-card,
+.chart-card,
+.recent-card,
+.quick-log-card,
+.section-header-card {
     background: rgba(255, 255, 255, 0.7) !important;
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
@@ -42,7 +75,10 @@
     transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.3s ease !important;
 }
 
-.kpi-card:hover, .insight-card:hover, .chart-card:hover, .recent-card:hover {
+.kpi-card:hover,
+.insight-card:hover,
+.chart-card:hover,
+.recent-card:hover {
     transform: translateY(-6px) scale(1.01) !important;
     box-shadow: 0 20px 40px rgba(0, 31, 42, 0.12) !important;
     border-color: rgba(255, 255, 255, 1) !important;
@@ -54,16 +90,60 @@
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     text-shadow: 0px 2px 4px rgba(13, 99, 27, 0.1);
+    font-size: 1.5rem !important;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
-.kpi-card[data-accent="yellow"] .kpi-value { background: linear-gradient(135deg, #f57f17, #f9a825); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-.kpi-card[data-accent="red"] .kpi-value { background: linear-gradient(135deg, #ba1a1a, #e53935); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-.kpi-card[data-accent="blue"] .kpi-value { background: linear-gradient(135deg, #0277bd, #1976d2); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-.kpi-card[data-accent="green"] .kpi-value { background: linear-gradient(135deg, #0d631b, #2e7d32); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+.kpi-card[data-accent="yellow"] .kpi-value {
+    background: linear-gradient(135deg, #0d631b, #1976d2);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    text-shadow: 0px 2px 4px rgba(13, 99, 27, 0.1);
+    font-size: 1.5rem !important;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.kpi-card[data-accent="red"] .kpi-value {
+    background: linear-gradient(135deg, #0d631b, #1976d2);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    text-shadow: 0px 2px 4px rgba(13, 99, 27, 0.1);
+    font-size: 1.5rem !important;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.kpi-card[data-accent="blue"] .kpi-value {
+    background: linear-gradient(135deg, #0d631b, #1976d2);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    text-shadow: 0px 2px 4px rgba(13, 99, 27, 0.1);
+    font-size: 1.5rem !important;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.kpi-card[data-accent="green"] .kpi-value {
+    background: linear-gradient(135deg, #0d631b, #1976d2);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    text-shadow: 0px 2px 4px rgba(13, 99, 27, 0.1);
+    font-size: 1.5rem !important;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
 
 /* Icon Shadows */
-.kpi-icon, .insight-card-icon {
-    box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+.kpi-icon,
+.insight-card-icon {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
     transition: transform 0.3s ease;
 }
 

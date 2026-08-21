@@ -1,0 +1,559 @@
+{% extends "marketplace/marketplace_base.html" %}
+
+{% block title %}{{ farm.name }} — PoultryConnect Marketplace{% endblock %}
+
+{% block extra_style %}
+/* ═══ Farm Header ═══ */
+.farm-profile-header {
+    background: linear-gradient(135deg, var(--surface-container-lowest) 0%, var(--surface-container-low) 100%);
+    padding: 3rem 2rem;
+    border-bottom: 1px solid var(--outline-variant);
+}
+
+.farm-profile-inner {
+    max-width: 1280px;
+    margin: 0 auto;
+    display: flex;
+    gap: 2rem;
+    align-items: center;
+}
+
+.farm-profile-avatar {
+    width: 120px;
+    height: 120px;
+    background: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+    color: var(--primary);
+    font-size: 3rem;
+}
+
+.farm-profile-info {
+    flex: 1;
+}
+
+.farm-profile-info h1 {
+    font-family: var(--font-display);
+    font-size: 2.2rem;
+    font-weight: 800;
+    color: var(--on-surface);
+    margin-bottom: 0.5rem;
+}
+
+.farm-profile-meta {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    color: var(--on-surface-variant);
+    font-size: 0.95rem;
+    margin-bottom: 1rem;
+}
+
+.farm-profile-meta .meta-item {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+}
+
+.farm-profile-desc {
+    font-size: 0.95rem;
+    line-height: 1.6;
+    color: var(--on-surface-variant);
+    max-width: 800px;
+}
+
+/* ═══ Main Content ═══ */
+.shop-body {
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 2rem 2rem 0;
+}
+
+/* ═══ Toolbar ═══ */
+.shop-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+    flex-wrap: wrap;
+}
+
+.shop-filters {
+    display: flex;
+    gap: 0.4rem;
+    flex-wrap: wrap;
+}
+
+.shop-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.45rem 1.1rem;
+    border-radius: var(--radius-full);
+    border: 1.5px solid var(--outline);
+    background: white;
+    color: var(--on-surface-variant);
+    font-size: 0.82rem;
+    font-weight: 600;
+    font-family: var(--font-body);
+    transition: all 0.2s;
+    cursor: pointer;
+    text-decoration: none;
+}
+
+.shop-chip:hover {
+    border-color: var(--primary);
+    color: var(--primary);
+    background: var(--primary-fixed);
+}
+
+.shop-chip.active {
+    background: var(--primary);
+    border-color: var(--primary);
+    color: white;
+}
+
+.shop-sort {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.shop-sort__label {
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: var(--on-surface-variant);
+}
+
+.shop-sort__options {
+    display: flex;
+    gap: 0.3rem;
+    flex-wrap: wrap;
+    background: var(--surface-container-low);
+    padding: 0.25rem;
+    border-radius: var(--radius-full);
+    border: 1px solid var(--outline);
+}
+
+.shop-sort__pill {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 128px;
+    background: transparent;
+    border: 1px solid transparent;
+    border-radius: var(--radius-full);
+    padding: 0.38rem 0.85rem;
+    font-size: 0.82rem;
+    font-weight: 600;
+    font-family: var(--font-body);
+    color: var(--on-surface-variant);
+    text-decoration: none;
+    transition: all 0.2s;
+}
+
+.shop-sort__pill:hover {
+    border-color: var(--outline);
+    color: var(--primary);
+    background: var(--surface-container-lowest);
+}
+
+.shop-sort__pill.active {
+    background: var(--surface-container-lowest);
+    border-color: var(--primary);
+    color: var(--primary);
+    box-shadow: 0 1px 8px rgba(13, 99, 27, 0.14);
+}
+
+/* Results count */
+.shop-results {
+    font-size: 0.85rem;
+    color: var(--on-surface-variant);
+    margin-bottom: 1.5rem;
+    font-weight: 500;
+}
+
+.shop-results strong {
+    color: var(--on-surface);
+    font-weight: 700;
+}
+
+/* ═══ Product Grid ═══ */
+.shop-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1.25rem;
+    margin-bottom: 3rem;
+}
+
+.shop-card {
+    background: white;
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    border: 1px solid var(--outline-variant);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+    transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+    display: flex;
+    flex-direction: column;
+}
+
+.shop-card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-ambient);
+    border-color: var(--primary-fixed);
+}
+
+.shop-card__visual {
+    height: 160px;
+    background: linear-gradient(135deg, #f0faf0 0%, var(--surface-container-low) 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    overflow: hidden;
+    text-decoration: none;
+}
+
+.shop-card__visual::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, transparent 60%, rgba(13,99,27,0.04) 100%);
+    pointer-events: none;
+}
+
+.shop-card:hover .shop-card__visual {
+    background: linear-gradient(135deg, var(--primary-fixed) 0%, #f0faf0 100%);
+}
+
+.shop-card__emoji {
+    font-size: 3.2rem;
+    transition: transform 0.3s ease;
+    filter: drop-shadow(0 4px 8px rgba(0,0,0,0.08));
+}
+
+.shop-card:hover .shop-card__emoji {
+    transform: scale(1.15) rotate(-3deg);
+}
+
+.shop-card__tag {
+    position: absolute;
+    top: 0.75rem;
+    left: 0.75rem;
+    background: white;
+    color: var(--primary);
+    font-size: 0.65rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    padding: 0.2rem 0.65rem;
+    border-radius: var(--radius-full);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    font-family: var(--font-body);
+    z-index: 1;
+}
+
+.shop-card__body {
+    padding: 1.15rem 1.25rem 1.25rem;
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+}
+
+.shop-card__name {
+    font-family: var(--font-display);
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--on-surface);
+    text-decoration: none;
+    margin-bottom: 0.3rem;
+    line-height: 1.3;
+    display: block;
+    transition: color 0.18s;
+}
+
+.shop-card__name:hover {
+    color: var(--primary);
+}
+
+.shop-card__bottom {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    margin-top: auto;
+    margin-bottom: 1.25rem;
+}
+
+.shop-card__price {
+    font-family: var(--font-display);
+    font-size: 1.2rem;
+    font-weight: 800;
+    color: var(--primary);
+    line-height: 1;
+}
+
+.shop-card__unit {
+    font-size: 0.7rem;
+    color: var(--on-surface-variant);
+    margin-top: 0.1rem;
+}
+
+.shop-card__availability {
+    font-size: 0.72rem;
+    font-weight: 600;
+    font-family: var(--font-body);
+    text-align: right;
+}
+
+.avail--in_stock { color: #1b5e20; }
+.avail--low_stock { color: #e65100; }
+.avail--out_of_stock { color: var(--error); }
+
+/* Add to Cart */
+.shop-card__action {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.65rem;
+    background: var(--grad-primary);
+    color: white;
+    border: none;
+    border-radius: var(--radius-sm);
+    font-family: var(--font-body);
+    font-size: 0.82rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: opacity 0.18s, transform 0.18s;
+    text-decoration: none;
+}
+
+.shop-card__action:disabled {
+    background: var(--surface-container);
+    color: var(--on-surface-variant);
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
+.shop-card__action:not(:disabled):hover {
+    opacity: 0.9;
+    transform: translateY(-1px);
+}
+
+.shop-card__action--ghost {
+    background: var(--surface-container-low);
+    color: var(--primary);
+    border: 1.5px solid var(--outline);
+}
+
+.shop-card__action--ghost:hover {
+    background: var(--primary-fixed);
+    border-color: var(--primary);
+    opacity: 1;
+}
+
+.shop-card__action svg { width: 15px; height: 15px; }
+
+/* ═══ Empty ═══ */
+.mp-empty {
+    text-align: center;
+    padding: 6rem 2rem;
+    max-width: 480px;
+    margin: 3rem auto;
+    background: white;
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--outline);
+    box-shadow: var(--shadow-card);
+}
+
+.mp-empty__icon {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    background: var(--surface-container-low);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 1.5rem;
+    color: var(--primary);
+}
+
+/* ═══ Responsive ═══ */
+@media (max-width: 1100px) {
+    .shop-grid { grid-template-columns: repeat(3, 1fr); }
+}
+
+@media (max-width: 768px) {
+    .farm-profile-inner { flex-direction: column; text-align: center; }
+    .shop-grid { grid-template-columns: repeat(2, 1fr); }
+    .shop-toolbar { flex-direction: column; align-items: flex-start; }
+}
+
+@media (max-width: 480px) {
+    .shop-grid { grid-template-columns: 1fr; }
+}
+{% endblock %}
+
+{% block content %}
+
+<!-- ═══ Farm Profile Header ═══ -->
+<div class="farm-profile-header">
+    <div class="farm-profile-inner">
+        <div class="farm-profile-avatar">
+            <svg xmlns="http://www.w3.org/2000/svg" width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                <polyline points="9 22 9 12 15 12 15 22"></polyline>
+            </svg>
+        </div>
+        <div class="farm-profile-info">
+            <h1>{{ farm.name }}</h1>
+            <div class="farm-profile-meta">
+                <div class="meta-item">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                    {{ farm.location or 'Location not specified' }}
+                </div>
+                <div class="meta-item">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 21V3h7a5 5 0 0 1 0 10H7"/><path d="M4 9h12"/><path d="M4 13h10"/></svg>
+                    Verified Seller
+                </div>
+                <div class="meta-item">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+                    Flock Size: {{ "{:,}".format(farm.flock_size) }}
+                </div>
+            </div>
+            <div class="farm-profile-desc">
+                {{ farm.description or 'A local poultry farm providing high quality products directly to you.' }}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ═══ Shop Body ═══ -->
+<div class="shop-body">
+
+    <!-- Toolbar -->
+    <div class="shop-toolbar">
+        <div class="shop-filters">
+            <span class="shop-sort__label">Size:</span>
+            <a href="{{ url_for('marketplace.farm_profile', farm_id=farm.id, q=search, variety=variety, sort=sort_by) }}"
+               class="shop-chip {{ 'active' if not size }}">All</a>
+            {% for s in sizes %}
+            <a href="{{ url_for('marketplace.farm_profile', farm_id=farm.id, q=search, size=s.value, variety=variety, sort=sort_by) }}"
+               class="shop-chip {{ 'active' if size == s.value }}">
+                {{ s.value | title }}
+            </a>
+            {% endfor %}
+            <span class="shop-sort__label" style="margin-left: 1rem;">Variety:</span>
+            <a href="{{ url_for('marketplace.farm_profile', farm_id=farm.id, q=search, size=size, sort=sort_by) }}"
+               class="shop-chip {{ 'active' if not variety }}">All</a>
+            {% for v in varieties %}
+            <a href="{{ url_for('marketplace.farm_profile', farm_id=farm.id, q=search, size=size, variety=v.value, sort=sort_by) }}"
+               class="shop-chip {{ 'active' if variety == v.value }}">
+                {{ v.value | title }}
+            </a>
+            {% endfor %}
+        </div>
+        <div class="shop-sort">
+            <span class="shop-sort__label">Sort</span>
+            <div class="shop-sort__options" role="group" aria-label="Sort products">
+                <a href="{{ url_for('marketplace.farm_profile', farm_id=farm.id, q=search, size=size, variety=variety, sort='newest') }}" class="shop-sort__pill {{ 'active' if sort_by == 'newest' }}">Newest</a>
+                <a href="{{ url_for('marketplace.farm_profile', farm_id=farm.id, q=search, size=size, variety=variety, sort='price_low') }}" class="shop-sort__pill {{ 'active' if sort_by == 'price_low' }}">Price: Low to High</a>
+                <a href="{{ url_for('marketplace.farm_profile', farm_id=farm.id, q=search, size=size, variety=variety, sort='price_high') }}" class="shop-sort__pill {{ 'active' if sort_by == 'price_high' }}">Price: High to Low</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Results info -->
+    <div class="shop-results">
+        <strong>{{ products|length }}</strong> product{{ 's' if products|length != 1 }} available from {{ farm.name }}
+        {% if search %} for "<strong>{{ search }}</strong>"{% endif %}
+        {% if size %} Size: <strong>{{ size|title }}</strong>{% endif %}
+        {% if variety %} Variety: <strong>{{ variety|title }}</strong>{% endif %}
+    </div>
+
+    <!-- Product Grid -->
+    {% if products %}
+    <div class="shop-grid" id="productGrid">
+        {% for product in products %}
+        <div class="shop-card" id="product-{{ product.id }}">
+            <a href="{{ url_for('marketplace.product_detail', product_id=product.id) }}" class="shop-card__visual">
+                <span class="shop-card__tag">{{ product.size.value|title }} • {{ product.variety.value|title }}</span>
+                <svg class="shop-card__emoji" viewBox="0 0 100 130" xmlns="http://www.w3.org/2000/svg" style="width: 52px; height: 68px; filter: drop-shadow(0 6px 10px rgba(0,0,0,0.15));">
+                    {% if product.variety and product.variety.value == 'white' %}
+                        <path d="M50 0 C15 0 0 50 0 90 C0 115 15 130 50 130 C85 130 100 115 100 90 C100 50 85 0 50 0 Z" fill="url(#eggGradWhite)"/>
+                        <path d="M50 0 C15 0 0 50 0 90 C0 115 15 130 50 130 C85 130 100 115 100 90 C100 50 85 0 50 0 Z" fill="url(#eggHighlightWhite)"/>
+                    {% else %}
+                        <path d="M50 0 C15 0 0 50 0 90 C0 115 15 130 50 130 C85 130 100 115 100 90 C100 50 85 0 50 0 Z" fill="url(#eggGradBrown)"/>
+                        <path d="M50 0 C15 0 0 50 0 90 C0 115 15 130 50 130 C85 130 100 115 100 90 C100 50 85 0 50 0 Z" fill="url(#eggHighlightBrown)"/>
+                    {% endif %}
+                </svg>
+            </a>
+
+            <div class="shop-card__body">
+                <a href="{{ url_for('marketplace.product_detail', product_id=product.id) }}" class="shop-card__name">{{ product.name }}</a>
+                
+                <div class="shop-card__bottom">
+                    <div>
+                        <div class="shop-card__price">₱{{ "{:,.2f}".format(product.price) }}</div>
+                        <div class="shop-card__unit">per {{ product.unit.value|title }}</div>
+                    </div>
+                    <div class="shop-card__availability">
+                        {% if product.stock > 20 %}
+                        <span class="avail--in_stock">{{ product.stock }} In Stock</span>
+                        {% elif product.stock > 0 %}
+                        <span class="avail--low_stock">Only {{ product.stock }} left!</span>
+                        {% else %}
+                        <span class="avail--out_of_stock">Out of Stock</span>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="shop-card__purchase" style="margin-top: auto;">
+                    {% if current_user.is_authenticated and current_user.role.value == 'buyer' %}
+                    <form method="post" action="{{ url_for('marketplace.cart_add') }}" class="add-to-cart-form">
+                        <input type="hidden" name="product_id" value="{{ product.id }}">
+                        <input type="hidden" name="quantity" value="1">
+                        {% if product.stock > 0 %}
+                        <button type="submit" class="shop-card__action">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 002 1.61h9.72a2 2 0 002-1.61L23 6H6"/></svg>
+                            Add to Cart
+                        </button>
+                        {% else %}
+                        <button type="button" class="shop-card__action" disabled>
+                            Out of Stock
+                        </button>
+                        {% endif %}
+                    </form>
+                    {% elif not current_user.is_authenticated %}
+                    <a href="{{ url_for('auth.login') }}" class="shop-card__action shop-card__action--ghost">Sign in to Buy</a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <!-- Empty State -->
+    <div class="mp-empty">
+        <div class="mp-empty__icon">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+            </svg>
+        </div>
+        <div class="shop-empty">
+            <h3>No products found</h3>
+            <p>{{ farm.name }} currently has no products matching your criteria.</p>
+            <a href="{{ url_for('marketplace.farm_profile', farm_id=farm.id) }}" class="shop-card__action shop-card__action--ghost" style="width:auto; display:inline-flex; padding:0.6rem 1.25rem;">
+                Clear Filters
+            </a>
+        </div>
+    </div>
+    {% endif %}
+
+</div>
+{% endblock %}
