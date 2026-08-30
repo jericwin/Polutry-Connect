@@ -717,6 +717,121 @@ INSERT INTO `users` (`id`, `username`, `email`, `password_hash`, `role`, `first_
 (1, 'jdelacruz', 'farmer@poultryconnect.com', 'scrypt:32768:8:1$LkAHcyjFUKkQ3oeJ$0c70859616fd4df6dc44dbb7adc47cac741e29966bc07711dbe81471b8ef6fd39ee620f800b078d731299c096a62adb0ada3a6dd5aae840cb04356b7c4fa173c', 'farmer', 'Juan', 'Dela Cruz', '09171234567', 1, 0, NULL, '2026-08-12 13:17:48', '2026-08-12 13:17:48', 'San Jose, Batangas', NULL),
 (2, 'mreyes', 'buyer@poultryconnect.com', 'scrypt:32768:8:1$XwGZYqV20X2D91rp$a667ee3259ce1c270c6457009c1edd859fb21c2357b70f7f776027b4ed6e958e711efef19399309d58445a0a694905b2b23db18bac00edaeb0c404fb2fb61701', 'buyer', 'Maria', 'Reyes', '09189876543', 1, 0, NULL, '2026-08-12 13:17:49', '2026-08-12 13:17:49', 'Quezon City, Metro Manila', NULL);
 
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `flock_history`
+--
+
+CREATE TABLE `flock_history` (
+  `id` int(11) NOT NULL,
+  `farm_id` int(10) UNSIGNED NOT NULL,
+  `user_id` int(10) UNSIGNED NOT NULL,
+  `date` date NOT NULL,
+  `change_type` varchar(50) NOT NULL,
+  `quantity` int(11) NOT NULL,
+  `notes` text DEFAULT NULL,
+  `created_at` datetime NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `feed_records`
+--
+
+CREATE TABLE `feed_records` (
+  `id` int(11) NOT NULL,
+  `farm_id` int(10) UNSIGNED NOT NULL,
+  `user_id` int(10) UNSIGNED NOT NULL,
+  `record_date` date NOT NULL,
+  `feed_type` varchar(100) NOT NULL,
+  `feed_consumed_kg` decimal(8,2) DEFAULT 0.00,
+  `feed_cost` decimal(10,2) DEFAULT 0.00,
+  `notes` text DEFAULT NULL,
+  `created_at` datetime NOT NULL DEFAULT current_timestamp(),
+  `updated_at` datetime NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `mortality_records`
+--
+
+CREATE TABLE `mortality_records` (
+  `id` int(11) NOT NULL,
+  `farm_id` int(10) UNSIGNED NOT NULL,
+  `user_id` int(10) UNSIGNED NOT NULL,
+  `record_date` date NOT NULL,
+  `quantity_died` int(11) NOT NULL DEFAULT 0,
+  `reason` varchar(255) NOT NULL,
+  `notes` text DEFAULT NULL,
+  `created_at` datetime NOT NULL DEFAULT current_timestamp(),
+  `updated_at` datetime NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `farmer_verifications`
+--
+
+CREATE TABLE `farmer_verifications` (
+  `id` int(11) NOT NULL,
+  `farmer_id` int(10) UNSIGNED NOT NULL,
+  `status` enum('pending','approved','rejected') NOT NULL DEFAULT 'pending',
+  `rejection_reason` text DEFAULT NULL,
+  `reviewed_by_id` int(10) UNSIGNED DEFAULT NULL,
+  `reviewed_at` datetime DEFAULT NULL,
+  `notes` text DEFAULT NULL,
+  `created_at` datetime NOT NULL DEFAULT current_timestamp(),
+  `updated_at` datetime NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `content_moderations`
+--
+
+CREATE TABLE `content_moderations` (
+  `id` int(11) NOT NULL,
+  `product_id` int(10) UNSIGNED DEFAULT NULL,
+  `uploader_id` int(10) UNSIGNED NOT NULL,
+  `image_url` varchar(500) NOT NULL,
+  `status` enum('pending','approved','flagged','rejected') NOT NULL DEFAULT 'pending',
+  `ai_result` text DEFAULT NULL,
+  `ai_flag_reason` text DEFAULT NULL,
+  `ai_safe` tinyint(1) DEFAULT NULL,
+  `admin_action` text DEFAULT NULL,
+  `reviewed_by_id` int(10) UNSIGNED DEFAULT NULL,
+  `reviewed_at` datetime DEFAULT NULL,
+  `created_at` datetime NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `buyer_feedback`
+--
+
+CREATE TABLE `buyer_feedback` (
+  `id` int(11) NOT NULL,
+  `buyer_id` int(10) UNSIGNED NOT NULL,
+  `order_id` int(10) UNSIGNED DEFAULT NULL,
+  `product_id` int(10) UNSIGNED DEFAULT NULL,
+  `farmer_id` int(10) UNSIGNED DEFAULT NULL,
+  `category` enum('product','delivery','website') NOT NULL,
+  `rating` int(11) DEFAULT NULL,
+  `feedback_text` text NOT NULL,
+  `ai_issue` varchar(100) DEFAULT NULL,
+  `ai_sentiment` varchar(20) DEFAULT NULL,
+  `ai_keywords` varchar(500) DEFAULT NULL,
+  `created_at` datetime NOT NULL DEFAULT current_timestamp(),
+  `updated_at` datetime NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 --
 -- Indexes for dumped tables
 --
@@ -827,6 +942,62 @@ ALTER TABLE `users`
   ADD KEY `idx_users_username` (`username`);
 
 --
+-- Indexes for table `flock_history`
+--
+ALTER TABLE `flock_history`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `idx_flock_history_farm` (`farm_id`),
+  ADD KEY `idx_flock_history_user` (`user_id`),
+  ADD KEY `idx_flock_history_date` (`date`);
+
+--
+-- Indexes for table `feed_records`
+--
+ALTER TABLE `feed_records`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `idx_feed_records_farm` (`farm_id`),
+  ADD KEY `idx_feed_records_user` (`user_id`),
+  ADD KEY `idx_feed_records_date` (`record_date`);
+
+--
+-- Indexes for table `mortality_records`
+--
+ALTER TABLE `mortality_records`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `idx_mortality_records_farm` (`farm_id`),
+  ADD KEY `idx_mortality_records_user` (`user_id`),
+  ADD KEY `idx_mortality_records_date` (`record_date`);
+
+--
+-- Indexes for table `farmer_verifications`
+--
+ALTER TABLE `farmer_verifications`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `uq_farmer_verifications_farmer` (`farmer_id`),
+  ADD KEY `idx_farmer_verifications_status` (`status`),
+  ADD KEY `idx_farmer_verifications_reviewer` (`reviewed_by_id`);
+
+--
+-- Indexes for table `content_moderations`
+--
+ALTER TABLE `content_moderations`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `idx_content_moderations_product` (`product_id`),
+  ADD KEY `idx_content_moderations_uploader` (`uploader_id`),
+  ADD KEY `idx_content_moderations_status` (`status`),
+  ADD KEY `idx_content_moderations_reviewer` (`reviewed_by_id`);
+
+--
+-- Indexes for table `buyer_feedback`
+--
+ALTER TABLE `buyer_feedback`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `idx_buyer_feedback_buyer` (`buyer_id`),
+  ADD KEY `idx_buyer_feedback_order` (`order_id`),
+  ADD KEY `idx_buyer_feedback_product` (`product_id`),
+  ADD KEY `idx_buyer_feedback_farmer` (`farmer_id`);
+
+--
 -- AUTO_INCREMENT for dumped tables
 --
 
@@ -895,6 +1066,42 @@ ALTER TABLE `sales_records`
 --
 ALTER TABLE `users`
   MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+
+--
+-- AUTO_INCREMENT for table `flock_history`
+--
+ALTER TABLE `flock_history`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT for table `feed_records`
+--
+ALTER TABLE `feed_records`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT for table `mortality_records`
+--
+ALTER TABLE `mortality_records`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT for table `farmer_verifications`
+--
+ALTER TABLE `farmer_verifications`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT for table `content_moderations`
+--
+ALTER TABLE `content_moderations`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT for table `buyer_feedback`
+--
+ALTER TABLE `buyer_feedback`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- Constraints for dumped tables
@@ -967,6 +1174,52 @@ ALTER TABLE `products`
 ALTER TABLE `sales_records`
   ADD CONSTRAINT `sales_records_ibfk_1` FOREIGN KEY (`farm_id`) REFERENCES `farms` (`id`),
   ADD CONSTRAINT `sales_records_ibfk_2` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`);
+
+--
+-- Constraints for table `flock_history`
+--
+ALTER TABLE `flock_history`
+  ADD CONSTRAINT `fk_flock_history_farm` FOREIGN KEY (`farm_id`) REFERENCES `farms` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  ADD CONSTRAINT `fk_flock_history_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+--
+-- Constraints for table `feed_records`
+--
+ALTER TABLE `feed_records`
+  ADD CONSTRAINT `fk_feed_records_farm` FOREIGN KEY (`farm_id`) REFERENCES `farms` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  ADD CONSTRAINT `fk_feed_records_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+--
+-- Constraints for table `mortality_records`
+--
+ALTER TABLE `mortality_records`
+  ADD CONSTRAINT `fk_mortality_records_farm` FOREIGN KEY (`farm_id`) REFERENCES `farms` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  ADD CONSTRAINT `fk_mortality_records_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+--
+-- Constraints for table `farmer_verifications`
+--
+ALTER TABLE `farmer_verifications`
+  ADD CONSTRAINT `fk_farmer_verifications_farmer` FOREIGN KEY (`farmer_id`) REFERENCES `users` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  ADD CONSTRAINT `fk_farmer_verifications_reviewer` FOREIGN KEY (`reviewed_by_id`) REFERENCES `users` (`id`) ON DELETE SET NULL ON UPDATE CASCADE;
+
+--
+-- Constraints for table `content_moderations`
+--
+ALTER TABLE `content_moderations`
+  ADD CONSTRAINT `fk_content_moderations_product` FOREIGN KEY (`product_id`) REFERENCES `products` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  ADD CONSTRAINT `fk_content_moderations_uploader` FOREIGN KEY (`uploader_id`) REFERENCES `users` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  ADD CONSTRAINT `fk_content_moderations_reviewer` FOREIGN KEY (`reviewed_by_id`) REFERENCES `users` (`id`) ON DELETE SET NULL ON UPDATE CASCADE;
+
+--
+-- Constraints for table `buyer_feedback`
+--
+ALTER TABLE `buyer_feedback`
+  ADD CONSTRAINT `fk_buyer_feedback_buyer` FOREIGN KEY (`buyer_id`) REFERENCES `users` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  ADD CONSTRAINT `fk_buyer_feedback_order` FOREIGN KEY (`order_id`) REFERENCES `orders` (`id`) ON DELETE SET NULL ON UPDATE CASCADE,
+  ADD CONSTRAINT `fk_buyer_feedback_product` FOREIGN KEY (`product_id`) REFERENCES `products` (`id`) ON DELETE SET NULL ON UPDATE CASCADE,
+  ADD CONSTRAINT `fk_buyer_feedback_farmer` FOREIGN KEY (`farmer_id`) REFERENCES `users` (`id`) ON DELETE SET NULL ON UPDATE CASCADE;
+
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
