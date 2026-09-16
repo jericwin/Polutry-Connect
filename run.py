@@ -1,3 +1,6 @@
+import warnings
+warnings.filterwarnings('ignore', category=FutureWarning, module='google.generativeai')
+
 from app import create_app, db
 from app.models import User, Farm, ProductionRecord, Expense, Product, Order, OrderItem
 
