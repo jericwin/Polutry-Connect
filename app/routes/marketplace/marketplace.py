@@ -29,6 +29,8 @@ from decimal import Decimal, InvalidOperation
 from datetime import datetime
 import json
 import os
+import warnings
+warnings.filterwarnings('ignore', category=FutureWarning, module='google.generativeai')
 import google.generativeai as genai
 
 from sqlalchemy import func

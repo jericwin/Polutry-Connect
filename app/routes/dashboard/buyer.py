@@ -1,5 +1,7 @@
 import os
 import json
+import warnings
+warnings.filterwarnings('ignore', category=FutureWarning, module='google.generativeai')
 import google.generativeai as genai
 from flask import Blueprint, render_template, redirect, url_for, flash, request, abort
 from flask_login import login_required, current_user

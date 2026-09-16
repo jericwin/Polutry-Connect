@@ -1,5 +1,7 @@
 import os
 import json
+import warnings
+warnings.filterwarnings('ignore', category=FutureWarning, module='google.generativeai')
 import google.generativeai as genai
 from PIL import Image
 
