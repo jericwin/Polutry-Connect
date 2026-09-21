@@ -1,12 +1,10 @@
 import os
 import json
-import warnings
-warnings.filterwarnings('ignore', category=FutureWarning, module='google.generativeai')
-import google.generativeai as genai
 from flask import Blueprint, render_template, redirect, url_for, flash, request, abort
 from flask_login import login_required, current_user
 from app.models import UserRole, Order, BuyerFeedback, FeedbackCategory, Product, OrderItem
 from app import db
+from app.utils.feedback_analysis import analyze_feedback
 from datetime import datetime
 
 buyer_bp = Blueprint('buyer', __name__)
@@ -76,43 +74,17 @@ def feedback():
             feedback_text=feedback_text
         )
 
-        # GenAI analysis for issue, sentiment, keywords
-        api_key = os.environ.get("GEMINI_API_KEY")
-        if api_key:
-            try:
-                genai.configure(api_key=api_key)
-                model = genai.GenerativeModel(
-                    "models/gemini-3.6-flash",
-                    generation_config={"response_mime_type": "application/json"}
-                )
-                prompt = f"""Analyze this buyer feedback for a poultry/farm marketplace.
-The user has categorized this as: {category.value.title()}.
-Extract structured information and return ONLY a JSON object with these exact keys:
-- "issue": A short phrase for the specific observation (e.g., "Delayed Delivery", "Fresh Eggs", "Helpful Farmer").
-- "sentiment": Exactly one of: "Positive", "Negative", or "Neutral".
-- "keywords": An array of 2 to 5 relevant keyword strings extracted from the text.
-
-Feedback: "{feedback_text}"
-"""
-                response = model.generate_content(prompt)
-                
-                if response and response.text:
-                    parsed = json.loads(response.text)
-                    new_feedback.ai_issue = str(parsed.get("issue", ""))[:100]
-                    new_feedback.ai_sentiment = str(parsed.get("sentiment", ""))[:20]
-                    kws = parsed.get("keywords", [])
-                    if isinstance(kws, list):
-                        new_feedback.ai_keywords = json.dumps(kws)[:500]
-            except Exception as e:
-                import traceback
-                print(f"[AI Feedback] ERROR: {type(e).__name__}: {e}")
-                # Fallback logic
-                if rating and rating >= 4:
-                    new_feedback.ai_sentiment = "Positive"
-                elif rating and rating <= 2:
-                    new_feedback.ai_sentiment = "Negative"
-                words = [w.strip(".,!?") for w in feedback_text.split() if len(w) > 3]
-                new_feedback.ai_keywords = json.dumps(words[:5])
+        # Local NLP analysis for issue, sentiment, keywords
+        analysis = analyze_feedback(
+            feedback_text,
+            category=category,
+            rating=rating if 1 <= rating <= 5 else None
+        )
+        new_feedback.ai_issue = str(analysis.get("issue", ""))[:100]
+        new_feedback.ai_sentiment = str(analysis.get("sentiment", ""))[:20]
+        kws = analysis.get("keywords", [])
+        if isinstance(kws, list):
+            new_feedback.ai_keywords = json.dumps(kws)[:500]
 
         db.session.add(new_feedback)
         db.session.commit()

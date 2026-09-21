@@ -29,9 +29,7 @@ from decimal import Decimal, InvalidOperation
 from datetime import datetime
 import json
 import os
-import warnings
-warnings.filterwarnings('ignore', category=FutureWarning, module='google.generativeai')
-import google.generativeai as genai
+from app.utils.feedback_analysis import analyze_feedback
 
 from sqlalchemy import func
 from app import db
@@ -626,47 +624,22 @@ def order_feedback(order_id):
     order.rating = 1
     
     import json
-    import os
-    import google.generativeai as genai
-    
-    api_key = os.environ.get("GEMINI_API_KEY")
-    model = None
-    if api_key:
-        try:
-            genai.configure(api_key=api_key)
-            model = genai.GenerativeModel(
-                "models/gemini-3.6-flash",
-                generation_config={"response_mime_type": "application/json"}
-            )
-        except:
-            model = None
 
-    def _process_ai(text):
-        if not text or not model:
+    def _process_feedback(text, category, rating):
+        if not text:
             return None
-        try:
-            prompt = f"""Analyze the following buyer feedback. Extract structured information and return ONLY a JSON object with these exact keys:
-- "issue": A short phrase (e.g., "Delayed", "Fresh Eggs", "Good Quality").
-- "sentiment": Exactly one of: "Positive", "Negative", or "Neutral".
-- "keywords": An array of 2 to 5 keyword strings.
-Feedback: "{text}"
-"""
-            response = model.generate_content(prompt)
-            if response and response.text:
-                return json.loads(response.text)
-        except:
-            return None
-        return None
+        return analyze_feedback(text, category=category, rating=rating)
         
     fb_web = BuyerFeedback(
         buyer_id=current_user.id, order_id=order.id,
         category=FeedbackCategory.WEBSITE, rating=rating_website, feedback_text=comment_website
     )
     if comment_website:
-        ai_data = _process_ai(comment_website)
-        if ai_data:
-            fb_web.ai_sentiment = str(ai_data.get("sentiment", ""))[:20]
-            kws = ai_data.get("keywords", [])
+        fb_data = _process_feedback(comment_website, FeedbackCategory.WEBSITE, rating_website)
+        if fb_data:
+            fb_web.ai_sentiment = str(fb_data.get("sentiment", ""))[:20]
+            fb_web.ai_issue = str(fb_data.get("issue", ""))[:100]
+            kws = fb_data.get("keywords", [])
             if isinstance(kws, list): fb_web.ai_keywords = json.dumps(kws)[:500]
     db.session.add(fb_web)
     
@@ -681,10 +654,11 @@ Feedback: "{text}"
         category=FeedbackCategory.PRODUCT, rating=rating_product, feedback_text=comment_product
     )
     if comment_product:
-        ai_data = _process_ai(comment_product)
-        if ai_data:
-            fb_prod.ai_sentiment = str(ai_data.get("sentiment", ""))[:20]
-            kws = ai_data.get("keywords", [])
+        fb_data = _process_feedback(comment_product, FeedbackCategory.PRODUCT, rating_product)
+        if fb_data:
+            fb_prod.ai_sentiment = str(fb_data.get("sentiment", ""))[:20]
+            fb_prod.ai_issue = str(fb_data.get("issue", ""))[:100]
+            kws = fb_data.get("keywords", [])
             if isinstance(kws, list): fb_prod.ai_keywords = json.dumps(kws)[:500]
     db.session.add(fb_prod)
     
@@ -693,10 +667,11 @@ Feedback: "{text}"
         category=FeedbackCategory.DELIVERY, rating=rating_delivery, feedback_text=comment_delivery
     )
     if comment_delivery:
-        ai_data = _process_ai(comment_delivery)
-        if ai_data:
-            fb_deliv.ai_sentiment = str(ai_data.get("sentiment", ""))[:20]
-            kws = ai_data.get("keywords", [])
+        fb_data = _process_feedback(comment_delivery, FeedbackCategory.DELIVERY, rating_delivery)
+        if fb_data:
+            fb_deliv.ai_sentiment = str(fb_data.get("sentiment", ""))[:20]
+            fb_deliv.ai_issue = str(fb_data.get("issue", ""))[:100]
+            kws = fb_data.get("keywords", [])
             if isinstance(kws, list): fb_deliv.ai_keywords = json.dumps(kws)[:500]
     db.session.add(fb_deliv)
 
@@ -1030,10 +1005,9 @@ def farmer_feedback():
     search_keyword = request.args.get('q', '').strip().lower()
     rating_filter = request.args.get('rating', '').strip()
 
-    # Base query for feedbacks for this farmer (exclude PRODUCT if you want, or show all)
     from app.models import Order, OrderItem, Product
-    order_ids = db.session.query(Order.id).join(OrderItem).join(Product).filter(Product.farmer_id == current_user.id).subquery()
-    query = BuyerFeedback.query.filter(BuyerFeedback.order_id.in_(order_ids))
+    order_ids_query = db.session.query(Order.id).join(OrderItem).join(Product).filter(Product.farmer_id == current_user.id)
+    query = BuyerFeedback.query.filter(BuyerFeedback.order_id.in_(order_ids_query))
     
     # Exclude product feedback? The requirement before was delivery and service only.
     # But since they want the old UI back, maybe we just show all feedbacks linked to this farmer.
@@ -1089,7 +1063,7 @@ def farmer_feedback():
     feedbacks_grouped = list(grouped.values())
 
     # Get unique sentiments and categories for filters
-    all_fbs = BuyerFeedback.query.filter(BuyerFeedback.order_id.in_(order_ids)).all()
+    all_fbs = BuyerFeedback.query.filter(BuyerFeedback.order_id.in_(order_ids_query)).all()
     
     unique_categories = [c.value for c in FeedbackCategory]
     unique_sentiments = list(set([fb.ai_sentiment for fb in all_fbs if fb.ai_sentiment]))

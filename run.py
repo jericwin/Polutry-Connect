@@ -1,10 +1,10 @@
-import warnings
-warnings.filterwarnings('ignore', category=FutureWarning, module='google.generativeai')
-
 from app import create_app, db
 from app.models import User, Farm, ProductionRecord, Expense, Product, Order, OrderItem
 
 app = create_app()
+
+with app.app_context():
+    db.create_all()
 
 @app.shell_context_processor
 def make_shell_context():

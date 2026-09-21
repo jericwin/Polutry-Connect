@@ -1,69 +1,168 @@
--- phpMyAdmin SQL Dump
--- version 5.2.1
--- https://www.phpmyadmin.net/
+-- MariaDB dump 10.19  Distrib 10.4.32-MariaDB, for Win64 (AMD64)
 --
--- Host: 127.0.0.1
--- Generation Time: Sep 16, 2026 at 08:55 AM
--- Server version: 10.4.32-MariaDB
--- PHP Version: 8.2.12
-
-SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
-START TRANSACTION;
-SET time_zone = "+00:00";
-
+-- Host: localhost    Database: poultryconnect
+-- ------------------------------------------------------
+-- Server version	10.4.32-MariaDB
 
 /*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
 /*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
 /*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
 /*!40101 SET NAMES utf8mb4 */;
-
---
--- Database: `poultryconnect`
---
-
--- --------------------------------------------------------
+/*!40103 SET @OLD_TIME_ZONE=@@TIME_ZONE */;
+/*!40103 SET TIME_ZONE='+00:00' */;
+/*!40014 SET @OLD_UNIQUE_CHECKS=@@UNIQUE_CHECKS, UNIQUE_CHECKS=0 */;
+/*!40014 SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0 */;
+/*!40101 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='NO_AUTO_VALUE_ON_ZERO' */;
+/*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
 
 --
 -- Table structure for table `alembic_version`
 --
 
+DROP TABLE IF EXISTS `alembic_version`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `alembic_version` (
-  `version_num` varchar(32) NOT NULL
+  `version_num` varchar(32) NOT NULL,
+  PRIMARY KEY (`version_num`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
 
 --
 -- Dumping data for table `alembic_version`
 --
 
-INSERT INTO `alembic_version` (`version_num`) VALUES
-('bebffabdfdfc');
+LOCK TABLES `alembic_version` WRITE;
+/*!40000 ALTER TABLE `alembic_version` DISABLE KEYS */;
+INSERT INTO `alembic_version` VALUES ('bebffabdfdfc');
+/*!40000 ALTER TABLE `alembic_version` ENABLE KEYS */;
+UNLOCK TABLES;
 
--- --------------------------------------------------------
+--
+-- Table structure for table `buyer_feedback`
+--
+
+DROP TABLE IF EXISTS `buyer_feedback`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `buyer_feedback` (
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `buyer_id` int(10) unsigned NOT NULL,
+  `order_id` int(10) unsigned DEFAULT NULL,
+  `product_id` int(10) unsigned DEFAULT NULL,
+  `farmer_id` int(10) unsigned DEFAULT NULL,
+  `category` enum('product','delivery','website') NOT NULL,
+  `rating` int(11) DEFAULT NULL,
+  `feedback_text` text NOT NULL,
+  `ai_issue` varchar(100) DEFAULT NULL,
+  `ai_sentiment` varchar(20) DEFAULT NULL,
+  `ai_keywords` varchar(500) DEFAULT NULL,
+  `created_at` datetime NOT NULL DEFAULT current_timestamp(),
+  `updated_at` datetime NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  PRIMARY KEY (`id`),
+  KEY `ix_buyer_feedback_buyer_id` (`buyer_id`),
+  KEY `ix_buyer_feedback_order_id` (`order_id`),
+  KEY `ix_buyer_feedback_product_id` (`product_id`),
+  KEY `ix_buyer_feedback_farmer_id` (`farmer_id`),
+  CONSTRAINT `fk_buyer_feedback_buyer` FOREIGN KEY (`buyer_id`) REFERENCES `users` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `fk_buyer_feedback_farmer` FOREIGN KEY (`farmer_id`) REFERENCES `users` (`id`) ON DELETE SET NULL,
+  CONSTRAINT `fk_buyer_feedback_order` FOREIGN KEY (`order_id`) REFERENCES `orders` (`id`) ON DELETE SET NULL,
+  CONSTRAINT `fk_buyer_feedback_product` FOREIGN KEY (`product_id`) REFERENCES `products` (`id`) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `buyer_feedback`
+--
+
+LOCK TABLES `buyer_feedback` WRITE;
+/*!40000 ALTER TABLE `buyer_feedback` DISABLE KEYS */;
+/*!40000 ALTER TABLE `buyer_feedback` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `content_moderations`
+--
+
+DROP TABLE IF EXISTS `content_moderations`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `content_moderations` (
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `product_id` int(10) unsigned DEFAULT NULL,
+  `uploader_id` int(10) unsigned NOT NULL,
+  `image_url` varchar(500) NOT NULL,
+  `status` enum('pending','approved','flagged','rejected') NOT NULL DEFAULT 'pending',
+  `ai_result` text DEFAULT NULL,
+  `ai_flag_reason` text DEFAULT NULL,
+  `ai_safe` tinyint(1) DEFAULT NULL,
+  `admin_action` text DEFAULT NULL,
+  `reviewed_by_id` int(10) unsigned DEFAULT NULL,
+  `reviewed_at` datetime DEFAULT NULL,
+  `created_at` datetime NOT NULL DEFAULT current_timestamp(),
+  PRIMARY KEY (`id`),
+  KEY `ix_cm_product` (`product_id`),
+  KEY `ix_cm_uploader` (`uploader_id`),
+  KEY `fk_cm_reviewer` (`reviewed_by_id`),
+  CONSTRAINT `fk_cm_product` FOREIGN KEY (`product_id`) REFERENCES `products` (`id`) ON DELETE SET NULL,
+  CONSTRAINT `fk_cm_reviewer` FOREIGN KEY (`reviewed_by_id`) REFERENCES `users` (`id`) ON DELETE SET NULL,
+  CONSTRAINT `fk_cm_uploader` FOREIGN KEY (`uploader_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `content_moderations`
+--
+
+LOCK TABLES `content_moderations` WRITE;
+/*!40000 ALTER TABLE `content_moderations` DISABLE KEYS */;
+/*!40000 ALTER TABLE `content_moderations` ENABLE KEYS */;
+UNLOCK TABLES;
 
 --
 -- Table structure for table `conversations`
 --
 
+DROP TABLE IF EXISTS `conversations`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `conversations` (
-  `id` int(10) UNSIGNED NOT NULL,
-  `farmer_id` int(10) UNSIGNED NOT NULL,
-  `participant_id` int(10) UNSIGNED NOT NULL,
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `farmer_id` int(10) unsigned NOT NULL,
+  `participant_id` int(10) unsigned NOT NULL,
   `participant_role` varchar(32) NOT NULL,
   `deleted_by_farmer` tinyint(1) DEFAULT 0,
   `deleted_by_participant` tinyint(1) DEFAULT 0,
-  `created_at` datetime NOT NULL DEFAULT current_timestamp()
+  `created_at` datetime NOT NULL DEFAULT current_timestamp(),
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uq_convo_pair` (`farmer_id`,`participant_id`),
+  KEY `idx_conversations_farmer` (`farmer_id`),
+  KEY `idx_conversations_participant` (`participant_id`),
+  CONSTRAINT `fk_conversations_farmer` FOREIGN KEY (`farmer_id`) REFERENCES `users` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `fk_conversations_participant` FOREIGN KEY (`participant_id`) REFERENCES `users` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
 
--- --------------------------------------------------------
+--
+-- Dumping data for table `conversations`
+--
+
+LOCK TABLES `conversations` WRITE;
+/*!40000 ALTER TABLE `conversations` DISABLE KEYS */;
+/*!40000 ALTER TABLE `conversations` ENABLE KEYS */;
+UNLOCK TABLES;
 
 --
 -- Table structure for table `expenses`
 --
 
+DROP TABLE IF EXISTS `expenses`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `expenses` (
-  `id` int(10) UNSIGNED NOT NULL,
-  `farm_id` int(10) UNSIGNED NOT NULL,
-  `user_id` int(10) UNSIGNED NOT NULL,
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `farm_id` int(10) unsigned NOT NULL,
+  `user_id` int(10) unsigned NOT NULL,
   `expense_date` date NOT NULL,
   `category` enum('feed','labor','utilities','medicine','other') NOT NULL DEFAULT 'other',
   `amount` decimal(10,2) NOT NULL,
@@ -71,291 +170,340 @@ CREATE TABLE `expenses` (
   `created_at` datetime NOT NULL DEFAULT current_timestamp(),
   `updated_at` datetime NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
   `frequency` enum('one_time','daily','weekly','monthly') NOT NULL DEFAULT 'one_time',
-  `end_date` date DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+  `end_date` date DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `idx_expenses_farm` (`farm_id`),
+  KEY `idx_expenses_user` (`user_id`),
+  KEY `idx_expenses_date` (`expense_date`),
+  KEY `idx_expenses_category` (`category`),
+  CONSTRAINT `fk_expenses_farm` FOREIGN KEY (`farm_id`) REFERENCES `farms` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `fk_expenses_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB AUTO_INCREMENT=23 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
 
 --
 -- Dumping data for table `expenses`
 --
 
-INSERT INTO `expenses` (`id`, `farm_id`, `user_id`, `expense_date`, `category`, `amount`, `description`, `created_at`, `updated_at`, `frequency`, `end_date`) VALUES
-(1, 1, 1, '2026-05-14', 'feed', 17803.68, 'Weekly feed supply', '2026-08-12 13:17:49', '2026-08-12 13:17:49', 'one_time', NULL),
-(2, 1, 1, '2026-05-14', 'labor', 10235.26, 'Farm hand wages', '2026-08-12 13:17:49', '2026-08-12 13:17:49', 'one_time', NULL),
-(3, 1, 1, '2026-05-21', 'feed', 18880.11, 'Weekly feed supply', '2026-08-12 13:17:49', '2026-08-12 13:17:49', 'one_time', NULL),
-(4, 1, 1, '2026-05-28', 'feed', 17078.68, 'Weekly feed supply', '2026-08-12 13:17:49', '2026-08-12 13:17:49', 'one_time', NULL),
-(5, 1, 1, '2026-05-29', 'labor', 11948.75, 'Farm hand wages', '2026-08-12 13:17:49', '2026-08-12 13:17:49', 'one_time', NULL),
-(6, 1, 1, '2026-06-01', 'utilities', 5955.66, 'Electricity and water bill', '2026-08-12 13:17:49', '2026-08-12 13:17:49', 'one_time', NULL),
-(7, 1, 1, '2026-06-04', 'feed', 17281.31, 'Weekly feed supply', '2026-08-12 13:17:49', '2026-08-12 13:17:49', 'one_time', NULL),
-(8, 1, 1, '2026-06-11', 'feed', 18910.47, 'Weekly feed supply', '2026-08-12 13:17:49', '2026-08-12 13:17:49', 'one_time', NULL),
-(9, 1, 1, '2026-06-13', 'labor', 11062.43, 'Farm hand wages', '2026-08-12 13:17:49', '2026-08-12 13:17:49', 'one_time', NULL),
-(10, 1, 1, '2026-06-18', 'feed', 17793.84, 'Weekly feed supply', '2026-08-12 13:17:49', '2026-08-12 13:17:49', 'one_time', NULL),
-(11, 1, 1, '2026-06-25', 'feed', 16651.38, 'Weekly feed supply', '2026-08-12 13:17:49', '2026-08-12 13:17:49', 'one_time', NULL),
-(12, 1, 1, '2026-06-28', 'labor', 10638.33, 'Farm hand wages', '2026-08-12 13:17:49', '2026-08-12 13:17:49', 'one_time', NULL),
-(13, 1, 1, '2026-07-01', 'utilities', 5140.91, 'Electricity and water bill', '2026-08-12 13:17:49', '2026-08-12 13:17:49', 'one_time', NULL),
-(14, 1, 1, '2026-07-02', 'feed', 17536.88, 'Weekly feed supply', '2026-08-12 13:17:49', '2026-08-12 13:17:49', 'one_time', NULL),
-(15, 1, 1, '2026-07-09', 'feed', 16463.95, 'Weekly feed supply', '2026-08-12 13:17:49', '2026-08-12 13:17:49', 'one_time', NULL),
-(16, 1, 1, '2026-07-13', 'labor', 10956.62, 'Farm hand wages', '2026-08-12 13:17:49', '2026-08-12 13:17:49', 'one_time', NULL),
-(17, 1, 1, '2026-07-16', 'feed', 18307.61, 'Weekly feed supply', '2026-08-12 13:17:49', '2026-08-12 13:17:49', 'one_time', NULL),
-(18, 1, 1, '2026-07-23', 'feed', 17205.73, 'Weekly feed supply', '2026-08-12 13:17:49', '2026-08-12 13:17:49', 'one_time', NULL),
-(19, 1, 1, '2026-07-28', 'labor', 10141.73, 'Farm hand wages', '2026-08-12 13:17:49', '2026-08-12 13:17:49', 'one_time', NULL),
-(20, 1, 1, '2026-07-30', 'feed', 19920.80, 'Weekly feed supply', '2026-08-12 13:17:49', '2026-08-12 13:17:49', 'one_time', NULL),
-(21, 1, 1, '2026-08-01', 'utilities', 6377.41, 'Electricity and water bill', '2026-08-12 13:17:49', '2026-08-12 13:17:49', 'one_time', NULL),
-(22, 1, 1, '2026-08-06', 'feed', 17694.35, 'Weekly feed supply', '2026-08-12 13:17:49', '2026-08-12 13:17:49', 'one_time', NULL);
+LOCK TABLES `expenses` WRITE;
+/*!40000 ALTER TABLE `expenses` DISABLE KEYS */;
+INSERT INTO `expenses` VALUES (1,1,1,'2026-05-14','feed',17803.68,'Weekly feed supply','2026-08-12 13:17:49','2026-08-12 13:17:49','one_time',NULL),(2,1,1,'2026-05-14','labor',10235.26,'Farm hand wages','2026-08-12 13:17:49','2026-08-12 13:17:49','one_time',NULL),(3,1,1,'2026-05-21','feed',18880.11,'Weekly feed supply','2026-08-12 13:17:49','2026-08-12 13:17:49','one_time',NULL),(4,1,1,'2026-05-28','feed',17078.68,'Weekly feed supply','2026-08-12 13:17:49','2026-08-12 13:17:49','one_time',NULL),(5,1,1,'2026-05-29','labor',11948.75,'Farm hand wages','2026-08-12 13:17:49','2026-08-12 13:17:49','one_time',NULL),(6,1,1,'2026-06-01','utilities',5955.66,'Electricity and water bill','2026-08-12 13:17:49','2026-08-12 13:17:49','one_time',NULL),(7,1,1,'2026-06-04','feed',17281.31,'Weekly feed supply','2026-08-12 13:17:49','2026-08-12 13:17:49','one_time',NULL),(8,1,1,'2026-06-11','feed',18910.47,'Weekly feed supply','2026-08-12 13:17:49','2026-08-12 13:17:49','one_time',NULL),(9,1,1,'2026-06-13','labor',11062.43,'Farm hand wages','2026-08-12 13:17:49','2026-08-12 13:17:49','one_time',NULL),(10,1,1,'2026-06-18','feed',17793.84,'Weekly feed supply','2026-08-12 13:17:49','2026-08-12 13:17:49','one_time',NULL),(11,1,1,'2026-06-25','feed',16651.38,'Weekly feed supply','2026-08-12 13:17:49','2026-08-12 13:17:49','one_time',NULL),(12,1,1,'2026-06-28','labor',10638.33,'Farm hand wages','2026-08-12 13:17:49','2026-08-12 13:17:49','one_time',NULL),(13,1,1,'2026-07-01','utilities',5140.91,'Electricity and water bill','2026-08-12 13:17:49','2026-08-12 13:17:49','one_time',NULL),(14,1,1,'2026-07-02','feed',17536.88,'Weekly feed supply','2026-08-12 13:17:49','2026-08-12 13:17:49','one_time',NULL),(15,1,1,'2026-07-09','feed',16463.95,'Weekly feed supply','2026-08-12 13:17:49','2026-08-12 13:17:49','one_time',NULL),(16,1,1,'2026-07-13','labor',10956.62,'Farm hand wages','2026-08-12 13:17:49','2026-08-12 13:17:49','one_time',NULL),(17,1,1,'2026-07-16','feed',18307.61,'Weekly feed supply','2026-08-12 13:17:49','2026-08-12 13:17:49','one_time',NULL),(18,1,1,'2026-07-23','feed',17205.73,'Weekly feed supply','2026-08-12 13:17:49','2026-08-12 13:17:49','one_time',NULL),(19,1,1,'2026-07-28','labor',10141.73,'Farm hand wages','2026-08-12 13:17:49','2026-08-12 13:17:49','one_time',NULL),(20,1,1,'2026-07-30','feed',19920.80,'Weekly feed supply','2026-08-12 13:17:49','2026-08-12 13:17:49','one_time',NULL),(21,1,1,'2026-08-01','utilities',6377.41,'Electricity and water bill','2026-08-12 13:17:49','2026-08-12 13:17:49','one_time',NULL),(22,1,1,'2026-08-06','feed',17694.35,'Weekly feed supply','2026-08-12 13:17:49','2026-08-12 13:17:49','one_time',NULL);
+/*!40000 ALTER TABLE `expenses` ENABLE KEYS */;
+UNLOCK TABLES;
 
--- --------------------------------------------------------
+--
+-- Table structure for table `farmer_verifications`
+--
+
+DROP TABLE IF EXISTS `farmer_verifications`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `farmer_verifications` (
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `farmer_id` int(10) unsigned NOT NULL,
+  `status` enum('pending','approved','rejected') NOT NULL DEFAULT 'pending',
+  `rejection_reason` text DEFAULT NULL,
+  `reviewed_by_id` int(10) unsigned DEFAULT NULL,
+  `reviewed_at` datetime DEFAULT NULL,
+  `notes` text DEFAULT NULL,
+  `created_at` datetime NOT NULL DEFAULT current_timestamp(),
+  `updated_at` datetime NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `ix_farmer_verifications_farmer_id` (`farmer_id`),
+  KEY `ix_farmer_verifications_status` (`status`),
+  KEY `fk_fv_reviewer` (`reviewed_by_id`),
+  CONSTRAINT `fk_fv_farmer` FOREIGN KEY (`farmer_id`) REFERENCES `users` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `fk_fv_reviewer` FOREIGN KEY (`reviewed_by_id`) REFERENCES `users` (`id`) ON DELETE SET NULL
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `farmer_verifications`
+--
+
+LOCK TABLES `farmer_verifications` WRITE;
+/*!40000 ALTER TABLE `farmer_verifications` DISABLE KEYS */;
+INSERT INTO `farmer_verifications` VALUES (1,1,'approved',NULL,NULL,NULL,NULL,'2026-09-22 00:41:51','2026-09-22 00:41:51');
+/*!40000 ALTER TABLE `farmer_verifications` ENABLE KEYS */;
+UNLOCK TABLES;
 
 --
 -- Table structure for table `farms`
 --
 
+DROP TABLE IF EXISTS `farms`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `farms` (
-  `id` int(10) UNSIGNED NOT NULL,
-  `farmer_id` int(10) UNSIGNED NOT NULL,
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `farmer_id` int(10) unsigned NOT NULL,
   `name` varchar(120) NOT NULL,
   `location` varchar(255) DEFAULT NULL,
   `description` text DEFAULT NULL,
   `flock_size` int(11) DEFAULT 0,
   `is_active` tinyint(1) NOT NULL DEFAULT 1,
   `created_at` datetime NOT NULL DEFAULT current_timestamp(),
-  `updated_at` datetime NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+  `updated_at` datetime NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  PRIMARY KEY (`id`),
+  KEY `idx_farms_farmer_id` (`farmer_id`),
+  CONSTRAINT `fk_farms_farmer` FOREIGN KEY (`farmer_id`) REFERENCES `users` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
 
 --
 -- Dumping data for table `farms`
 --
 
-INSERT INTO `farms` (`id`, `farmer_id`, `name`, `location`, `description`, `flock_size`, `is_active`, `created_at`, `updated_at`) VALUES
-(1, 1, 'Sunny Side Poultry Farm', 'San Jose, Batangas', 'A mid-sized farm focusing on high-quality brown eggs.', 5000, 1, '2026-08-12 13:17:49', '2026-08-12 13:17:49');
+LOCK TABLES `farms` WRITE;
+/*!40000 ALTER TABLE `farms` DISABLE KEYS */;
+INSERT INTO `farms` VALUES (1,1,'Sunny Side Poultry Farm','San Jose, Batangas','A mid-sized farm focusing on high-quality brown eggs.',5000,1,'2026-08-12 13:17:49','2026-08-12 13:17:49');
+/*!40000 ALTER TABLE `farms` ENABLE KEYS */;
+UNLOCK TABLES;
 
--- --------------------------------------------------------
+--
+-- Table structure for table `feed_records`
+--
+
+DROP TABLE IF EXISTS `feed_records`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `feed_records` (
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `farm_id` int(10) unsigned NOT NULL,
+  `user_id` int(10) unsigned NOT NULL,
+  `record_date` date NOT NULL,
+  `quantity_kg` decimal(10,2) NOT NULL,
+  `feed_type` varchar(100) DEFAULT NULL,
+  `cost` decimal(10,2) DEFAULT NULL,
+  `created_at` datetime NOT NULL DEFAULT current_timestamp(),
+  PRIMARY KEY (`id`),
+  KEY `idx_feed_farm` (`farm_id`),
+  KEY `idx_feed_user` (`user_id`),
+  CONSTRAINT `fk_feed_farm` FOREIGN KEY (`farm_id`) REFERENCES `farms` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `fk_feed_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `feed_records`
+--
+
+LOCK TABLES `feed_records` WRITE;
+/*!40000 ALTER TABLE `feed_records` DISABLE KEYS */;
+/*!40000 ALTER TABLE `feed_records` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `flock_history`
+--
+
+DROP TABLE IF EXISTS `flock_history`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `flock_history` (
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `farm_id` int(10) unsigned NOT NULL,
+  `user_id` int(10) unsigned NOT NULL,
+  `date` date NOT NULL,
+  `change_type` varchar(50) NOT NULL,
+  `quantity` int(11) NOT NULL,
+  `notes` text DEFAULT NULL,
+  `created_at` datetime NOT NULL DEFAULT current_timestamp(),
+  PRIMARY KEY (`id`),
+  KEY `idx_flock_history_farm` (`farm_id`),
+  KEY `idx_flock_history_user` (`user_id`),
+  CONSTRAINT `fk_flock_history_farm` FOREIGN KEY (`farm_id`) REFERENCES `farms` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `fk_flock_history_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `flock_history`
+--
+
+LOCK TABLES `flock_history` WRITE;
+/*!40000 ALTER TABLE `flock_history` DISABLE KEYS */;
+/*!40000 ALTER TABLE `flock_history` ENABLE KEYS */;
+UNLOCK TABLES;
 
 --
 -- Table structure for table `messages`
 --
 
+DROP TABLE IF EXISTS `messages`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `messages` (
-  `id` int(10) UNSIGNED NOT NULL,
-  `conversation_id` int(10) UNSIGNED NOT NULL,
-  `sender_id` int(10) UNSIGNED NOT NULL,
-  `receiver_id` int(10) UNSIGNED NOT NULL,
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `conversation_id` int(10) unsigned NOT NULL,
+  `sender_id` int(10) unsigned NOT NULL,
+  `receiver_id` int(10) unsigned NOT NULL,
   `body` text NOT NULL,
   `sent_at` datetime NOT NULL DEFAULT current_timestamp(),
   `delivered_at` datetime DEFAULT NULL,
   `seen_at` datetime DEFAULT NULL,
-  `is_seen` tinyint(1) NOT NULL DEFAULT 0
+  `is_seen` tinyint(1) NOT NULL DEFAULT 0,
+  PRIMARY KEY (`id`),
+  KEY `idx_messages_conversation` (`conversation_id`),
+  KEY `idx_messages_sender` (`sender_id`),
+  KEY `idx_messages_receiver` (`receiver_id`),
+  KEY `idx_messages_sent_at` (`sent_at`),
+  KEY `idx_messages_seen` (`is_seen`),
+  CONSTRAINT `fk_messages_conversation` FOREIGN KEY (`conversation_id`) REFERENCES `conversations` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `fk_messages_receiver` FOREIGN KEY (`receiver_id`) REFERENCES `users` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `fk_messages_sender` FOREIGN KEY (`sender_id`) REFERENCES `users` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
 
--- --------------------------------------------------------
+--
+-- Dumping data for table `messages`
+--
+
+LOCK TABLES `messages` WRITE;
+/*!40000 ALTER TABLE `messages` DISABLE KEYS */;
+/*!40000 ALTER TABLE `messages` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `mortality_records`
+--
+
+DROP TABLE IF EXISTS `mortality_records`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `mortality_records` (
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `farm_id` int(10) unsigned NOT NULL,
+  `user_id` int(10) unsigned NOT NULL,
+  `record_date` date NOT NULL,
+  `count` int(11) NOT NULL,
+  `cause` varchar(150) DEFAULT NULL,
+  `created_at` datetime NOT NULL DEFAULT current_timestamp(),
+  PRIMARY KEY (`id`),
+  KEY `idx_mort_farm` (`farm_id`),
+  KEY `idx_mort_user` (`user_id`),
+  CONSTRAINT `fk_mort_farm` FOREIGN KEY (`farm_id`) REFERENCES `farms` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `fk_mort_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `mortality_records`
+--
+
+LOCK TABLES `mortality_records` WRITE;
+/*!40000 ALTER TABLE `mortality_records` DISABLE KEYS */;
+/*!40000 ALTER TABLE `mortality_records` ENABLE KEYS */;
+UNLOCK TABLES;
 
 --
 -- Table structure for table `notifications`
 --
 
+DROP TABLE IF EXISTS `notifications`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `notifications` (
-  `id` int(10) UNSIGNED NOT NULL,
-  `user_id` int(10) UNSIGNED NOT NULL,
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `user_id` int(10) unsigned NOT NULL,
   `title` varchar(120) NOT NULL,
   `body` varchar(255) NOT NULL,
   `notif_type` varchar(32) NOT NULL DEFAULT 'message',
   `is_read` tinyint(1) NOT NULL DEFAULT 0,
   `link_url` varchar(255) DEFAULT NULL,
-  `created_at` datetime NOT NULL DEFAULT current_timestamp()
+  `created_at` datetime NOT NULL DEFAULT current_timestamp(),
+  PRIMARY KEY (`id`),
+  KEY `idx_notifications_user` (`user_id`),
+  KEY `idx_notifications_read` (`is_read`),
+  CONSTRAINT `fk_notifications_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
 
--- --------------------------------------------------------
+--
+-- Dumping data for table `notifications`
+--
+
+LOCK TABLES `notifications` WRITE;
+/*!40000 ALTER TABLE `notifications` DISABLE KEYS */;
+/*!40000 ALTER TABLE `notifications` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `order_items`
+--
+
+DROP TABLE IF EXISTS `order_items`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `order_items` (
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `order_id` int(10) unsigned NOT NULL,
+  `product_id` int(10) unsigned NOT NULL,
+  `quantity` int(11) NOT NULL DEFAULT 1,
+  `unit_price` decimal(10,2) NOT NULL,
+  PRIMARY KEY (`id`),
+  KEY `idx_order_items_order` (`order_id`),
+  KEY `idx_order_items_product` (`product_id`),
+  CONSTRAINT `fk_order_items_order` FOREIGN KEY (`order_id`) REFERENCES `orders` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `fk_order_items_product` FOREIGN KEY (`product_id`) REFERENCES `products` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB AUTO_INCREMENT=71 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `order_items`
+--
+
+LOCK TABLES `order_items` WRITE;
+/*!40000 ALTER TABLE `order_items` DISABLE KEYS */;
+INSERT INTO `order_items` VALUES (1,1,3,14,210.00),(2,2,3,46,210.00),(3,3,3,47,210.00),(4,4,5,23,185.00),(5,5,3,19,210.00),(6,6,2,26,190.00),(7,7,3,10,210.00),(8,8,4,6,165.00),(9,9,5,50,185.00),(10,10,3,47,210.00),(11,11,4,45,165.00),(12,12,2,17,190.00),(13,13,6,15,205.00),(14,14,2,27,190.00),(15,15,5,24,185.00),(16,16,2,6,190.00),(17,17,4,7,165.00),(18,18,3,22,210.00),(19,19,5,12,185.00),(20,20,6,8,205.00),(21,21,1,29,170.00),(22,22,3,5,210.00),(23,23,2,45,190.00),(24,24,6,27,205.00),(25,25,2,12,190.00),(26,26,4,5,165.00),(27,27,4,28,165.00),(28,28,4,12,165.00),(29,29,2,9,190.00),(30,30,5,23,185.00),(31,31,4,10,165.00),(32,32,3,18,210.00),(33,33,5,31,185.00),(34,34,6,18,205.00),(35,35,4,21,165.00),(36,36,6,14,205.00),(37,37,6,50,205.00),(38,38,4,29,165.00),(39,39,5,12,185.00),(40,40,4,29,165.00),(41,41,2,40,190.00),(42,42,5,31,185.00),(43,43,3,31,210.00),(44,44,6,21,205.00),(45,45,5,13,185.00),(46,46,3,44,210.00),(47,47,2,45,190.00),(48,48,1,36,170.00),(49,49,3,21,210.00),(50,50,2,49,190.00),(51,51,2,7,190.00),(52,52,2,45,190.00),(53,53,2,9,190.00),(54,54,2,8,190.00),(55,55,5,39,185.00),(56,56,1,16,170.00),(57,57,4,43,165.00),(58,58,4,48,165.00),(59,59,2,19,190.00),(60,60,1,13,170.00),(61,61,5,33,185.00),(62,62,6,11,205.00),(63,63,5,9,185.00),(64,64,6,15,205.00),(65,65,3,12,210.00),(66,66,1,29,170.00),(67,67,2,9,190.00),(68,68,2,27,190.00),(69,69,1,6,170.00),(70,70,5,49,185.00);
+/*!40000 ALTER TABLE `order_items` ENABLE KEYS */;
+UNLOCK TABLES;
 
 --
 -- Table structure for table `orders`
 --
 
+DROP TABLE IF EXISTS `orders`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `orders` (
-  `id` int(10) UNSIGNED NOT NULL,
-  `buyer_id` int(10) UNSIGNED NOT NULL,
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `buyer_id` int(10) unsigned NOT NULL,
   `total_amount` decimal(12,2) NOT NULL DEFAULT 0.00,
   `status` enum('pending','confirmed','shipped','delivered','cancelled') NOT NULL DEFAULT 'pending',
   `delivery_address` varchar(500) NOT NULL,
   `contact_phone` varchar(30) NOT NULL,
   `notes` text DEFAULT NULL,
   `created_at` datetime NOT NULL DEFAULT current_timestamp(),
-  `updated_at` datetime NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+  `updated_at` datetime NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  PRIMARY KEY (`id`),
+  KEY `idx_orders_buyer` (`buyer_id`),
+  KEY `idx_orders_status` (`status`),
+  CONSTRAINT `fk_orders_buyer` FOREIGN KEY (`buyer_id`) REFERENCES `users` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB AUTO_INCREMENT=71 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
 
 --
 -- Dumping data for table `orders`
 --
 
-INSERT INTO `orders` (`id`, `buyer_id`, `total_amount`, `status`, `delivery_address`, `contact_phone`, `notes`, `created_at`, `updated_at`) VALUES
-(1, 2, 2940.00, 'delivered', 'Quezon City, Metro Manila', '09189876543', NULL, '2026-08-04 11:00:00', '2026-08-04 11:00:00'),
-(2, 2, 9660.00, 'delivered', 'Quezon City, Metro Manila', '09189876543', NULL, '2026-07-09 13:00:00', '2026-07-09 13:00:00'),
-(3, 2, 9870.00, 'delivered', 'Quezon City, Metro Manila', '09189876543', NULL, '2026-05-22 17:00:00', '2026-05-22 17:00:00'),
-(4, 2, 4255.00, 'delivered', 'Quezon City, Metro Manila', '09189876543', NULL, '2026-06-19 11:00:00', '2026-06-19 11:00:00'),
-(5, 2, 3990.00, 'delivered', 'Quezon City, Metro Manila', '09189876543', NULL, '2026-06-15 11:00:00', '2026-06-15 11:00:00'),
-(6, 2, 4940.00, 'delivered', 'Quezon City, Metro Manila', '09189876543', NULL, '2026-07-18 18:00:00', '2026-07-18 18:00:00'),
-(7, 2, 2100.00, 'delivered', 'Quezon City, Metro Manila', '09189876543', NULL, '2026-06-06 14:00:00', '2026-06-06 14:00:00'),
-(8, 2, 990.00, 'delivered', 'Quezon City, Metro Manila', '09189876543', NULL, '2026-06-25 15:00:00', '2026-06-25 15:00:00'),
-(9, 2, 9250.00, 'delivered', 'Quezon City, Metro Manila', '09189876543', NULL, '2026-07-29 15:00:00', '2026-07-29 15:00:00'),
-(10, 2, 9870.00, 'delivered', 'Quezon City, Metro Manila', '09189876543', NULL, '2026-07-29 18:00:00', '2026-07-29 18:00:00'),
-(11, 2, 7425.00, 'delivered', 'Quezon City, Metro Manila', '09189876543', NULL, '2026-05-15 08:00:00', '2026-05-15 08:00:00'),
-(12, 2, 3230.00, 'delivered', 'Quezon City, Metro Manila', '09189876543', NULL, '2026-05-30 17:00:00', '2026-05-30 17:00:00'),
-(13, 2, 3075.00, 'confirmed', 'Quezon City, Metro Manila', '09189876543', NULL, '2026-08-12 11:00:00', '2026-08-12 11:00:00'),
-(14, 2, 5130.00, 'delivered', 'Quezon City, Metro Manila', '09189876543', NULL, '2026-08-04 08:00:00', '2026-08-04 08:00:00'),
-(15, 2, 4440.00, 'delivered', 'Quezon City, Metro Manila', '09189876543', NULL, '2026-07-22 11:00:00', '2026-07-22 11:00:00'),
-(16, 2, 1140.00, 'delivered', 'Quezon City, Metro Manila', '09189876543', NULL, '2026-07-20 10:00:00', '2026-07-20 10:00:00'),
-(17, 2, 1155.00, 'delivered', 'Quezon City, Metro Manila', '09189876543', NULL, '2026-07-15 16:00:00', '2026-07-15 16:00:00'),
-(18, 2, 4620.00, 'delivered', 'Quezon City, Metro Manila', '09189876543', NULL, '2026-06-22 08:00:00', '2026-06-22 08:00:00'),
-(19, 2, 2220.00, 'delivered', 'Quezon City, Metro Manila', '09189876543', NULL, '2026-06-02 13:00:00', '2026-06-02 13:00:00'),
-(20, 2, 1640.00, 'delivered', 'Quezon City, Metro Manila', '09189876543', NULL, '2026-07-12 18:00:00', '2026-07-12 18:00:00'),
-(21, 2, 4930.00, 'delivered', 'Quezon City, Metro Manila', '09189876543', NULL, '2026-06-11 13:00:00', '2026-06-11 13:00:00'),
-(22, 2, 1050.00, 'delivered', 'Quezon City, Metro Manila', '09189876543', NULL, '2026-05-22 15:00:00', '2026-05-22 15:00:00'),
-(23, 2, 8550.00, 'delivered', 'Quezon City, Metro Manila', '09189876543', NULL, '2026-05-14 15:00:00', '2026-05-14 15:00:00'),
-(24, 2, 5535.00, 'delivered', 'Quezon City, Metro Manila', '09189876543', NULL, '2026-05-23 18:00:00', '2026-05-23 18:00:00'),
-(25, 2, 2280.00, 'delivered', 'Quezon City, Metro Manila', '09189876543', NULL, '2026-06-15 18:00:00', '2026-06-15 18:00:00'),
-(26, 2, 825.00, 'delivered', 'Quezon City, Metro Manila', '09189876543', NULL, '2026-06-03 16:00:00', '2026-06-03 16:00:00'),
-(27, 2, 4620.00, 'delivered', 'Quezon City, Metro Manila', '09189876543', NULL, '2026-07-06 14:00:00', '2026-07-06 14:00:00'),
-(28, 2, 1980.00, 'delivered', 'Quezon City, Metro Manila', '09189876543', NULL, '2026-06-10 15:00:00', '2026-06-10 15:00:00'),
-(29, 2, 1710.00, 'delivered', 'Quezon City, Metro Manila', '09189876543', NULL, '2026-06-01 17:00:00', '2026-06-01 17:00:00'),
-(30, 2, 4255.00, 'delivered', 'Quezon City, Metro Manila', '09189876543', NULL, '2026-08-03 18:00:00', '2026-08-03 18:00:00'),
-(31, 2, 1650.00, 'delivered', 'Quezon City, Metro Manila', '09189876543', NULL, '2026-06-12 15:00:00', '2026-06-12 15:00:00'),
-(32, 2, 3780.00, 'delivered', 'Quezon City, Metro Manila', '09189876543', NULL, '2026-06-24 18:00:00', '2026-06-24 18:00:00'),
-(33, 2, 5735.00, 'delivered', 'Quezon City, Metro Manila', '09189876543', NULL, '2026-06-23 18:00:00', '2026-06-23 18:00:00'),
-(34, 2, 3690.00, 'delivered', 'Quezon City, Metro Manila', '09189876543', NULL, '2026-07-24 14:00:00', '2026-07-24 14:00:00'),
-(35, 2, 3465.00, 'delivered', 'Quezon City, Metro Manila', '09189876543', NULL, '2026-06-13 12:00:00', '2026-06-13 12:00:00'),
-(36, 2, 2870.00, 'delivered', 'Quezon City, Metro Manila', '09189876543', NULL, '2026-07-11 17:00:00', '2026-07-11 17:00:00'),
-(37, 2, 10250.00, 'delivered', 'Quezon City, Metro Manila', '09189876543', NULL, '2026-08-04 12:00:00', '2026-08-04 12:00:00'),
-(38, 2, 4785.00, 'delivered', 'Quezon City, Metro Manila', '09189876543', NULL, '2026-05-20 11:00:00', '2026-05-20 11:00:00'),
-(39, 2, 2220.00, 'delivered', 'Quezon City, Metro Manila', '09189876543', NULL, '2026-07-12 10:00:00', '2026-07-12 10:00:00'),
-(40, 2, 4785.00, 'delivered', 'Quezon City, Metro Manila', '09189876543', NULL, '2026-05-31 17:00:00', '2026-05-31 17:00:00'),
-(41, 2, 7600.00, 'delivered', 'Quezon City, Metro Manila', '09189876543', NULL, '2026-05-31 13:00:00', '2026-05-31 13:00:00'),
-(42, 2, 5735.00, 'delivered', 'Quezon City, Metro Manila', '09189876543', NULL, '2026-07-06 18:00:00', '2026-07-06 18:00:00'),
-(43, 2, 6510.00, 'delivered', 'Quezon City, Metro Manila', '09189876543', NULL, '2026-07-18 09:00:00', '2026-07-18 09:00:00'),
-(44, 2, 4305.00, 'delivered', 'Quezon City, Metro Manila', '09189876543', NULL, '2026-05-26 11:00:00', '2026-05-26 11:00:00'),
-(45, 2, 2405.00, 'delivered', 'Quezon City, Metro Manila', '09189876543', NULL, '2026-06-29 09:00:00', '2026-06-29 09:00:00'),
-(46, 2, 9240.00, 'delivered', 'Quezon City, Metro Manila', '09189876543', NULL, '2026-08-07 09:00:00', '2026-08-07 09:00:00'),
-(47, 2, 8550.00, 'delivered', 'Quezon City, Metro Manila', '09189876543', NULL, '2026-06-28 16:00:00', '2026-06-28 16:00:00'),
-(48, 2, 6120.00, 'delivered', 'Quezon City, Metro Manila', '09189876543', NULL, '2026-08-03 18:00:00', '2026-08-03 18:00:00'),
-(49, 2, 4410.00, 'delivered', 'Quezon City, Metro Manila', '09189876543', NULL, '2026-06-16 14:00:00', '2026-06-16 14:00:00'),
-(50, 2, 9310.00, 'delivered', 'Quezon City, Metro Manila', '09189876543', NULL, '2026-08-04 15:00:00', '2026-08-04 15:00:00'),
-(51, 2, 1330.00, 'delivered', 'Quezon City, Metro Manila', '09189876543', NULL, '2026-05-31 08:00:00', '2026-05-31 08:00:00'),
-(52, 2, 8550.00, 'delivered', 'Quezon City, Metro Manila', '09189876543', NULL, '2026-08-07 13:00:00', '2026-08-07 13:00:00'),
-(53, 2, 1710.00, 'delivered', 'Quezon City, Metro Manila', '09189876543', NULL, '2026-07-24 14:00:00', '2026-07-24 14:00:00'),
-(54, 2, 1520.00, 'delivered', 'Quezon City, Metro Manila', '09189876543', NULL, '2026-07-24 11:00:00', '2026-07-24 11:00:00'),
-(55, 2, 7215.00, 'delivered', 'Quezon City, Metro Manila', '09189876543', NULL, '2026-06-13 11:00:00', '2026-06-13 11:00:00'),
-(56, 2, 2720.00, 'delivered', 'Quezon City, Metro Manila', '09189876543', NULL, '2026-06-29 15:00:00', '2026-06-29 15:00:00'),
-(57, 2, 7095.00, 'delivered', 'Quezon City, Metro Manila', '09189876543', NULL, '2026-06-03 12:00:00', '2026-06-03 12:00:00'),
-(58, 2, 7920.00, 'delivered', 'Quezon City, Metro Manila', '09189876543', NULL, '2026-07-30 15:00:00', '2026-07-30 15:00:00'),
-(59, 2, 3610.00, 'delivered', 'Quezon City, Metro Manila', '09189876543', NULL, '2026-07-25 15:00:00', '2026-07-25 15:00:00'),
-(60, 2, 2210.00, 'delivered', 'Quezon City, Metro Manila', '09189876543', NULL, '2026-08-02 14:00:00', '2026-08-02 14:00:00'),
-(61, 2, 6105.00, 'delivered', 'Quezon City, Metro Manila', '09189876543', NULL, '2026-07-19 17:00:00', '2026-07-19 17:00:00'),
-(62, 2, 2255.00, 'delivered', 'Quezon City, Metro Manila', '09189876543', NULL, '2026-06-08 15:00:00', '2026-06-08 15:00:00'),
-(63, 2, 1665.00, 'delivered', 'Quezon City, Metro Manila', '09189876543', NULL, '2026-05-14 15:00:00', '2026-05-14 15:00:00'),
-(64, 2, 3075.00, 'delivered', 'Quezon City, Metro Manila', '09189876543', NULL, '2026-05-27 12:00:00', '2026-05-27 12:00:00'),
-(65, 2, 2520.00, 'delivered', 'Quezon City, Metro Manila', '09189876543', NULL, '2026-06-02 09:00:00', '2026-06-02 09:00:00'),
-(66, 2, 4930.00, 'delivered', 'Quezon City, Metro Manila', '09189876543', NULL, '2026-06-21 14:00:00', '2026-06-21 14:00:00'),
-(67, 2, 1710.00, 'delivered', 'Quezon City, Metro Manila', '09189876543', NULL, '2026-06-06 11:00:00', '2026-06-06 11:00:00'),
-(68, 2, 5130.00, 'delivered', 'Quezon City, Metro Manila', '09189876543', NULL, '2026-07-29 15:00:00', '2026-07-29 15:00:00'),
-(69, 2, 1020.00, 'delivered', 'Quezon City, Metro Manila', '09189876543', NULL, '2026-06-11 16:00:00', '2026-06-11 16:00:00'),
-(70, 2, 9065.00, 'delivered', 'Quezon City, Metro Manila', '09189876543', NULL, '2026-07-18 15:00:00', '2026-07-18 15:00:00');
-
--- --------------------------------------------------------
-
---
--- Table structure for table `order_items`
---
-
-CREATE TABLE `order_items` (
-  `id` int(10) UNSIGNED NOT NULL,
-  `order_id` int(10) UNSIGNED NOT NULL,
-  `product_id` int(10) UNSIGNED NOT NULL,
-  `quantity` int(11) NOT NULL DEFAULT 1,
-  `unit_price` decimal(10,2) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
---
--- Dumping data for table `order_items`
---
-
-INSERT INTO `order_items` (`id`, `order_id`, `product_id`, `quantity`, `unit_price`) VALUES
-(1, 1, 3, 14, 210.00),
-(2, 2, 3, 46, 210.00),
-(3, 3, 3, 47, 210.00),
-(4, 4, 5, 23, 185.00),
-(5, 5, 3, 19, 210.00),
-(6, 6, 2, 26, 190.00),
-(7, 7, 3, 10, 210.00),
-(8, 8, 4, 6, 165.00),
-(9, 9, 5, 50, 185.00),
-(10, 10, 3, 47, 210.00),
-(11, 11, 4, 45, 165.00),
-(12, 12, 2, 17, 190.00),
-(13, 13, 6, 15, 205.00),
-(14, 14, 2, 27, 190.00),
-(15, 15, 5, 24, 185.00),
-(16, 16, 2, 6, 190.00),
-(17, 17, 4, 7, 165.00),
-(18, 18, 3, 22, 210.00),
-(19, 19, 5, 12, 185.00),
-(20, 20, 6, 8, 205.00),
-(21, 21, 1, 29, 170.00),
-(22, 22, 3, 5, 210.00),
-(23, 23, 2, 45, 190.00),
-(24, 24, 6, 27, 205.00),
-(25, 25, 2, 12, 190.00),
-(26, 26, 4, 5, 165.00),
-(27, 27, 4, 28, 165.00),
-(28, 28, 4, 12, 165.00),
-(29, 29, 2, 9, 190.00),
-(30, 30, 5, 23, 185.00),
-(31, 31, 4, 10, 165.00),
-(32, 32, 3, 18, 210.00),
-(33, 33, 5, 31, 185.00),
-(34, 34, 6, 18, 205.00),
-(35, 35, 4, 21, 165.00),
-(36, 36, 6, 14, 205.00),
-(37, 37, 6, 50, 205.00),
-(38, 38, 4, 29, 165.00),
-(39, 39, 5, 12, 185.00),
-(40, 40, 4, 29, 165.00),
-(41, 41, 2, 40, 190.00),
-(42, 42, 5, 31, 185.00),
-(43, 43, 3, 31, 210.00),
-(44, 44, 6, 21, 205.00),
-(45, 45, 5, 13, 185.00),
-(46, 46, 3, 44, 210.00),
-(47, 47, 2, 45, 190.00),
-(48, 48, 1, 36, 170.00),
-(49, 49, 3, 21, 210.00),
-(50, 50, 2, 49, 190.00),
-(51, 51, 2, 7, 190.00),
-(52, 52, 2, 45, 190.00),
-(53, 53, 2, 9, 190.00),
-(54, 54, 2, 8, 190.00),
-(55, 55, 5, 39, 185.00),
-(56, 56, 1, 16, 170.00),
-(57, 57, 4, 43, 165.00),
-(58, 58, 4, 48, 165.00),
-(59, 59, 2, 19, 190.00),
-(60, 60, 1, 13, 170.00),
-(61, 61, 5, 33, 185.00),
-(62, 62, 6, 11, 205.00),
-(63, 63, 5, 9, 185.00),
-(64, 64, 6, 15, 205.00),
-(65, 65, 3, 12, 210.00),
-(66, 66, 1, 29, 170.00),
-(67, 67, 2, 9, 190.00),
-(68, 68, 2, 27, 190.00),
-(69, 69, 1, 6, 170.00),
-(70, 70, 5, 49, 185.00);
-
--- --------------------------------------------------------
+LOCK TABLES `orders` WRITE;
+/*!40000 ALTER TABLE `orders` DISABLE KEYS */;
+INSERT INTO `orders` VALUES (1,2,2940.00,'delivered','Quezon City, Metro Manila','09189876543',NULL,'2026-08-04 11:00:00','2026-08-04 11:00:00'),(2,2,9660.00,'delivered','Quezon City, Metro Manila','09189876543',NULL,'2026-07-09 13:00:00','2026-07-09 13:00:00'),(3,2,9870.00,'delivered','Quezon City, Metro Manila','09189876543',NULL,'2026-05-22 17:00:00','2026-05-22 17:00:00'),(4,2,4255.00,'delivered','Quezon City, Metro Manila','09189876543',NULL,'2026-06-19 11:00:00','2026-06-19 11:00:00'),(5,2,3990.00,'delivered','Quezon City, Metro Manila','09189876543',NULL,'2026-06-15 11:00:00','2026-06-15 11:00:00'),(6,2,4940.00,'delivered','Quezon City, Metro Manila','09189876543',NULL,'2026-07-18 18:00:00','2026-07-18 18:00:00'),(7,2,2100.00,'delivered','Quezon City, Metro Manila','09189876543',NULL,'2026-06-06 14:00:00','2026-06-06 14:00:00'),(8,2,990.00,'delivered','Quezon City, Metro Manila','09189876543',NULL,'2026-06-25 15:00:00','2026-06-25 15:00:00'),(9,2,9250.00,'delivered','Quezon City, Metro Manila','09189876543',NULL,'2026-07-29 15:00:00','2026-07-29 15:00:00'),(10,2,9870.00,'delivered','Quezon City, Metro Manila','09189876543',NULL,'2026-07-29 18:00:00','2026-07-29 18:00:00'),(11,2,7425.00,'delivered','Quezon City, Metro Manila','09189876543',NULL,'2026-05-15 08:00:00','2026-05-15 08:00:00'),(12,2,3230.00,'delivered','Quezon City, Metro Manila','09189876543',NULL,'2026-05-30 17:00:00','2026-05-30 17:00:00'),(13,2,3075.00,'confirmed','Quezon City, Metro Manila','09189876543',NULL,'2026-08-12 11:00:00','2026-08-12 11:00:00'),(14,2,5130.00,'delivered','Quezon City, Metro Manila','09189876543',NULL,'2026-08-04 08:00:00','2026-08-04 08:00:00'),(15,2,4440.00,'delivered','Quezon City, Metro Manila','09189876543',NULL,'2026-07-22 11:00:00','2026-07-22 11:00:00'),(16,2,1140.00,'delivered','Quezon City, Metro Manila','09189876543',NULL,'2026-07-20 10:00:00','2026-07-20 10:00:00'),(17,2,1155.00,'delivered','Quezon City, Metro Manila','09189876543',NULL,'2026-07-15 16:00:00','2026-07-15 16:00:00'),(18,2,4620.00,'delivered','Quezon City, Metro Manila','09189876543',NULL,'2026-06-22 08:00:00','2026-06-22 08:00:00'),(19,2,2220.00,'delivered','Quezon City, Metro Manila','09189876543',NULL,'2026-06-02 13:00:00','2026-06-02 13:00:00'),(20,2,1640.00,'delivered','Quezon City, Metro Manila','09189876543',NULL,'2026-07-12 18:00:00','2026-07-12 18:00:00'),(21,2,4930.00,'delivered','Quezon City, Metro Manila','09189876543',NULL,'2026-06-11 13:00:00','2026-06-11 13:00:00'),(22,2,1050.00,'delivered','Quezon City, Metro Manila','09189876543',NULL,'2026-05-22 15:00:00','2026-05-22 15:00:00'),(23,2,8550.00,'delivered','Quezon City, Metro Manila','09189876543',NULL,'2026-05-14 15:00:00','2026-05-14 15:00:00'),(24,2,5535.00,'delivered','Quezon City, Metro Manila','09189876543',NULL,'2026-05-23 18:00:00','2026-05-23 18:00:00'),(25,2,2280.00,'delivered','Quezon City, Metro Manila','09189876543',NULL,'2026-06-15 18:00:00','2026-06-15 18:00:00'),(26,2,825.00,'delivered','Quezon City, Metro Manila','09189876543',NULL,'2026-06-03 16:00:00','2026-06-03 16:00:00'),(27,2,4620.00,'delivered','Quezon City, Metro Manila','09189876543',NULL,'2026-07-06 14:00:00','2026-07-06 14:00:00'),(28,2,1980.00,'delivered','Quezon City, Metro Manila','09189876543',NULL,'2026-06-10 15:00:00','2026-06-10 15:00:00'),(29,2,1710.00,'delivered','Quezon City, Metro Manila','09189876543',NULL,'2026-06-01 17:00:00','2026-06-01 17:00:00'),(30,2,4255.00,'delivered','Quezon City, Metro Manila','09189876543',NULL,'2026-08-03 18:00:00','2026-08-03 18:00:00'),(31,2,1650.00,'delivered','Quezon City, Metro Manila','09189876543',NULL,'2026-06-12 15:00:00','2026-06-12 15:00:00'),(32,2,3780.00,'delivered','Quezon City, Metro Manila','09189876543',NULL,'2026-06-24 18:00:00','2026-06-24 18:00:00'),(33,2,5735.00,'delivered','Quezon City, Metro Manila','09189876543',NULL,'2026-06-23 18:00:00','2026-06-23 18:00:00'),(34,2,3690.00,'delivered','Quezon City, Metro Manila','09189876543',NULL,'2026-07-24 14:00:00','2026-07-24 14:00:00'),(35,2,3465.00,'delivered','Quezon City, Metro Manila','09189876543',NULL,'2026-06-13 12:00:00','2026-06-13 12:00:00'),(36,2,2870.00,'delivered','Quezon City, Metro Manila','09189876543',NULL,'2026-07-11 17:00:00','2026-07-11 17:00:00'),(37,2,10250.00,'delivered','Quezon City, Metro Manila','09189876543',NULL,'2026-08-04 12:00:00','2026-08-04 12:00:00'),(38,2,4785.00,'delivered','Quezon City, Metro Manila','09189876543',NULL,'2026-05-20 11:00:00','2026-05-20 11:00:00'),(39,2,2220.00,'delivered','Quezon City, Metro Manila','09189876543',NULL,'2026-07-12 10:00:00','2026-07-12 10:00:00'),(40,2,4785.00,'delivered','Quezon City, Metro Manila','09189876543',NULL,'2026-05-31 17:00:00','2026-05-31 17:00:00'),(41,2,7600.00,'delivered','Quezon City, Metro Manila','09189876543',NULL,'2026-05-31 13:00:00','2026-05-31 13:00:00'),(42,2,5735.00,'delivered','Quezon City, Metro Manila','09189876543',NULL,'2026-07-06 18:00:00','2026-07-06 18:00:00'),(43,2,6510.00,'delivered','Quezon City, Metro Manila','09189876543',NULL,'2026-07-18 09:00:00','2026-07-18 09:00:00'),(44,2,4305.00,'delivered','Quezon City, Metro Manila','09189876543',NULL,'2026-05-26 11:00:00','2026-05-26 11:00:00'),(45,2,2405.00,'delivered','Quezon City, Metro Manila','09189876543',NULL,'2026-06-29 09:00:00','2026-06-29 09:00:00'),(46,2,9240.00,'delivered','Quezon City, Metro Manila','09189876543',NULL,'2026-08-07 09:00:00','2026-08-07 09:00:00'),(47,2,8550.00,'delivered','Quezon City, Metro Manila','09189876543',NULL,'2026-06-28 16:00:00','2026-06-28 16:00:00'),(48,2,6120.00,'delivered','Quezon City, Metro Manila','09189876543',NULL,'2026-08-03 18:00:00','2026-08-03 18:00:00'),(49,2,4410.00,'delivered','Quezon City, Metro Manila','09189876543',NULL,'2026-06-16 14:00:00','2026-06-16 14:00:00'),(50,2,9310.00,'delivered','Quezon City, Metro Manila','09189876543',NULL,'2026-08-04 15:00:00','2026-08-04 15:00:00'),(51,2,1330.00,'delivered','Quezon City, Metro Manila','09189876543',NULL,'2026-05-31 08:00:00','2026-05-31 08:00:00'),(52,2,8550.00,'delivered','Quezon City, Metro Manila','09189876543',NULL,'2026-08-07 13:00:00','2026-08-07 13:00:00'),(53,2,1710.00,'delivered','Quezon City, Metro Manila','09189876543',NULL,'2026-07-24 14:00:00','2026-07-24 14:00:00'),(54,2,1520.00,'delivered','Quezon City, Metro Manila','09189876543',NULL,'2026-07-24 11:00:00','2026-07-24 11:00:00'),(55,2,7215.00,'delivered','Quezon City, Metro Manila','09189876543',NULL,'2026-06-13 11:00:00','2026-06-13 11:00:00'),(56,2,2720.00,'delivered','Quezon City, Metro Manila','09189876543',NULL,'2026-06-29 15:00:00','2026-06-29 15:00:00'),(57,2,7095.00,'delivered','Quezon City, Metro Manila','09189876543',NULL,'2026-06-03 12:00:00','2026-06-03 12:00:00'),(58,2,7920.00,'delivered','Quezon City, Metro Manila','09189876543',NULL,'2026-07-30 15:00:00','2026-07-30 15:00:00'),(59,2,3610.00,'delivered','Quezon City, Metro Manila','09189876543',NULL,'2026-07-25 15:00:00','2026-07-25 15:00:00'),(60,2,2210.00,'delivered','Quezon City, Metro Manila','09189876543',NULL,'2026-08-02 14:00:00','2026-08-02 14:00:00'),(61,2,6105.00,'delivered','Quezon City, Metro Manila','09189876543',NULL,'2026-07-19 17:00:00','2026-07-19 17:00:00'),(62,2,2255.00,'delivered','Quezon City, Metro Manila','09189876543',NULL,'2026-06-08 15:00:00','2026-06-08 15:00:00'),(63,2,1665.00,'delivered','Quezon City, Metro Manila','09189876543',NULL,'2026-05-14 15:00:00','2026-05-14 15:00:00'),(64,2,3075.00,'delivered','Quezon City, Metro Manila','09189876543',NULL,'2026-05-27 12:00:00','2026-05-27 12:00:00'),(65,2,2520.00,'delivered','Quezon City, Metro Manila','09189876543',NULL,'2026-06-02 09:00:00','2026-06-02 09:00:00'),(66,2,4930.00,'delivered','Quezon City, Metro Manila','09189876543',NULL,'2026-06-21 14:00:00','2026-06-21 14:00:00'),(67,2,1710.00,'delivered','Quezon City, Metro Manila','09189876543',NULL,'2026-06-06 11:00:00','2026-06-06 11:00:00'),(68,2,5130.00,'delivered','Quezon City, Metro Manila','09189876543',NULL,'2026-07-29 15:00:00','2026-07-29 15:00:00'),(69,2,1020.00,'delivered','Quezon City, Metro Manila','09189876543',NULL,'2026-06-11 16:00:00','2026-06-11 16:00:00'),(70,2,9065.00,'delivered','Quezon City, Metro Manila','09189876543',NULL,'2026-07-18 15:00:00','2026-07-18 15:00:00');
+/*!40000 ALTER TABLE `orders` ENABLE KEYS */;
+UNLOCK TABLES;
 
 --
 -- Table structure for table `production_records`
 --
 
+DROP TABLE IF EXISTS `production_records`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `production_records` (
-  `id` int(10) UNSIGNED NOT NULL,
-  `farm_id` int(10) UNSIGNED NOT NULL,
-  `user_id` int(10) UNSIGNED NOT NULL,
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `farm_id` int(10) unsigned NOT NULL,
+  `user_id` int(10) unsigned NOT NULL,
   `record_date` date NOT NULL,
   `egg_count` int(11) NOT NULL DEFAULT 0,
   `feed_kg` decimal(8,2) DEFAULT 0.00,
@@ -366,205 +514,38 @@ CREATE TABLE `production_records` (
   `created_at` datetime NOT NULL DEFAULT current_timestamp(),
   `updated_at` datetime NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
   `size` varchar(20) DEFAULT NULL,
-  `variety` varchar(20) DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+  `variety` varchar(20) DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uq_farm_record_date_size_variety` (`farm_id`,`record_date`,`size`,`variety`),
+  KEY `idx_production_farm` (`farm_id`),
+  KEY `idx_production_user` (`user_id`),
+  KEY `idx_production_date` (`record_date`),
+  CONSTRAINT `fk_production_farm` FOREIGN KEY (`farm_id`) REFERENCES `farms` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `fk_production_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB AUTO_INCREMENT=181 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
 
 --
 -- Dumping data for table `production_records`
 --
 
-INSERT INTO `production_records` (`id`, `farm_id`, `user_id`, `record_date`, `egg_count`, `feed_kg`, `feed_cost`, `egg_price`, `mortality`, `notes`, `created_at`, `updated_at`, `size`, `variety`) VALUES
-(1, 1, 1, '2026-05-14', 1650, 280.72, 1022.25, 6.83, 2, NULL, '2026-08-12 13:17:49', '2026-08-12 13:17:49', 'large', 'white'),
-(2, 1, 1, '2026-05-14', 2305, 261.80, 1015.63, 6.33, 1, NULL, '2026-08-12 13:17:49', '2026-08-12 13:17:49', 'medium', 'brown'),
-(3, 1, 1, '2026-05-15', 2364, 267.08, 1074.40, 6.33, 0, NULL, '2026-08-12 13:17:49', '2026-08-12 13:17:49', 'medium', 'brown'),
-(4, 1, 1, '2026-05-15', 2017, 253.50, 1016.49, 6.17, 2, NULL, '2026-08-12 13:17:49', '2026-08-12 13:17:49', 'medium', 'white'),
-(5, 1, 1, '2026-05-16', 2078, 263.11, 1080.73, 5.67, 0, NULL, '2026-08-12 13:17:49', '2026-08-12 13:17:49', 'small', 'brown'),
-(6, 1, 1, '2026-05-16', 1721, 275.44, 1078.83, 7.00, 2, NULL, '2026-08-12 13:17:49', '2026-08-12 13:17:49', 'large', 'brown'),
-(7, 1, 1, '2026-05-17', 2012, 291.70, 1143.82, 7.00, 2, NULL, '2026-08-12 13:17:49', '2026-08-12 13:17:49', 'large', 'brown'),
-(8, 1, 1, '2026-05-17', 1720, 271.63, 1066.01, 6.17, 0, NULL, '2026-08-12 13:17:49', '2026-08-12 13:17:49', 'medium', 'white'),
-(9, 1, 1, '2026-05-18', 1789, 296.22, 1234.14, 6.83, 0, NULL, '2026-08-12 13:17:49', '2026-08-12 13:17:49', 'large', 'white'),
-(10, 1, 1, '2026-05-18', 1777, 264.85, 1010.24, 6.17, 0, NULL, '2026-08-12 13:17:49', '2026-08-12 13:17:49', 'medium', 'white'),
-(11, 1, 1, '2026-05-19', 1505, 279.63, 1034.92, 6.33, 1, NULL, '2026-08-12 13:17:49', '2026-08-12 13:17:49', 'medium', 'brown'),
-(12, 1, 1, '2026-05-19', 2444, 298.72, 1171.85, 5.67, 2, NULL, '2026-08-12 13:17:49', '2026-08-12 13:17:49', 'small', 'brown'),
-(13, 1, 1, '2026-05-20', 1639, 288.82, 1205.99, 5.67, 0, NULL, '2026-08-12 13:17:49', '2026-08-12 13:17:49', 'small', 'brown'),
-(14, 1, 1, '2026-05-20', 1934, 288.16, 1076.95, 7.00, 1, NULL, '2026-08-12 13:17:49', '2026-08-12 13:17:49', 'large', 'brown'),
-(15, 1, 1, '2026-05-21', 2120, 256.99, 1163.23, 6.33, 1, NULL, '2026-08-12 13:17:49', '2026-08-12 13:17:49', 'medium', 'brown'),
-(16, 1, 1, '2026-05-21', 2256, 280.76, 1175.35, 5.67, 1, NULL, '2026-08-12 13:17:49', '2026-08-12 13:17:49', 'small', 'brown'),
-(17, 1, 1, '2026-05-22', 2351, 253.29, 1083.94, 6.33, 1, NULL, '2026-08-12 13:17:49', '2026-08-12 13:17:49', 'medium', 'brown'),
-(18, 1, 1, '2026-05-22', 1590, 283.89, 1165.96, 6.17, 1, NULL, '2026-08-12 13:17:49', '2026-08-12 13:17:49', 'medium', 'white'),
-(19, 1, 1, '2026-05-23', 1624, 296.86, 1193.52, 7.00, 1, NULL, '2026-08-12 13:17:49', '2026-08-12 13:17:49', 'large', 'brown'),
-(20, 1, 1, '2026-05-23', 2133, 270.14, 1220.72, 6.17, 2, NULL, '2026-08-12 13:17:49', '2026-08-12 13:17:49', 'medium', 'white'),
-(21, 1, 1, '2026-05-24', 2078, 274.45, 1063.19, 6.83, 0, NULL, '2026-08-12 13:17:49', '2026-08-12 13:17:49', 'large', 'white'),
-(22, 1, 1, '2026-05-24', 1749, 287.75, 1080.99, 7.00, 2, NULL, '2026-08-12 13:17:49', '2026-08-12 13:17:49', 'large', 'brown'),
-(23, 1, 1, '2026-05-25', 1848, 286.13, 1113.55, 5.50, 0, NULL, '2026-08-12 13:17:49', '2026-08-12 13:17:49', 'small', 'white'),
-(24, 1, 1, '2026-05-25', 1791, 250.90, 1102.22, 6.17, 2, NULL, '2026-08-12 13:17:49', '2026-08-12 13:17:49', 'medium', 'white'),
-(25, 1, 1, '2026-05-26', 1959, 250.66, 1179.12, 5.50, 0, NULL, '2026-08-12 13:17:49', '2026-08-12 13:17:49', 'small', 'white'),
-(26, 1, 1, '2026-05-26', 2314, 264.46, 1210.72, 5.67, 2, NULL, '2026-08-12 13:17:49', '2026-08-12 13:17:49', 'small', 'brown'),
-(27, 1, 1, '2026-05-27', 1717, 289.18, 1160.94, 6.33, 0, NULL, '2026-08-12 13:17:49', '2026-08-12 13:17:49', 'medium', 'brown'),
-(28, 1, 1, '2026-05-27', 1576, 272.26, 1174.67, 6.17, 0, NULL, '2026-08-12 13:17:49', '2026-08-12 13:17:49', 'medium', 'white'),
-(29, 1, 1, '2026-05-28', 1544, 264.64, 1060.70, 5.67, 1, NULL, '2026-08-12 13:17:49', '2026-08-12 13:17:49', 'small', 'brown'),
-(30, 1, 1, '2026-05-28', 2191, 284.87, 1202.40, 5.50, 2, NULL, '2026-08-12 13:17:49', '2026-08-12 13:17:49', 'small', 'white'),
-(31, 1, 1, '2026-05-29', 2160, 288.01, 1192.42, 5.50, 2, NULL, '2026-08-12 13:17:49', '2026-08-12 13:17:49', 'small', 'white'),
-(32, 1, 1, '2026-05-29', 1650, 252.52, 1237.36, 6.33, 1, NULL, '2026-08-12 13:17:49', '2026-08-12 13:17:49', 'medium', 'brown'),
-(33, 1, 1, '2026-05-30', 1553, 274.13, 1210.65, 6.33, 0, NULL, '2026-08-12 13:17:49', '2026-08-12 13:17:49', 'medium', 'brown'),
-(34, 1, 1, '2026-05-30', 1528, 278.07, 1119.34, 6.83, 1, NULL, '2026-08-12 13:17:49', '2026-08-12 13:17:49', 'large', 'white'),
-(35, 1, 1, '2026-05-31', 2308, 292.25, 1201.66, 5.50, 0, NULL, '2026-08-12 13:17:49', '2026-08-12 13:17:49', 'small', 'white'),
-(36, 1, 1, '2026-05-31', 1514, 273.27, 1064.02, 5.67, 1, NULL, '2026-08-12 13:17:49', '2026-08-12 13:17:49', 'small', 'brown'),
-(37, 1, 1, '2026-06-01', 1874, 253.15, 1038.58, 6.33, 0, NULL, '2026-08-12 13:17:49', '2026-08-12 13:17:49', 'medium', 'brown'),
-(38, 1, 1, '2026-06-01', 2190, 291.74, 1086.15, 5.67, 1, NULL, '2026-08-12 13:17:49', '2026-08-12 13:17:49', 'small', 'brown'),
-(39, 1, 1, '2026-06-02', 1707, 266.09, 1198.21, 6.33, 1, NULL, '2026-08-12 13:17:49', '2026-08-12 13:17:49', 'medium', 'brown'),
-(40, 1, 1, '2026-06-02', 1704, 288.59, 1050.74, 5.67, 2, NULL, '2026-08-12 13:17:49', '2026-08-12 13:17:49', 'small', 'brown'),
-(41, 1, 1, '2026-06-03', 1998, 295.01, 1121.03, 7.00, 1, NULL, '2026-08-12 13:17:49', '2026-08-12 13:17:49', 'large', 'brown'),
-(42, 1, 1, '2026-06-03', 2366, 289.24, 1144.37, 5.67, 0, NULL, '2026-08-12 13:17:49', '2026-08-12 13:17:49', 'small', 'brown'),
-(43, 1, 1, '2026-06-04', 2321, 254.45, 1234.67, 5.67, 1, NULL, '2026-08-12 13:17:49', '2026-08-12 13:17:49', 'small', 'brown'),
-(44, 1, 1, '2026-06-04', 1777, 275.10, 1007.89, 7.00, 2, NULL, '2026-08-12 13:17:49', '2026-08-12 13:17:49', 'large', 'brown'),
-(45, 1, 1, '2026-06-05', 2244, 257.86, 1123.37, 6.83, 1, NULL, '2026-08-12 13:17:49', '2026-08-12 13:17:49', 'large', 'white'),
-(46, 1, 1, '2026-06-05', 2234, 256.67, 1205.31, 5.50, 1, NULL, '2026-08-12 13:17:49', '2026-08-12 13:17:49', 'small', 'white'),
-(47, 1, 1, '2026-06-06', 2179, 287.64, 1121.68, 5.67, 2, NULL, '2026-08-12 13:17:49', '2026-08-12 13:17:49', 'small', 'brown'),
-(48, 1, 1, '2026-06-06', 2189, 297.59, 1172.68, 6.33, 1, NULL, '2026-08-12 13:17:49', '2026-08-12 13:17:49', 'medium', 'brown'),
-(49, 1, 1, '2026-06-07', 2447, 255.02, 1042.87, 7.00, 0, NULL, '2026-08-12 13:17:49', '2026-08-12 13:17:49', 'large', 'brown'),
-(50, 1, 1, '2026-06-07', 2456, 284.95, 1068.60, 5.67, 1, NULL, '2026-08-12 13:17:49', '2026-08-12 13:17:49', 'small', 'brown'),
-(51, 1, 1, '2026-06-08', 1824, 294.61, 1207.07, 5.50, 0, NULL, '2026-08-12 13:17:49', '2026-08-12 13:17:49', 'small', 'white'),
-(52, 1, 1, '2026-06-08', 2384, 266.04, 1010.07, 5.67, 2, NULL, '2026-08-12 13:17:49', '2026-08-12 13:17:49', 'small', 'brown'),
-(53, 1, 1, '2026-06-09', 1659, 255.14, 1043.58, 7.00, 2, NULL, '2026-08-12 13:17:49', '2026-08-12 13:17:49', 'large', 'brown'),
-(54, 1, 1, '2026-06-09', 2165, 258.18, 1140.69, 6.33, 2, NULL, '2026-08-12 13:17:49', '2026-08-12 13:17:49', 'medium', 'brown'),
-(55, 1, 1, '2026-06-10', 1992, 295.31, 1212.10, 7.00, 2, NULL, '2026-08-12 13:17:49', '2026-08-12 13:17:49', 'large', 'brown'),
-(56, 1, 1, '2026-06-10', 2164, 267.57, 1089.72, 6.83, 2, NULL, '2026-08-12 13:17:49', '2026-08-12 13:17:49', 'large', 'white'),
-(57, 1, 1, '2026-06-11', 1513, 292.98, 1085.88, 5.67, 0, NULL, '2026-08-12 13:17:49', '2026-08-12 13:17:49', 'small', 'brown'),
-(58, 1, 1, '2026-06-11', 2383, 270.41, 1067.70, 6.83, 0, NULL, '2026-08-12 13:17:49', '2026-08-12 13:17:49', 'large', 'white'),
-(59, 1, 1, '2026-06-12', 2430, 265.24, 1046.24, 5.67, 2, NULL, '2026-08-12 13:17:49', '2026-08-12 13:17:49', 'small', 'brown'),
-(60, 1, 1, '2026-06-12', 2259, 263.86, 1208.72, 6.33, 1, NULL, '2026-08-12 13:17:49', '2026-08-12 13:17:49', 'medium', 'brown'),
-(61, 1, 1, '2026-06-13', 2474, 258.12, 1063.59, 7.00, 0, NULL, '2026-08-12 13:17:49', '2026-08-12 13:17:49', 'large', 'brown'),
-(62, 1, 1, '2026-06-13', 2398, 278.22, 1228.50, 5.67, 1, NULL, '2026-08-12 13:17:49', '2026-08-12 13:17:49', 'small', 'brown'),
-(63, 1, 1, '2026-06-14', 2476, 274.43, 1161.95, 6.83, 0, NULL, '2026-08-12 13:17:49', '2026-08-12 13:17:49', 'large', 'white'),
-(64, 1, 1, '2026-06-14', 1955, 263.41, 1056.92, 7.00, 2, NULL, '2026-08-12 13:17:49', '2026-08-12 13:17:49', 'large', 'brown'),
-(65, 1, 1, '2026-06-15', 2248, 263.54, 1216.64, 7.00, 1, NULL, '2026-08-12 13:17:49', '2026-08-12 13:17:49', 'large', 'brown'),
-(66, 1, 1, '2026-06-15', 1709, 256.69, 1103.78, 5.67, 2, NULL, '2026-08-12 13:17:49', '2026-08-12 13:17:49', 'small', 'brown'),
-(67, 1, 1, '2026-06-16', 2061, 270.77, 1203.14, 6.17, 2, NULL, '2026-08-12 13:17:49', '2026-08-12 13:17:49', 'medium', 'white'),
-(68, 1, 1, '2026-06-16', 2341, 298.70, 1131.11, 6.83, 1, NULL, '2026-08-12 13:17:49', '2026-08-12 13:17:49', 'large', 'white'),
-(69, 1, 1, '2026-06-17', 1919, 258.49, 1018.80, 5.50, 1, NULL, '2026-08-12 13:17:49', '2026-08-12 13:17:49', 'small', 'white'),
-(70, 1, 1, '2026-06-17', 1738, 285.57, 1178.54, 6.83, 2, NULL, '2026-08-12 13:17:49', '2026-08-12 13:17:49', 'large', 'white'),
-(71, 1, 1, '2026-06-18', 1863, 251.82, 1236.58, 6.17, 2, NULL, '2026-08-12 13:17:49', '2026-08-12 13:17:49', 'medium', 'white'),
-(72, 1, 1, '2026-06-18', 1920, 270.93, 1222.49, 5.50, 1, NULL, '2026-08-12 13:17:49', '2026-08-12 13:17:49', 'small', 'white'),
-(73, 1, 1, '2026-06-19', 2096, 272.41, 1130.47, 5.50, 0, NULL, '2026-08-12 13:17:49', '2026-08-12 13:17:49', 'small', 'white'),
-(74, 1, 1, '2026-06-19', 2206, 264.32, 1232.51, 6.83, 1, NULL, '2026-08-12 13:17:49', '2026-08-12 13:17:49', 'large', 'white'),
-(75, 1, 1, '2026-06-20', 2095, 292.90, 1218.10, 6.17, 1, NULL, '2026-08-12 13:17:49', '2026-08-12 13:17:49', 'medium', 'white'),
-(76, 1, 1, '2026-06-20', 1821, 291.08, 1241.93, 6.83, 0, NULL, '2026-08-12 13:17:49', '2026-08-12 13:17:49', 'large', 'white'),
-(77, 1, 1, '2026-06-21', 2034, 288.86, 1030.73, 5.67, 2, NULL, '2026-08-12 13:17:49', '2026-08-12 13:17:49', 'small', 'brown'),
-(78, 1, 1, '2026-06-21', 1775, 291.25, 1244.76, 7.00, 1, NULL, '2026-08-12 13:17:49', '2026-08-12 13:17:49', 'large', 'brown'),
-(79, 1, 1, '2026-06-22', 2109, 296.56, 1073.13, 7.00, 1, NULL, '2026-08-12 13:17:49', '2026-08-12 13:17:49', 'large', 'brown'),
-(80, 1, 1, '2026-06-22', 1792, 256.98, 1172.27, 6.17, 0, NULL, '2026-08-12 13:17:49', '2026-08-12 13:17:49', 'medium', 'white'),
-(81, 1, 1, '2026-06-23', 2281, 277.79, 1073.32, 5.50, 0, NULL, '2026-08-12 13:17:49', '2026-08-12 13:17:49', 'small', 'white'),
-(82, 1, 1, '2026-06-23', 2187, 285.12, 1137.71, 6.83, 2, NULL, '2026-08-12 13:17:49', '2026-08-12 13:17:49', 'large', 'white'),
-(83, 1, 1, '2026-06-24', 1897, 277.88, 1138.25, 6.17, 0, NULL, '2026-08-12 13:17:49', '2026-08-12 13:17:49', 'medium', 'white'),
-(84, 1, 1, '2026-06-24', 1929, 270.34, 1024.72, 6.33, 2, NULL, '2026-08-12 13:17:49', '2026-08-12 13:17:49', 'medium', 'brown'),
-(85, 1, 1, '2026-06-25', 1525, 250.21, 1116.51, 7.00, 1, NULL, '2026-08-12 13:17:49', '2026-08-12 13:17:49', 'large', 'brown'),
-(86, 1, 1, '2026-06-25', 2307, 295.51, 1156.44, 6.33, 1, NULL, '2026-08-12 13:17:49', '2026-08-12 13:17:49', 'medium', 'brown'),
-(87, 1, 1, '2026-06-26', 2376, 279.92, 1200.97, 5.67, 1, NULL, '2026-08-12 13:17:49', '2026-08-12 13:17:49', 'small', 'brown'),
-(88, 1, 1, '2026-06-26', 2360, 250.96, 1142.64, 5.50, 2, NULL, '2026-08-12 13:17:49', '2026-08-12 13:17:49', 'small', 'white'),
-(89, 1, 1, '2026-06-27', 2054, 296.85, 1200.09, 6.33, 1, NULL, '2026-08-12 13:17:49', '2026-08-12 13:17:49', 'medium', 'brown'),
-(90, 1, 1, '2026-06-27', 1924, 290.40, 1186.49, 7.00, 0, NULL, '2026-08-12 13:17:49', '2026-08-12 13:17:49', 'large', 'brown'),
-(91, 1, 1, '2026-06-28', 2149, 250.72, 1145.29, 7.00, 1, NULL, '2026-08-12 13:17:49', '2026-08-12 13:17:49', 'large', 'brown'),
-(92, 1, 1, '2026-06-28', 2156, 262.09, 1055.58, 5.67, 1, NULL, '2026-08-12 13:17:49', '2026-08-12 13:17:49', 'small', 'brown'),
-(93, 1, 1, '2026-06-29', 2415, 259.96, 1183.09, 6.33, 0, NULL, '2026-08-12 13:17:49', '2026-08-12 13:17:49', 'medium', 'brown'),
-(94, 1, 1, '2026-06-29', 2490, 264.93, 1186.61, 6.17, 2, NULL, '2026-08-12 13:17:49', '2026-08-12 13:17:49', 'medium', 'white'),
-(95, 1, 1, '2026-06-30', 1703, 278.15, 1199.27, 7.00, 2, NULL, '2026-08-12 13:17:49', '2026-08-12 13:17:49', 'large', 'brown'),
-(96, 1, 1, '2026-06-30', 1593, 264.28, 1055.66, 6.33, 0, NULL, '2026-08-12 13:17:49', '2026-08-12 13:17:49', 'medium', 'brown'),
-(97, 1, 1, '2026-07-01', 2335, 281.92, 1140.68, 6.83, 2, NULL, '2026-08-12 13:17:49', '2026-08-12 13:17:49', 'large', 'white'),
-(98, 1, 1, '2026-07-01', 1899, 290.66, 1079.07, 5.67, 2, NULL, '2026-08-12 13:17:49', '2026-08-12 13:17:49', 'small', 'brown'),
-(99, 1, 1, '2026-07-02', 2209, 265.45, 1023.64, 6.33, 2, NULL, '2026-08-12 13:17:49', '2026-08-12 13:17:49', 'medium', 'brown'),
-(100, 1, 1, '2026-07-02', 2398, 272.09, 1048.21, 6.17, 0, NULL, '2026-08-12 13:17:49', '2026-08-12 13:17:49', 'medium', 'white'),
-(101, 1, 1, '2026-07-03', 2500, 281.81, 1061.53, 5.67, 0, NULL, '2026-08-12 13:17:49', '2026-08-12 13:17:49', 'small', 'brown'),
-(102, 1, 1, '2026-07-03', 1684, 290.19, 1071.97, 7.00, 0, NULL, '2026-08-12 13:17:49', '2026-08-12 13:17:49', 'large', 'brown'),
-(103, 1, 1, '2026-07-04', 2278, 277.63, 1108.01, 7.00, 0, NULL, '2026-08-12 13:17:49', '2026-08-12 13:17:49', 'large', 'brown'),
-(104, 1, 1, '2026-07-04', 1923, 281.12, 1097.37, 6.33, 0, NULL, '2026-08-12 13:17:49', '2026-08-12 13:17:49', 'medium', 'brown'),
-(105, 1, 1, '2026-07-05', 2177, 275.34, 1039.71, 6.33, 1, NULL, '2026-08-12 13:17:49', '2026-08-12 13:17:49', 'medium', 'brown'),
-(106, 1, 1, '2026-07-05', 1647, 256.51, 1106.53, 5.67, 1, NULL, '2026-08-12 13:17:49', '2026-08-12 13:17:49', 'small', 'brown'),
-(107, 1, 1, '2026-07-06', 2325, 273.20, 1204.28, 6.17, 2, NULL, '2026-08-12 13:17:49', '2026-08-12 13:17:49', 'medium', 'white'),
-(108, 1, 1, '2026-07-06', 2343, 263.82, 1167.61, 6.33, 1, NULL, '2026-08-12 13:17:49', '2026-08-12 13:17:49', 'medium', 'brown'),
-(109, 1, 1, '2026-07-07', 2015, 278.69, 1047.03, 5.67, 1, NULL, '2026-08-12 13:17:49', '2026-08-12 13:17:49', 'small', 'brown'),
-(110, 1, 1, '2026-07-07', 2163, 258.01, 1140.00, 7.00, 2, NULL, '2026-08-12 13:17:49', '2026-08-12 13:17:49', 'large', 'brown'),
-(111, 1, 1, '2026-07-08', 1885, 258.63, 1071.91, 7.00, 2, NULL, '2026-08-12 13:17:49', '2026-08-12 13:17:49', 'large', 'brown'),
-(112, 1, 1, '2026-07-08', 2475, 279.08, 1196.59, 6.33, 0, NULL, '2026-08-12 13:17:49', '2026-08-12 13:17:49', 'medium', 'brown'),
-(113, 1, 1, '2026-07-09', 2304, 274.49, 1047.69, 5.67, 1, NULL, '2026-08-12 13:17:49', '2026-08-12 13:17:49', 'small', 'brown'),
-(114, 1, 1, '2026-07-09', 1618, 280.92, 1203.61, 7.00, 0, NULL, '2026-08-12 13:17:49', '2026-08-12 13:17:49', 'large', 'brown'),
-(115, 1, 1, '2026-07-10', 2191, 253.70, 1198.24, 5.50, 0, NULL, '2026-08-12 13:17:49', '2026-08-12 13:17:49', 'small', 'white'),
-(116, 1, 1, '2026-07-10', 2314, 289.63, 1048.24, 7.00, 1, NULL, '2026-08-12 13:17:49', '2026-08-12 13:17:49', 'large', 'brown'),
-(117, 1, 1, '2026-07-11', 2245, 262.63, 1185.65, 6.33, 2, NULL, '2026-08-12 13:17:49', '2026-08-12 13:17:49', 'medium', 'brown'),
-(118, 1, 1, '2026-07-11', 2122, 290.91, 1183.20, 6.83, 1, NULL, '2026-08-12 13:17:49', '2026-08-12 13:17:49', 'large', 'white'),
-(119, 1, 1, '2026-07-12', 1501, 251.14, 1199.19, 6.17, 1, NULL, '2026-08-12 13:17:49', '2026-08-12 13:17:49', 'medium', 'white'),
-(120, 1, 1, '2026-07-12', 2127, 298.58, 1071.56, 7.00, 1, NULL, '2026-08-12 13:17:49', '2026-08-12 13:17:49', 'large', 'brown'),
-(121, 1, 1, '2026-07-13', 1653, 250.96, 1084.54, 6.33, 1, NULL, '2026-08-12 13:17:49', '2026-08-12 13:17:49', 'medium', 'brown'),
-(122, 1, 1, '2026-07-13', 2405, 274.91, 1148.90, 5.67, 1, NULL, '2026-08-12 13:17:49', '2026-08-12 13:17:49', 'small', 'brown'),
-(123, 1, 1, '2026-07-14', 1627, 260.46, 1188.58, 6.83, 1, NULL, '2026-08-12 13:17:49', '2026-08-12 13:17:49', 'large', 'white'),
-(124, 1, 1, '2026-07-14', 2293, 293.24, 1220.78, 5.50, 2, NULL, '2026-08-12 13:17:49', '2026-08-12 13:17:49', 'small', 'white'),
-(125, 1, 1, '2026-07-15', 1919, 259.65, 1021.04, 6.33, 1, NULL, '2026-08-12 13:17:49', '2026-08-12 13:17:49', 'medium', 'brown'),
-(126, 1, 1, '2026-07-15', 1873, 266.56, 1150.77, 6.83, 0, NULL, '2026-08-12 13:17:49', '2026-08-12 13:17:49', 'large', 'white'),
-(127, 1, 1, '2026-07-16', 1999, 264.99, 1155.12, 5.67, 1, NULL, '2026-08-12 13:17:49', '2026-08-12 13:17:49', 'small', 'brown'),
-(128, 1, 1, '2026-07-16', 1841, 251.48, 1011.01, 5.50, 1, NULL, '2026-08-12 13:17:49', '2026-08-12 13:17:49', 'small', 'white'),
-(129, 1, 1, '2026-07-17', 1585, 272.97, 1095.07, 5.67, 0, NULL, '2026-08-12 13:17:49', '2026-08-12 13:17:49', 'small', 'brown'),
-(130, 1, 1, '2026-07-17', 1723, 254.94, 1244.92, 5.50, 2, NULL, '2026-08-12 13:17:49', '2026-08-12 13:17:49', 'small', 'white'),
-(131, 1, 1, '2026-07-18', 2096, 268.30, 1172.08, 5.67, 0, NULL, '2026-08-12 13:17:49', '2026-08-12 13:17:49', 'small', 'brown'),
-(132, 1, 1, '2026-07-18', 1746, 281.64, 1067.95, 7.00, 0, NULL, '2026-08-12 13:17:49', '2026-08-12 13:17:49', 'large', 'brown'),
-(133, 1, 1, '2026-07-19', 2126, 253.99, 1218.49, 5.67, 1, NULL, '2026-08-12 13:17:49', '2026-08-12 13:17:49', 'small', 'brown'),
-(134, 1, 1, '2026-07-19', 1908, 285.19, 1035.30, 6.33, 1, NULL, '2026-08-12 13:17:49', '2026-08-12 13:17:49', 'medium', 'brown'),
-(135, 1, 1, '2026-07-20', 2046, 255.38, 1192.78, 7.00, 0, NULL, '2026-08-12 13:17:49', '2026-08-12 13:17:49', 'large', 'brown'),
-(136, 1, 1, '2026-07-20', 1842, 292.78, 1245.75, 6.33, 1, NULL, '2026-08-12 13:17:49', '2026-08-12 13:17:49', 'medium', 'brown'),
-(137, 1, 1, '2026-07-21', 2393, 283.96, 1220.18, 6.33, 0, NULL, '2026-08-12 13:17:49', '2026-08-12 13:17:49', 'medium', 'brown'),
-(138, 1, 1, '2026-07-21', 2427, 250.21, 1239.67, 7.00, 0, NULL, '2026-08-12 13:17:49', '2026-08-12 13:17:49', 'large', 'brown'),
-(139, 1, 1, '2026-07-22', 2199, 259.66, 1205.69, 5.67, 0, NULL, '2026-08-12 13:17:49', '2026-08-12 13:17:49', 'small', 'brown'),
-(140, 1, 1, '2026-07-22', 1833, 287.86, 1243.76, 6.33, 0, NULL, '2026-08-12 13:17:49', '2026-08-12 13:17:49', 'medium', 'brown'),
-(141, 1, 1, '2026-07-23', 1941, 290.44, 1018.11, 6.33, 1, NULL, '2026-08-12 13:17:49', '2026-08-12 13:17:49', 'medium', 'brown'),
-(142, 1, 1, '2026-07-23', 1778, 299.99, 1170.63, 5.67, 2, NULL, '2026-08-12 13:17:49', '2026-08-12 13:17:49', 'small', 'brown'),
-(143, 1, 1, '2026-07-24', 2371, 270.64, 1098.95, 6.83, 2, NULL, '2026-08-12 13:17:49', '2026-08-12 13:17:49', 'large', 'white'),
-(144, 1, 1, '2026-07-24', 1879, 262.34, 1056.23, 6.17, 0, NULL, '2026-08-12 13:17:49', '2026-08-12 13:17:49', 'medium', 'white'),
-(145, 1, 1, '2026-07-25', 2317, 263.23, 1193.45, 5.67, 1, NULL, '2026-08-12 13:17:49', '2026-08-12 13:17:49', 'small', 'brown'),
-(146, 1, 1, '2026-07-25', 1709, 258.08, 1092.04, 6.83, 2, NULL, '2026-08-12 13:17:49', '2026-08-12 13:17:49', 'large', 'white'),
-(147, 1, 1, '2026-07-26', 2448, 266.51, 1178.31, 5.67, 2, NULL, '2026-08-12 13:17:49', '2026-08-12 13:17:49', 'small', 'brown'),
-(148, 1, 1, '2026-07-26', 2133, 251.27, 1244.13, 5.50, 2, NULL, '2026-08-12 13:17:49', '2026-08-12 13:17:49', 'small', 'white'),
-(149, 1, 1, '2026-07-27', 1846, 268.12, 1116.97, 6.83, 2, NULL, '2026-08-12 13:17:49', '2026-08-12 13:17:49', 'large', 'white'),
-(150, 1, 1, '2026-07-27', 1685, 283.03, 1159.67, 6.17, 2, NULL, '2026-08-12 13:17:49', '2026-08-12 13:17:49', 'medium', 'white'),
-(151, 1, 1, '2026-07-28', 2238, 281.16, 1176.11, 6.17, 0, NULL, '2026-08-12 13:17:49', '2026-08-12 13:17:49', 'medium', 'white'),
-(152, 1, 1, '2026-07-28', 1820, 256.44, 1098.00, 5.50, 1, NULL, '2026-08-12 13:17:49', '2026-08-12 13:17:49', 'small', 'white'),
-(153, 1, 1, '2026-07-29', 1842, 273.10, 1016.14, 6.17, 0, NULL, '2026-08-12 13:17:49', '2026-08-12 13:17:49', 'medium', 'white'),
-(154, 1, 1, '2026-07-29', 1827, 298.73, 1089.78, 7.00, 2, NULL, '2026-08-12 13:17:49', '2026-08-12 13:17:49', 'large', 'brown'),
-(155, 1, 1, '2026-07-30', 2347, 254.87, 1015.96, 6.33, 0, NULL, '2026-08-12 13:17:49', '2026-08-12 13:17:49', 'medium', 'brown'),
-(156, 1, 1, '2026-07-30', 2395, 284.48, 1058.23, 5.50, 0, NULL, '2026-08-12 13:17:49', '2026-08-12 13:17:49', 'small', 'white'),
-(157, 1, 1, '2026-07-31', 2317, 274.63, 1100.83, 6.83, 1, NULL, '2026-08-12 13:17:49', '2026-08-12 13:17:49', 'large', 'white'),
-(158, 1, 1, '2026-07-31', 2296, 263.56, 1024.64, 6.33, 0, NULL, '2026-08-12 13:17:49', '2026-08-12 13:17:49', 'medium', 'brown'),
-(159, 1, 1, '2026-08-01', 2132, 259.97, 1165.15, 7.00, 1, NULL, '2026-08-12 13:17:49', '2026-08-12 13:17:49', 'large', 'brown'),
-(160, 1, 1, '2026-08-01', 2258, 255.64, 1007.57, 5.50, 1, NULL, '2026-08-12 13:17:49', '2026-08-12 13:17:49', 'small', 'white'),
-(161, 1, 1, '2026-08-02', 2293, 251.37, 1145.68, 7.00, 2, NULL, '2026-08-12 13:17:49', '2026-08-12 13:17:49', 'large', 'brown'),
-(162, 1, 1, '2026-08-02', 2232, 261.71, 1001.10, 6.17, 2, NULL, '2026-08-12 13:17:49', '2026-08-12 13:17:49', 'medium', 'white'),
-(163, 1, 1, '2026-08-03', 2255, 292.74, 1204.99, 5.67, 1, NULL, '2026-08-12 13:17:49', '2026-08-12 13:17:49', 'small', 'brown'),
-(164, 1, 1, '2026-08-03', 2232, 278.04, 1184.51, 7.00, 0, NULL, '2026-08-12 13:17:49', '2026-08-12 13:17:49', 'large', 'brown'),
-(165, 1, 1, '2026-08-04', 1516, 275.77, 1193.85, 5.50, 2, NULL, '2026-08-12 13:17:49', '2026-08-12 13:17:49', 'small', 'white'),
-(166, 1, 1, '2026-08-04', 2050, 264.13, 1203.83, 6.33, 2, NULL, '2026-08-12 13:17:49', '2026-08-12 13:17:49', 'medium', 'brown'),
-(167, 1, 1, '2026-08-05', 2250, 291.40, 1042.09, 6.17, 2, NULL, '2026-08-12 13:17:49', '2026-08-12 13:17:49', 'medium', 'white'),
-(168, 1, 1, '2026-08-05', 1640, 294.09, 1145.23, 7.00, 2, NULL, '2026-08-12 13:17:49', '2026-08-12 13:17:49', 'large', 'brown'),
-(169, 1, 1, '2026-08-06', 1507, 298.99, 1051.99, 5.50, 2, NULL, '2026-08-12 13:17:49', '2026-08-12 13:17:49', 'small', 'white'),
-(170, 1, 1, '2026-08-06', 1837, 275.73, 1125.53, 6.83, 0, NULL, '2026-08-12 13:17:49', '2026-08-12 13:17:49', 'large', 'white'),
-(171, 1, 1, '2026-08-07', 1501, 294.06, 1126.02, 6.33, 2, NULL, '2026-08-12 13:17:49', '2026-08-12 13:17:49', 'medium', 'brown'),
-(172, 1, 1, '2026-08-07', 2499, 277.76, 1037.13, 6.17, 2, NULL, '2026-08-12 13:17:49', '2026-08-12 13:17:49', 'medium', 'white'),
-(173, 1, 1, '2026-08-08', 1611, 296.87, 1156.53, 6.33, 1, NULL, '2026-08-12 13:17:49', '2026-08-12 13:17:49', 'medium', 'brown'),
-(174, 1, 1, '2026-08-08', 1830, 261.87, 1232.78, 5.67, 1, NULL, '2026-08-12 13:17:49', '2026-08-12 13:17:49', 'small', 'brown'),
-(175, 1, 1, '2026-08-09', 2103, 252.89, 1115.66, 6.83, 1, NULL, '2026-08-12 13:17:49', '2026-08-12 13:17:49', 'large', 'white'),
-(176, 1, 1, '2026-08-09', 2454, 294.18, 1018.27, 5.50, 0, NULL, '2026-08-12 13:17:49', '2026-08-12 13:17:49', 'small', 'white'),
-(177, 1, 1, '2026-08-10', 1799, 286.43, 1018.64, 5.50, 1, NULL, '2026-08-12 13:17:49', '2026-08-12 13:17:49', 'small', 'white'),
-(178, 1, 1, '2026-08-10', 2236, 264.83, 1202.49, 6.17, 1, NULL, '2026-08-12 13:17:49', '2026-08-12 13:17:49', 'medium', 'white'),
-(179, 1, 1, '2026-08-11', 1774, 286.71, 1210.86, 6.33, 0, NULL, '2026-08-12 13:17:49', '2026-08-12 13:17:49', 'medium', 'brown'),
-(180, 1, 1, '2026-08-11', 2495, 259.78, 1080.80, 7.00, 2, NULL, '2026-08-12 13:17:49', '2026-08-12 13:17:49', 'large', 'brown');
-
--- --------------------------------------------------------
+LOCK TABLES `production_records` WRITE;
+/*!40000 ALTER TABLE `production_records` DISABLE KEYS */;
+INSERT INTO `production_records` VALUES (1,1,1,'2026-05-14',1650,280.72,1022.25,6.83,2,NULL,'2026-08-12 13:17:49','2026-08-12 13:17:49','large','white'),(2,1,1,'2026-05-14',2305,261.80,1015.63,6.33,1,NULL,'2026-08-12 13:17:49','2026-08-12 13:17:49','medium','brown'),(3,1,1,'2026-05-15',2364,267.08,1074.40,6.33,0,NULL,'2026-08-12 13:17:49','2026-08-12 13:17:49','medium','brown'),(4,1,1,'2026-05-15',2017,253.50,1016.49,6.17,2,NULL,'2026-08-12 13:17:49','2026-08-12 13:17:49','medium','white'),(5,1,1,'2026-05-16',2078,263.11,1080.73,5.67,0,NULL,'2026-08-12 13:17:49','2026-08-12 13:17:49','small','brown'),(6,1,1,'2026-05-16',1721,275.44,1078.83,7.00,2,NULL,'2026-08-12 13:17:49','2026-08-12 13:17:49','large','brown'),(7,1,1,'2026-05-17',2012,291.70,1143.82,7.00,2,NULL,'2026-08-12 13:17:49','2026-08-12 13:17:49','large','brown'),(8,1,1,'2026-05-17',1720,271.63,1066.01,6.17,0,NULL,'2026-08-12 13:17:49','2026-08-12 13:17:49','medium','white'),(9,1,1,'2026-05-18',1789,296.22,1234.14,6.83,0,NULL,'2026-08-12 13:17:49','2026-08-12 13:17:49','large','white'),(10,1,1,'2026-05-18',1777,264.85,1010.24,6.17,0,NULL,'2026-08-12 13:17:49','2026-08-12 13:17:49','medium','white'),(11,1,1,'2026-05-19',1505,279.63,1034.92,6.33,1,NULL,'2026-08-12 13:17:49','2026-08-12 13:17:49','medium','brown'),(12,1,1,'2026-05-19',2444,298.72,1171.85,5.67,2,NULL,'2026-08-12 13:17:49','2026-08-12 13:17:49','small','brown'),(13,1,1,'2026-05-20',1639,288.82,1205.99,5.67,0,NULL,'2026-08-12 13:17:49','2026-08-12 13:17:49','small','brown'),(14,1,1,'2026-05-20',1934,288.16,1076.95,7.00,1,NULL,'2026-08-12 13:17:49','2026-08-12 13:17:49','large','brown'),(15,1,1,'2026-05-21',2120,256.99,1163.23,6.33,1,NULL,'2026-08-12 13:17:49','2026-08-12 13:17:49','medium','brown'),(16,1,1,'2026-05-21',2256,280.76,1175.35,5.67,1,NULL,'2026-08-12 13:17:49','2026-08-12 13:17:49','small','brown'),(17,1,1,'2026-05-22',2351,253.29,1083.94,6.33,1,NULL,'2026-08-12 13:17:49','2026-08-12 13:17:49','medium','brown'),(18,1,1,'2026-05-22',1590,283.89,1165.96,6.17,1,NULL,'2026-08-12 13:17:49','2026-08-12 13:17:49','medium','white'),(19,1,1,'2026-05-23',1624,296.86,1193.52,7.00,1,NULL,'2026-08-12 13:17:49','2026-08-12 13:17:49','large','brown'),(20,1,1,'2026-05-23',2133,270.14,1220.72,6.17,2,NULL,'2026-08-12 13:17:49','2026-08-12 13:17:49','medium','white'),(21,1,1,'2026-05-24',2078,274.45,1063.19,6.83,0,NULL,'2026-08-12 13:17:49','2026-08-12 13:17:49','large','white'),(22,1,1,'2026-05-24',1749,287.75,1080.99,7.00,2,NULL,'2026-08-12 13:17:49','2026-08-12 13:17:49','large','brown'),(23,1,1,'2026-05-25',1848,286.13,1113.55,5.50,0,NULL,'2026-08-12 13:17:49','2026-08-12 13:17:49','small','white'),(24,1,1,'2026-05-25',1791,250.90,1102.22,6.17,2,NULL,'2026-08-12 13:17:49','2026-08-12 13:17:49','medium','white'),(25,1,1,'2026-05-26',1959,250.66,1179.12,5.50,0,NULL,'2026-08-12 13:17:49','2026-08-12 13:17:49','small','white'),(26,1,1,'2026-05-26',2314,264.46,1210.72,5.67,2,NULL,'2026-08-12 13:17:49','2026-08-12 13:17:49','small','brown'),(27,1,1,'2026-05-27',1717,289.18,1160.94,6.33,0,NULL,'2026-08-12 13:17:49','2026-08-12 13:17:49','medium','brown'),(28,1,1,'2026-05-27',1576,272.26,1174.67,6.17,0,NULL,'2026-08-12 13:17:49','2026-08-12 13:17:49','medium','white'),(29,1,1,'2026-05-28',1544,264.64,1060.70,5.67,1,NULL,'2026-08-12 13:17:49','2026-08-12 13:17:49','small','brown'),(30,1,1,'2026-05-28',2191,284.87,1202.40,5.50,2,NULL,'2026-08-12 13:17:49','2026-08-12 13:17:49','small','white'),(31,1,1,'2026-05-29',2160,288.01,1192.42,5.50,2,NULL,'2026-08-12 13:17:49','2026-08-12 13:17:49','small','white'),(32,1,1,'2026-05-29',1650,252.52,1237.36,6.33,1,NULL,'2026-08-12 13:17:49','2026-08-12 13:17:49','medium','brown'),(33,1,1,'2026-05-30',1553,274.13,1210.65,6.33,0,NULL,'2026-08-12 13:17:49','2026-08-12 13:17:49','medium','brown'),(34,1,1,'2026-05-30',1528,278.07,1119.34,6.83,1,NULL,'2026-08-12 13:17:49','2026-08-12 13:17:49','large','white'),(35,1,1,'2026-05-31',2308,292.25,1201.66,5.50,0,NULL,'2026-08-12 13:17:49','2026-08-12 13:17:49','small','white'),(36,1,1,'2026-05-31',1514,273.27,1064.02,5.67,1,NULL,'2026-08-12 13:17:49','2026-08-12 13:17:49','small','brown'),(37,1,1,'2026-06-01',1874,253.15,1038.58,6.33,0,NULL,'2026-08-12 13:17:49','2026-08-12 13:17:49','medium','brown'),(38,1,1,'2026-06-01',2190,291.74,1086.15,5.67,1,NULL,'2026-08-12 13:17:49','2026-08-12 13:17:49','small','brown'),(39,1,1,'2026-06-02',1707,266.09,1198.21,6.33,1,NULL,'2026-08-12 13:17:49','2026-08-12 13:17:49','medium','brown'),(40,1,1,'2026-06-02',1704,288.59,1050.74,5.67,2,NULL,'2026-08-12 13:17:49','2026-08-12 13:17:49','small','brown'),(41,1,1,'2026-06-03',1998,295.01,1121.03,7.00,1,NULL,'2026-08-12 13:17:49','2026-08-12 13:17:49','large','brown'),(42,1,1,'2026-06-03',2366,289.24,1144.37,5.67,0,NULL,'2026-08-12 13:17:49','2026-08-12 13:17:49','small','brown'),(43,1,1,'2026-06-04',2321,254.45,1234.67,5.67,1,NULL,'2026-08-12 13:17:49','2026-08-12 13:17:49','small','brown'),(44,1,1,'2026-06-04',1777,275.10,1007.89,7.00,2,NULL,'2026-08-12 13:17:49','2026-08-12 13:17:49','large','brown'),(45,1,1,'2026-06-05',2244,257.86,1123.37,6.83,1,NULL,'2026-08-12 13:17:49','2026-08-12 13:17:49','large','white'),(46,1,1,'2026-06-05',2234,256.67,1205.31,5.50,1,NULL,'2026-08-12 13:17:49','2026-08-12 13:17:49','small','white'),(47,1,1,'2026-06-06',2179,287.64,1121.68,5.67,2,NULL,'2026-08-12 13:17:49','2026-08-12 13:17:49','small','brown'),(48,1,1,'2026-06-06',2189,297.59,1172.68,6.33,1,NULL,'2026-08-12 13:17:49','2026-08-12 13:17:49','medium','brown'),(49,1,1,'2026-06-07',2447,255.02,1042.87,7.00,0,NULL,'2026-08-12 13:17:49','2026-08-12 13:17:49','large','brown'),(50,1,1,'2026-06-07',2456,284.95,1068.60,5.67,1,NULL,'2026-08-12 13:17:49','2026-08-12 13:17:49','small','brown'),(51,1,1,'2026-06-08',1824,294.61,1207.07,5.50,0,NULL,'2026-08-12 13:17:49','2026-08-12 13:17:49','small','white'),(52,1,1,'2026-06-08',2384,266.04,1010.07,5.67,2,NULL,'2026-08-12 13:17:49','2026-08-12 13:17:49','small','brown'),(53,1,1,'2026-06-09',1659,255.14,1043.58,7.00,2,NULL,'2026-08-12 13:17:49','2026-08-12 13:17:49','large','brown'),(54,1,1,'2026-06-09',2165,258.18,1140.69,6.33,2,NULL,'2026-08-12 13:17:49','2026-08-12 13:17:49','medium','brown'),(55,1,1,'2026-06-10',1992,295.31,1212.10,7.00,2,NULL,'2026-08-12 13:17:49','2026-08-12 13:17:49','large','brown'),(56,1,1,'2026-06-10',2164,267.57,1089.72,6.83,2,NULL,'2026-08-12 13:17:49','2026-08-12 13:17:49','large','white'),(57,1,1,'2026-06-11',1513,292.98,1085.88,5.67,0,NULL,'2026-08-12 13:17:49','2026-08-12 13:17:49','small','brown'),(58,1,1,'2026-06-11',2383,270.41,1067.70,6.83,0,NULL,'2026-08-12 13:17:49','2026-08-12 13:17:49','large','white'),(59,1,1,'2026-06-12',2430,265.24,1046.24,5.67,2,NULL,'2026-08-12 13:17:49','2026-08-12 13:17:49','small','brown'),(60,1,1,'2026-06-12',2259,263.86,1208.72,6.33,1,NULL,'2026-08-12 13:17:49','2026-08-12 13:17:49','medium','brown'),(61,1,1,'2026-06-13',2474,258.12,1063.59,7.00,0,NULL,'2026-08-12 13:17:49','2026-08-12 13:17:49','large','brown'),(62,1,1,'2026-06-13',2398,278.22,1228.50,5.67,1,NULL,'2026-08-12 13:17:49','2026-08-12 13:17:49','small','brown'),(63,1,1,'2026-06-14',2476,274.43,1161.95,6.83,0,NULL,'2026-08-12 13:17:49','2026-08-12 13:17:49','large','white'),(64,1,1,'2026-06-14',1955,263.41,1056.92,7.00,2,NULL,'2026-08-12 13:17:49','2026-08-12 13:17:49','large','brown'),(65,1,1,'2026-06-15',2248,263.54,1216.64,7.00,1,NULL,'2026-08-12 13:17:49','2026-08-12 13:17:49','large','brown'),(66,1,1,'2026-06-15',1709,256.69,1103.78,5.67,2,NULL,'2026-08-12 13:17:49','2026-08-12 13:17:49','small','brown'),(67,1,1,'2026-06-16',2061,270.77,1203.14,6.17,2,NULL,'2026-08-12 13:17:49','2026-08-12 13:17:49','medium','white'),(68,1,1,'2026-06-16',2341,298.70,1131.11,6.83,1,NULL,'2026-08-12 13:17:49','2026-08-12 13:17:49','large','white'),(69,1,1,'2026-06-17',1919,258.49,1018.80,5.50,1,NULL,'2026-08-12 13:17:49','2026-08-12 13:17:49','small','white'),(70,1,1,'2026-06-17',1738,285.57,1178.54,6.83,2,NULL,'2026-08-12 13:17:49','2026-08-12 13:17:49','large','white'),(71,1,1,'2026-06-18',1863,251.82,1236.58,6.17,2,NULL,'2026-08-12 13:17:49','2026-08-12 13:17:49','medium','white'),(72,1,1,'2026-06-18',1920,270.93,1222.49,5.50,1,NULL,'2026-08-12 13:17:49','2026-08-12 13:17:49','small','white'),(73,1,1,'2026-06-19',2096,272.41,1130.47,5.50,0,NULL,'2026-08-12 13:17:49','2026-08-12 13:17:49','small','white'),(74,1,1,'2026-06-19',2206,264.32,1232.51,6.83,1,NULL,'2026-08-12 13:17:49','2026-08-12 13:17:49','large','white'),(75,1,1,'2026-06-20',2095,292.90,1218.10,6.17,1,NULL,'2026-08-12 13:17:49','2026-08-12 13:17:49','medium','white'),(76,1,1,'2026-06-20',1821,291.08,1241.93,6.83,0,NULL,'2026-08-12 13:17:49','2026-08-12 13:17:49','large','white'),(77,1,1,'2026-06-21',2034,288.86,1030.73,5.67,2,NULL,'2026-08-12 13:17:49','2026-08-12 13:17:49','small','brown'),(78,1,1,'2026-06-21',1775,291.25,1244.76,7.00,1,NULL,'2026-08-12 13:17:49','2026-08-12 13:17:49','large','brown'),(79,1,1,'2026-06-22',2109,296.56,1073.13,7.00,1,NULL,'2026-08-12 13:17:49','2026-08-12 13:17:49','large','brown'),(80,1,1,'2026-06-22',1792,256.98,1172.27,6.17,0,NULL,'2026-08-12 13:17:49','2026-08-12 13:17:49','medium','white'),(81,1,1,'2026-06-23',2281,277.79,1073.32,5.50,0,NULL,'2026-08-12 13:17:49','2026-08-12 13:17:49','small','white'),(82,1,1,'2026-06-23',2187,285.12,1137.71,6.83,2,NULL,'2026-08-12 13:17:49','2026-08-12 13:17:49','large','white'),(83,1,1,'2026-06-24',1897,277.88,1138.25,6.17,0,NULL,'2026-08-12 13:17:49','2026-08-12 13:17:49','medium','white'),(84,1,1,'2026-06-24',1929,270.34,1024.72,6.33,2,NULL,'2026-08-12 13:17:49','2026-08-12 13:17:49','medium','brown'),(85,1,1,'2026-06-25',1525,250.21,1116.51,7.00,1,NULL,'2026-08-12 13:17:49','2026-08-12 13:17:49','large','brown'),(86,1,1,'2026-06-25',2307,295.51,1156.44,6.33,1,NULL,'2026-08-12 13:17:49','2026-08-12 13:17:49','medium','brown'),(87,1,1,'2026-06-26',2376,279.92,1200.97,5.67,1,NULL,'2026-08-12 13:17:49','2026-08-12 13:17:49','small','brown'),(88,1,1,'2026-06-26',2360,250.96,1142.64,5.50,2,NULL,'2026-08-12 13:17:49','2026-08-12 13:17:49','small','white'),(89,1,1,'2026-06-27',2054,296.85,1200.09,6.33,1,NULL,'2026-08-12 13:17:49','2026-08-12 13:17:49','medium','brown'),(90,1,1,'2026-06-27',1924,290.40,1186.49,7.00,0,NULL,'2026-08-12 13:17:49','2026-08-12 13:17:49','large','brown'),(91,1,1,'2026-06-28',2149,250.72,1145.29,7.00,1,NULL,'2026-08-12 13:17:49','2026-08-12 13:17:49','large','brown'),(92,1,1,'2026-06-28',2156,262.09,1055.58,5.67,1,NULL,'2026-08-12 13:17:49','2026-08-12 13:17:49','small','brown'),(93,1,1,'2026-06-29',2415,259.96,1183.09,6.33,0,NULL,'2026-08-12 13:17:49','2026-08-12 13:17:49','medium','brown'),(94,1,1,'2026-06-29',2490,264.93,1186.61,6.17,2,NULL,'2026-08-12 13:17:49','2026-08-12 13:17:49','medium','white'),(95,1,1,'2026-06-30',1703,278.15,1199.27,7.00,2,NULL,'2026-08-12 13:17:49','2026-08-12 13:17:49','large','brown'),(96,1,1,'2026-06-30',1593,264.28,1055.66,6.33,0,NULL,'2026-08-12 13:17:49','2026-08-12 13:17:49','medium','brown'),(97,1,1,'2026-07-01',2335,281.92,1140.68,6.83,2,NULL,'2026-08-12 13:17:49','2026-08-12 13:17:49','large','white'),(98,1,1,'2026-07-01',1899,290.66,1079.07,5.67,2,NULL,'2026-08-12 13:17:49','2026-08-12 13:17:49','small','brown'),(99,1,1,'2026-07-02',2209,265.45,1023.64,6.33,2,NULL,'2026-08-12 13:17:49','2026-08-12 13:17:49','medium','brown'),(100,1,1,'2026-07-02',2398,272.09,1048.21,6.17,0,NULL,'2026-08-12 13:17:49','2026-08-12 13:17:49','medium','white'),(101,1,1,'2026-07-03',2500,281.81,1061.53,5.67,0,NULL,'2026-08-12 13:17:49','2026-08-12 13:17:49','small','brown'),(102,1,1,'2026-07-03',1684,290.19,1071.97,7.00,0,NULL,'2026-08-12 13:17:49','2026-08-12 13:17:49','large','brown'),(103,1,1,'2026-07-04',2278,277.63,1108.01,7.00,0,NULL,'2026-08-12 13:17:49','2026-08-12 13:17:49','large','brown'),(104,1,1,'2026-07-04',1923,281.12,1097.37,6.33,0,NULL,'2026-08-12 13:17:49','2026-08-12 13:17:49','medium','brown'),(105,1,1,'2026-07-05',2177,275.34,1039.71,6.33,1,NULL,'2026-08-12 13:17:49','2026-08-12 13:17:49','medium','brown'),(106,1,1,'2026-07-05',1647,256.51,1106.53,5.67,1,NULL,'2026-08-12 13:17:49','2026-08-12 13:17:49','small','brown'),(107,1,1,'2026-07-06',2325,273.20,1204.28,6.17,2,NULL,'2026-08-12 13:17:49','2026-08-12 13:17:49','medium','white'),(108,1,1,'2026-07-06',2343,263.82,1167.61,6.33,1,NULL,'2026-08-12 13:17:49','2026-08-12 13:17:49','medium','brown'),(109,1,1,'2026-07-07',2015,278.69,1047.03,5.67,1,NULL,'2026-08-12 13:17:49','2026-08-12 13:17:49','small','brown'),(110,1,1,'2026-07-07',2163,258.01,1140.00,7.00,2,NULL,'2026-08-12 13:17:49','2026-08-12 13:17:49','large','brown'),(111,1,1,'2026-07-08',1885,258.63,1071.91,7.00,2,NULL,'2026-08-12 13:17:49','2026-08-12 13:17:49','large','brown'),(112,1,1,'2026-07-08',2475,279.08,1196.59,6.33,0,NULL,'2026-08-12 13:17:49','2026-08-12 13:17:49','medium','brown'),(113,1,1,'2026-07-09',2304,274.49,1047.69,5.67,1,NULL,'2026-08-12 13:17:49','2026-08-12 13:17:49','small','brown'),(114,1,1,'2026-07-09',1618,280.92,1203.61,7.00,0,NULL,'2026-08-12 13:17:49','2026-08-12 13:17:49','large','brown'),(115,1,1,'2026-07-10',2191,253.70,1198.24,5.50,0,NULL,'2026-08-12 13:17:49','2026-08-12 13:17:49','small','white'),(116,1,1,'2026-07-10',2314,289.63,1048.24,7.00,1,NULL,'2026-08-12 13:17:49','2026-08-12 13:17:49','large','brown'),(117,1,1,'2026-07-11',2245,262.63,1185.65,6.33,2,NULL,'2026-08-12 13:17:49','2026-08-12 13:17:49','medium','brown'),(118,1,1,'2026-07-11',2122,290.91,1183.20,6.83,1,NULL,'2026-08-12 13:17:49','2026-08-12 13:17:49','large','white'),(119,1,1,'2026-07-12',1501,251.14,1199.19,6.17,1,NULL,'2026-08-12 13:17:49','2026-08-12 13:17:49','medium','white'),(120,1,1,'2026-07-12',2127,298.58,1071.56,7.00,1,NULL,'2026-08-12 13:17:49','2026-08-12 13:17:49','large','brown'),(121,1,1,'2026-07-13',1653,250.96,1084.54,6.33,1,NULL,'2026-08-12 13:17:49','2026-08-12 13:17:49','medium','brown'),(122,1,1,'2026-07-13',2405,274.91,1148.90,5.67,1,NULL,'2026-08-12 13:17:49','2026-08-12 13:17:49','small','brown'),(123,1,1,'2026-07-14',1627,260.46,1188.58,6.83,1,NULL,'2026-08-12 13:17:49','2026-08-12 13:17:49','large','white'),(124,1,1,'2026-07-14',2293,293.24,1220.78,5.50,2,NULL,'2026-08-12 13:17:49','2026-08-12 13:17:49','small','white'),(125,1,1,'2026-07-15',1919,259.65,1021.04,6.33,1,NULL,'2026-08-12 13:17:49','2026-08-12 13:17:49','medium','brown'),(126,1,1,'2026-07-15',1873,266.56,1150.77,6.83,0,NULL,'2026-08-12 13:17:49','2026-08-12 13:17:49','large','white'),(127,1,1,'2026-07-16',1999,264.99,1155.12,5.67,1,NULL,'2026-08-12 13:17:49','2026-08-12 13:17:49','small','brown'),(128,1,1,'2026-07-16',1841,251.48,1011.01,5.50,1,NULL,'2026-08-12 13:17:49','2026-08-12 13:17:49','small','white'),(129,1,1,'2026-07-17',1585,272.97,1095.07,5.67,0,NULL,'2026-08-12 13:17:49','2026-08-12 13:17:49','small','brown'),(130,1,1,'2026-07-17',1723,254.94,1244.92,5.50,2,NULL,'2026-08-12 13:17:49','2026-08-12 13:17:49','small','white'),(131,1,1,'2026-07-18',2096,268.30,1172.08,5.67,0,NULL,'2026-08-12 13:17:49','2026-08-12 13:17:49','small','brown'),(132,1,1,'2026-07-18',1746,281.64,1067.95,7.00,0,NULL,'2026-08-12 13:17:49','2026-08-12 13:17:49','large','brown'),(133,1,1,'2026-07-19',2126,253.99,1218.49,5.67,1,NULL,'2026-08-12 13:17:49','2026-08-12 13:17:49','small','brown'),(134,1,1,'2026-07-19',1908,285.19,1035.30,6.33,1,NULL,'2026-08-12 13:17:49','2026-08-12 13:17:49','medium','brown'),(135,1,1,'2026-07-20',2046,255.38,1192.78,7.00,0,NULL,'2026-08-12 13:17:49','2026-08-12 13:17:49','large','brown'),(136,1,1,'2026-07-20',1842,292.78,1245.75,6.33,1,NULL,'2026-08-12 13:17:49','2026-08-12 13:17:49','medium','brown'),(137,1,1,'2026-07-21',2393,283.96,1220.18,6.33,0,NULL,'2026-08-12 13:17:49','2026-08-12 13:17:49','medium','brown'),(138,1,1,'2026-07-21',2427,250.21,1239.67,7.00,0,NULL,'2026-08-12 13:17:49','2026-08-12 13:17:49','large','brown'),(139,1,1,'2026-07-22',2199,259.66,1205.69,5.67,0,NULL,'2026-08-12 13:17:49','2026-08-12 13:17:49','small','brown'),(140,1,1,'2026-07-22',1833,287.86,1243.76,6.33,0,NULL,'2026-08-12 13:17:49','2026-08-12 13:17:49','medium','brown'),(141,1,1,'2026-07-23',1941,290.44,1018.11,6.33,1,NULL,'2026-08-12 13:17:49','2026-08-12 13:17:49','medium','brown'),(142,1,1,'2026-07-23',1778,299.99,1170.63,5.67,2,NULL,'2026-08-12 13:17:49','2026-08-12 13:17:49','small','brown'),(143,1,1,'2026-07-24',2371,270.64,1098.95,6.83,2,NULL,'2026-08-12 13:17:49','2026-08-12 13:17:49','large','white'),(144,1,1,'2026-07-24',1879,262.34,1056.23,6.17,0,NULL,'2026-08-12 13:17:49','2026-08-12 13:17:49','medium','white'),(145,1,1,'2026-07-25',2317,263.23,1193.45,5.67,1,NULL,'2026-08-12 13:17:49','2026-08-12 13:17:49','small','brown'),(146,1,1,'2026-07-25',1709,258.08,1092.04,6.83,2,NULL,'2026-08-12 13:17:49','2026-08-12 13:17:49','large','white'),(147,1,1,'2026-07-26',2448,266.51,1178.31,5.67,2,NULL,'2026-08-12 13:17:49','2026-08-12 13:17:49','small','brown'),(148,1,1,'2026-07-26',2133,251.27,1244.13,5.50,2,NULL,'2026-08-12 13:17:49','2026-08-12 13:17:49','small','white'),(149,1,1,'2026-07-27',1846,268.12,1116.97,6.83,2,NULL,'2026-08-12 13:17:49','2026-08-12 13:17:49','large','white'),(150,1,1,'2026-07-27',1685,283.03,1159.67,6.17,2,NULL,'2026-08-12 13:17:49','2026-08-12 13:17:49','medium','white'),(151,1,1,'2026-07-28',2238,281.16,1176.11,6.17,0,NULL,'2026-08-12 13:17:49','2026-08-12 13:17:49','medium','white'),(152,1,1,'2026-07-28',1820,256.44,1098.00,5.50,1,NULL,'2026-08-12 13:17:49','2026-08-12 13:17:49','small','white'),(153,1,1,'2026-07-29',1842,273.10,1016.14,6.17,0,NULL,'2026-08-12 13:17:49','2026-08-12 13:17:49','medium','white'),(154,1,1,'2026-07-29',1827,298.73,1089.78,7.00,2,NULL,'2026-08-12 13:17:49','2026-08-12 13:17:49','large','brown'),(155,1,1,'2026-07-30',2347,254.87,1015.96,6.33,0,NULL,'2026-08-12 13:17:49','2026-08-12 13:17:49','medium','brown'),(156,1,1,'2026-07-30',2395,284.48,1058.23,5.50,0,NULL,'2026-08-12 13:17:49','2026-08-12 13:17:49','small','white'),(157,1,1,'2026-07-31',2317,274.63,1100.83,6.83,1,NULL,'2026-08-12 13:17:49','2026-08-12 13:17:49','large','white'),(158,1,1,'2026-07-31',2296,263.56,1024.64,6.33,0,NULL,'2026-08-12 13:17:49','2026-08-12 13:17:49','medium','brown'),(159,1,1,'2026-08-01',2132,259.97,1165.15,7.00,1,NULL,'2026-08-12 13:17:49','2026-08-12 13:17:49','large','brown'),(160,1,1,'2026-08-01',2258,255.64,1007.57,5.50,1,NULL,'2026-08-12 13:17:49','2026-08-12 13:17:49','small','white'),(161,1,1,'2026-08-02',2293,251.37,1145.68,7.00,2,NULL,'2026-08-12 13:17:49','2026-08-12 13:17:49','large','brown'),(162,1,1,'2026-08-02',2232,261.71,1001.10,6.17,2,NULL,'2026-08-12 13:17:49','2026-08-12 13:17:49','medium','white'),(163,1,1,'2026-08-03',2255,292.74,1204.99,5.67,1,NULL,'2026-08-12 13:17:49','2026-08-12 13:17:49','small','brown'),(164,1,1,'2026-08-03',2232,278.04,1184.51,7.00,0,NULL,'2026-08-12 13:17:49','2026-08-12 13:17:49','large','brown'),(165,1,1,'2026-08-04',1516,275.77,1193.85,5.50,2,NULL,'2026-08-12 13:17:49','2026-08-12 13:17:49','small','white'),(166,1,1,'2026-08-04',2050,264.13,1203.83,6.33,2,NULL,'2026-08-12 13:17:49','2026-08-12 13:17:49','medium','brown'),(167,1,1,'2026-08-05',2250,291.40,1042.09,6.17,2,NULL,'2026-08-12 13:17:49','2026-08-12 13:17:49','medium','white'),(168,1,1,'2026-08-05',1640,294.09,1145.23,7.00,2,NULL,'2026-08-12 13:17:49','2026-08-12 13:17:49','large','brown'),(169,1,1,'2026-08-06',1507,298.99,1051.99,5.50,2,NULL,'2026-08-12 13:17:49','2026-08-12 13:17:49','small','white'),(170,1,1,'2026-08-06',1837,275.73,1125.53,6.83,0,NULL,'2026-08-12 13:17:49','2026-08-12 13:17:49','large','white'),(171,1,1,'2026-08-07',1501,294.06,1126.02,6.33,2,NULL,'2026-08-12 13:17:49','2026-08-12 13:17:49','medium','brown'),(172,1,1,'2026-08-07',2499,277.76,1037.13,6.17,2,NULL,'2026-08-12 13:17:49','2026-08-12 13:17:49','medium','white'),(173,1,1,'2026-08-08',1611,296.87,1156.53,6.33,1,NULL,'2026-08-12 13:17:49','2026-08-12 13:17:49','medium','brown'),(174,1,1,'2026-08-08',1830,261.87,1232.78,5.67,1,NULL,'2026-08-12 13:17:49','2026-08-12 13:17:49','small','brown'),(175,1,1,'2026-08-09',2103,252.89,1115.66,6.83,1,NULL,'2026-08-12 13:17:49','2026-08-12 13:17:49','large','white'),(176,1,1,'2026-08-09',2454,294.18,1018.27,5.50,0,NULL,'2026-08-12 13:17:49','2026-08-12 13:17:49','small','white'),(177,1,1,'2026-08-10',1799,286.43,1018.64,5.50,1,NULL,'2026-08-12 13:17:49','2026-08-12 13:17:49','small','white'),(178,1,1,'2026-08-10',2236,264.83,1202.49,6.17,1,NULL,'2026-08-12 13:17:49','2026-08-12 13:17:49','medium','white'),(179,1,1,'2026-08-11',1774,286.71,1210.86,6.33,0,NULL,'2026-08-12 13:17:49','2026-08-12 13:17:49','medium','brown'),(180,1,1,'2026-08-11',2495,259.78,1080.80,7.00,2,NULL,'2026-08-12 13:17:49','2026-08-12 13:17:49','large','brown');
+/*!40000 ALTER TABLE `production_records` ENABLE KEYS */;
+UNLOCK TABLES;
 
 --
 -- Table structure for table `products`
 --
 
+DROP TABLE IF EXISTS `products`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `products` (
-  `id` int(10) UNSIGNED NOT NULL,
-  `farmer_id` int(10) UNSIGNED NOT NULL,
-  `farm_id` int(10) UNSIGNED NOT NULL,
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `farmer_id` int(10) unsigned NOT NULL,
+  `farm_id` int(10) unsigned NOT NULL,
   `name` varchar(150) NOT NULL,
   `description` text DEFAULT NULL,
   `unit` enum('piece','tray','kilogram','head') NOT NULL DEFAULT 'piece',
@@ -575,31 +556,38 @@ CREATE TABLE `products` (
   `created_at` datetime NOT NULL DEFAULT current_timestamp(),
   `updated_at` datetime NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
   `size` enum('small','medium','large') NOT NULL DEFAULT 'medium',
-  `variety` enum('brown','white') NOT NULL DEFAULT 'brown'
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+  `variety` enum('brown','white') NOT NULL DEFAULT 'brown',
+  `moderation_status` enum('pending','approved','flagged','rejected') NOT NULL DEFAULT 'approved',
+  PRIMARY KEY (`id`),
+  KEY `idx_products_farmer` (`farmer_id`),
+  KEY `idx_products_farm` (`farm_id`),
+  KEY `idx_products_available` (`is_available`),
+  CONSTRAINT `fk_products_farm` FOREIGN KEY (`farm_id`) REFERENCES `farms` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `fk_products_farmer` FOREIGN KEY (`farmer_id`) REFERENCES `users` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
 
 --
 -- Dumping data for table `products`
 --
 
-INSERT INTO `products` (`id`, `farmer_id`, `farm_id`, `name`, `description`, `unit`, `price`, `stock`, `location`, `is_available`, `created_at`, `updated_at`, `size`, `variety`) VALUES
-(1, 1, 1, 'Fresh Brown Eggs (Small)', 'Freshly harvested small brown eggs.', 'tray', 170.00, 100, NULL, 1, '2026-08-12 13:17:49', '2026-08-12 13:17:49', 'small', 'brown'),
-(2, 1, 1, 'Fresh Brown Eggs (Medium)', 'Freshly harvested medium brown eggs.', 'tray', 190.00, 300, NULL, 1, '2026-08-12 13:17:49', '2026-08-12 13:17:49', 'medium', 'brown'),
-(3, 1, 1, 'Fresh Brown Eggs (Large)', 'Freshly harvested large brown eggs.', 'tray', 210.00, 200, NULL, 1, '2026-08-12 13:17:49', '2026-08-12 13:17:49', 'large', 'brown'),
-(4, 1, 1, 'Fresh White Eggs (Small)', 'Freshly harvested small white eggs.', 'tray', 165.00, 120, NULL, 1, '2026-08-12 13:17:49', '2026-08-12 13:17:49', 'small', 'white'),
-(5, 1, 1, 'Fresh White Eggs (Medium)', 'Freshly harvested medium white eggs.', 'tray', 185.00, 250, NULL, 1, '2026-08-12 13:17:49', '2026-08-12 13:17:49', 'medium', 'white'),
-(6, 1, 1, 'Fresh White Eggs (Large)', 'Freshly harvested large white eggs.', 'tray', 205.00, 180, NULL, 1, '2026-08-12 13:17:49', '2026-08-12 13:17:49', 'large', 'white');
-
--- --------------------------------------------------------
+LOCK TABLES `products` WRITE;
+/*!40000 ALTER TABLE `products` DISABLE KEYS */;
+INSERT INTO `products` VALUES (1,1,1,'Fresh Brown Eggs (Small)','Freshly harvested small brown eggs.','tray',170.00,100,NULL,1,'2026-08-12 13:17:49','2026-08-12 13:17:49','small','brown','approved'),(2,1,1,'Fresh Brown Eggs (Medium)','Freshly harvested medium brown eggs.','tray',190.00,300,NULL,1,'2026-08-12 13:17:49','2026-08-12 13:17:49','medium','brown','approved'),(3,1,1,'Fresh Brown Eggs (Large)','Freshly harvested large brown eggs.','tray',210.00,200,NULL,1,'2026-08-12 13:17:49','2026-08-12 13:17:49','large','brown','approved'),(4,1,1,'Fresh White Eggs (Small)','Freshly harvested small white eggs.','tray',165.00,120,NULL,1,'2026-08-12 13:17:49','2026-08-12 13:17:49','small','white','approved'),(5,1,1,'Fresh White Eggs (Medium)','Freshly harvested medium white eggs.','tray',185.00,250,NULL,1,'2026-08-12 13:17:49','2026-08-12 13:17:49','medium','white','approved'),(6,1,1,'Fresh White Eggs (Large)','Freshly harvested large white eggs.','tray',205.00,180,NULL,1,'2026-08-12 13:17:49','2026-08-12 13:17:49','large','white','approved');
+/*!40000 ALTER TABLE `products` ENABLE KEYS */;
+UNLOCK TABLES;
 
 --
 -- Table structure for table `sales_records`
 --
 
+DROP TABLE IF EXISTS `sales_records`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `sales_records` (
-  `id` int(11) NOT NULL,
-  `farm_id` int(10) UNSIGNED NOT NULL,
-  `user_id` int(10) UNSIGNED NOT NULL,
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `farm_id` int(10) unsigned NOT NULL,
+  `user_id` int(10) unsigned NOT NULL,
   `sale_date` date NOT NULL,
   `quantity_sold` int(11) NOT NULL,
   `price_per_egg` decimal(10,2) NOT NULL,
@@ -607,92 +595,34 @@ CREATE TABLE `sales_records` (
   `buyer_name` varchar(255) DEFAULT NULL,
   `notes` text DEFAULT NULL,
   `created_at` datetime NOT NULL,
-  `updated_at` datetime NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+  `updated_at` datetime NOT NULL,
+  PRIMARY KEY (`id`),
+  KEY `farm_id` (`farm_id`),
+  KEY `user_id` (`user_id`),
+  CONSTRAINT `sales_records_ibfk_1` FOREIGN KEY (`farm_id`) REFERENCES `farms` (`id`),
+  CONSTRAINT `sales_records_ibfk_2` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=70 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
 
 --
 -- Dumping data for table `sales_records`
 --
 
-INSERT INTO `sales_records` (`id`, `farm_id`, `user_id`, `sale_date`, `quantity_sold`, `price_per_egg`, `total_revenue`, `buyer_name`, `notes`, `created_at`, `updated_at`) VALUES
-(1, 1, 1, '2026-08-04', 420, 7.00, 2940.00, 'Maria Reyes', NULL, '2026-08-04 11:00:00', '2026-08-12 13:17:49'),
-(2, 1, 1, '2026-07-09', 1380, 7.00, 9660.00, 'Maria Reyes', NULL, '2026-07-09 13:00:00', '2026-08-12 13:17:49'),
-(3, 1, 1, '2026-05-22', 1410, 7.00, 9870.00, 'Maria Reyes', NULL, '2026-05-22 17:00:00', '2026-08-12 13:17:49'),
-(4, 1, 1, '2026-06-19', 690, 6.17, 4255.00, 'Maria Reyes', NULL, '2026-06-19 11:00:00', '2026-08-12 13:17:49'),
-(5, 1, 1, '2026-06-15', 570, 7.00, 3990.00, 'Maria Reyes', NULL, '2026-06-15 11:00:00', '2026-08-12 13:17:49'),
-(6, 1, 1, '2026-07-18', 780, 6.33, 4940.00, 'Maria Reyes', NULL, '2026-07-18 18:00:00', '2026-08-12 13:17:49'),
-(7, 1, 1, '2026-06-06', 300, 7.00, 2100.00, 'Maria Reyes', NULL, '2026-06-06 14:00:00', '2026-08-12 13:17:49'),
-(8, 1, 1, '2026-06-25', 180, 5.50, 990.00, 'Maria Reyes', NULL, '2026-06-25 15:00:00', '2026-08-12 13:17:49'),
-(9, 1, 1, '2026-07-29', 1500, 6.17, 9250.00, 'Maria Reyes', NULL, '2026-07-29 15:00:00', '2026-08-12 13:17:49'),
-(10, 1, 1, '2026-07-29', 1410, 7.00, 9870.00, 'Maria Reyes', NULL, '2026-07-29 18:00:00', '2026-08-12 13:17:49'),
-(11, 1, 1, '2026-05-15', 1350, 5.50, 7425.00, 'Maria Reyes', NULL, '2026-05-15 08:00:00', '2026-08-12 13:17:49'),
-(12, 1, 1, '2026-05-30', 510, 6.33, 3230.00, 'Maria Reyes', NULL, '2026-05-30 17:00:00', '2026-08-12 13:17:49'),
-(13, 1, 1, '2026-08-04', 810, 6.33, 5130.00, 'Maria Reyes', NULL, '2026-08-04 08:00:00', '2026-08-12 13:17:49'),
-(14, 1, 1, '2026-07-22', 720, 6.17, 4440.00, 'Maria Reyes', NULL, '2026-07-22 11:00:00', '2026-08-12 13:17:49'),
-(15, 1, 1, '2026-07-20', 180, 6.33, 1140.00, 'Maria Reyes', NULL, '2026-07-20 10:00:00', '2026-08-12 13:17:49'),
-(16, 1, 1, '2026-07-15', 210, 5.50, 1155.00, 'Maria Reyes', NULL, '2026-07-15 16:00:00', '2026-08-12 13:17:49'),
-(17, 1, 1, '2026-06-22', 660, 7.00, 4620.00, 'Maria Reyes', NULL, '2026-06-22 08:00:00', '2026-08-12 13:17:49'),
-(18, 1, 1, '2026-06-02', 360, 6.17, 2220.00, 'Maria Reyes', NULL, '2026-06-02 13:00:00', '2026-08-12 13:17:49'),
-(19, 1, 1, '2026-07-12', 240, 6.83, 1640.00, 'Maria Reyes', NULL, '2026-07-12 18:00:00', '2026-08-12 13:17:49'),
-(20, 1, 1, '2026-06-11', 870, 5.67, 4930.00, 'Maria Reyes', NULL, '2026-06-11 13:00:00', '2026-08-12 13:17:49'),
-(21, 1, 1, '2026-05-22', 150, 7.00, 1050.00, 'Maria Reyes', NULL, '2026-05-22 15:00:00', '2026-08-12 13:17:49'),
-(22, 1, 1, '2026-05-14', 1350, 6.33, 8550.00, 'Maria Reyes', NULL, '2026-05-14 15:00:00', '2026-08-12 13:17:49'),
-(23, 1, 1, '2026-05-23', 810, 6.83, 5535.00, 'Maria Reyes', NULL, '2026-05-23 18:00:00', '2026-08-12 13:17:49'),
-(24, 1, 1, '2026-06-15', 360, 6.33, 2280.00, 'Maria Reyes', NULL, '2026-06-15 18:00:00', '2026-08-12 13:17:49'),
-(25, 1, 1, '2026-06-03', 150, 5.50, 825.00, 'Maria Reyes', NULL, '2026-06-03 16:00:00', '2026-08-12 13:17:49'),
-(26, 1, 1, '2026-07-06', 840, 5.50, 4620.00, 'Maria Reyes', NULL, '2026-07-06 14:00:00', '2026-08-12 13:17:49'),
-(27, 1, 1, '2026-06-10', 360, 5.50, 1980.00, 'Maria Reyes', NULL, '2026-06-10 15:00:00', '2026-08-12 13:17:49'),
-(28, 1, 1, '2026-06-01', 270, 6.33, 1710.00, 'Maria Reyes', NULL, '2026-06-01 17:00:00', '2026-08-12 13:17:49'),
-(29, 1, 1, '2026-08-03', 690, 6.17, 4255.00, 'Maria Reyes', NULL, '2026-08-03 18:00:00', '2026-08-12 13:17:49'),
-(30, 1, 1, '2026-06-12', 300, 5.50, 1650.00, 'Maria Reyes', NULL, '2026-06-12 15:00:00', '2026-08-12 13:17:49'),
-(31, 1, 1, '2026-06-24', 540, 7.00, 3780.00, 'Maria Reyes', NULL, '2026-06-24 18:00:00', '2026-08-12 13:17:49'),
-(32, 1, 1, '2026-06-23', 930, 6.17, 5735.00, 'Maria Reyes', NULL, '2026-06-23 18:00:00', '2026-08-12 13:17:49'),
-(33, 1, 1, '2026-07-24', 540, 6.83, 3690.00, 'Maria Reyes', NULL, '2026-07-24 14:00:00', '2026-08-12 13:17:49'),
-(34, 1, 1, '2026-06-13', 630, 5.50, 3465.00, 'Maria Reyes', NULL, '2026-06-13 12:00:00', '2026-08-12 13:17:49'),
-(35, 1, 1, '2026-07-11', 420, 6.83, 2870.00, 'Maria Reyes', NULL, '2026-07-11 17:00:00', '2026-08-12 13:17:49'),
-(36, 1, 1, '2026-08-04', 1500, 6.83, 10250.00, 'Maria Reyes', NULL, '2026-08-04 12:00:00', '2026-08-12 13:17:49'),
-(37, 1, 1, '2026-05-20', 870, 5.50, 4785.00, 'Maria Reyes', NULL, '2026-05-20 11:00:00', '2026-08-12 13:17:49'),
-(38, 1, 1, '2026-07-12', 360, 6.17, 2220.00, 'Maria Reyes', NULL, '2026-07-12 10:00:00', '2026-08-12 13:17:49'),
-(39, 1, 1, '2026-05-31', 870, 5.50, 4785.00, 'Maria Reyes', NULL, '2026-05-31 17:00:00', '2026-08-12 13:17:49'),
-(40, 1, 1, '2026-05-31', 1200, 6.33, 7600.00, 'Maria Reyes', NULL, '2026-05-31 13:00:00', '2026-08-12 13:17:50'),
-(41, 1, 1, '2026-07-06', 930, 6.17, 5735.00, 'Maria Reyes', NULL, '2026-07-06 18:00:00', '2026-08-12 13:17:50'),
-(42, 1, 1, '2026-07-18', 930, 7.00, 6510.00, 'Maria Reyes', NULL, '2026-07-18 09:00:00', '2026-08-12 13:17:50'),
-(43, 1, 1, '2026-05-26', 630, 6.83, 4305.00, 'Maria Reyes', NULL, '2026-05-26 11:00:00', '2026-08-12 13:17:50'),
-(44, 1, 1, '2026-06-29', 390, 6.17, 2405.00, 'Maria Reyes', NULL, '2026-06-29 09:00:00', '2026-08-12 13:17:50'),
-(45, 1, 1, '2026-08-07', 1320, 7.00, 9240.00, 'Maria Reyes', NULL, '2026-08-07 09:00:00', '2026-08-12 13:17:50'),
-(46, 1, 1, '2026-06-28', 1350, 6.33, 8550.00, 'Maria Reyes', NULL, '2026-06-28 16:00:00', '2026-08-12 13:17:50'),
-(47, 1, 1, '2026-08-03', 1080, 5.67, 6120.00, 'Maria Reyes', NULL, '2026-08-03 18:00:00', '2026-08-12 13:17:50'),
-(48, 1, 1, '2026-06-16', 630, 7.00, 4410.00, 'Maria Reyes', NULL, '2026-06-16 14:00:00', '2026-08-12 13:17:50'),
-(49, 1, 1, '2026-08-04', 1470, 6.33, 9310.00, 'Maria Reyes', NULL, '2026-08-04 15:00:00', '2026-08-12 13:17:50'),
-(50, 1, 1, '2026-05-31', 210, 6.33, 1330.00, 'Maria Reyes', NULL, '2026-05-31 08:00:00', '2026-08-12 13:17:50'),
-(51, 1, 1, '2026-08-07', 1350, 6.33, 8550.00, 'Maria Reyes', NULL, '2026-08-07 13:00:00', '2026-08-12 13:17:50'),
-(52, 1, 1, '2026-07-24', 270, 6.33, 1710.00, 'Maria Reyes', NULL, '2026-07-24 14:00:00', '2026-08-12 13:17:50'),
-(53, 1, 1, '2026-07-24', 240, 6.33, 1520.00, 'Maria Reyes', NULL, '2026-07-24 11:00:00', '2026-08-12 13:17:50'),
-(54, 1, 1, '2026-06-13', 1170, 6.17, 7215.00, 'Maria Reyes', NULL, '2026-06-13 11:00:00', '2026-08-12 13:17:50'),
-(55, 1, 1, '2026-06-29', 480, 5.67, 2720.00, 'Maria Reyes', NULL, '2026-06-29 15:00:00', '2026-08-12 13:17:50'),
-(56, 1, 1, '2026-06-03', 1290, 5.50, 7095.00, 'Maria Reyes', NULL, '2026-06-03 12:00:00', '2026-08-12 13:17:50'),
-(57, 1, 1, '2026-07-30', 1440, 5.50, 7920.00, 'Maria Reyes', NULL, '2026-07-30 15:00:00', '2026-08-12 13:17:50'),
-(58, 1, 1, '2026-07-25', 570, 6.33, 3610.00, 'Maria Reyes', NULL, '2026-07-25 15:00:00', '2026-08-12 13:17:50'),
-(59, 1, 1, '2026-08-02', 390, 5.67, 2210.00, 'Maria Reyes', NULL, '2026-08-02 14:00:00', '2026-08-12 13:17:50'),
-(60, 1, 1, '2026-07-19', 990, 6.17, 6105.00, 'Maria Reyes', NULL, '2026-07-19 17:00:00', '2026-08-12 13:17:50'),
-(61, 1, 1, '2026-06-08', 330, 6.83, 2255.00, 'Maria Reyes', NULL, '2026-06-08 15:00:00', '2026-08-12 13:17:50'),
-(62, 1, 1, '2026-05-14', 270, 6.17, 1665.00, 'Maria Reyes', NULL, '2026-05-14 15:00:00', '2026-08-12 13:17:50'),
-(63, 1, 1, '2026-05-27', 450, 6.83, 3075.00, 'Maria Reyes', NULL, '2026-05-27 12:00:00', '2026-08-12 13:17:50'),
-(64, 1, 1, '2026-06-02', 360, 7.00, 2520.00, 'Maria Reyes', NULL, '2026-06-02 09:00:00', '2026-08-12 13:17:50'),
-(65, 1, 1, '2026-06-21', 870, 5.67, 4930.00, 'Maria Reyes', NULL, '2026-06-21 14:00:00', '2026-08-12 13:17:50'),
-(66, 1, 1, '2026-06-06', 270, 6.33, 1710.00, 'Maria Reyes', NULL, '2026-06-06 11:00:00', '2026-08-12 13:17:50'),
-(67, 1, 1, '2026-07-29', 810, 6.33, 5130.00, 'Maria Reyes', NULL, '2026-07-29 15:00:00', '2026-08-12 13:17:50'),
-(68, 1, 1, '2026-06-11', 180, 5.67, 1020.00, 'Maria Reyes', NULL, '2026-06-11 16:00:00', '2026-08-12 13:17:50'),
-(69, 1, 1, '2026-07-18', 1470, 6.17, 9065.00, 'Maria Reyes', NULL, '2026-07-18 15:00:00', '2026-08-12 13:17:50');
-
--- --------------------------------------------------------
+LOCK TABLES `sales_records` WRITE;
+/*!40000 ALTER TABLE `sales_records` DISABLE KEYS */;
+INSERT INTO `sales_records` VALUES (1,1,1,'2026-08-04',420,7.00,2940.00,'Maria Reyes',NULL,'2026-08-04 11:00:00','2026-08-12 13:17:49'),(2,1,1,'2026-07-09',1380,7.00,9660.00,'Maria Reyes',NULL,'2026-07-09 13:00:00','2026-08-12 13:17:49'),(3,1,1,'2026-05-22',1410,7.00,9870.00,'Maria Reyes',NULL,'2026-05-22 17:00:00','2026-08-12 13:17:49'),(4,1,1,'2026-06-19',690,6.17,4255.00,'Maria Reyes',NULL,'2026-06-19 11:00:00','2026-08-12 13:17:49'),(5,1,1,'2026-06-15',570,7.00,3990.00,'Maria Reyes',NULL,'2026-06-15 11:00:00','2026-08-12 13:17:49'),(6,1,1,'2026-07-18',780,6.33,4940.00,'Maria Reyes',NULL,'2026-07-18 18:00:00','2026-08-12 13:17:49'),(7,1,1,'2026-06-06',300,7.00,2100.00,'Maria Reyes',NULL,'2026-06-06 14:00:00','2026-08-12 13:17:49'),(8,1,1,'2026-06-25',180,5.50,990.00,'Maria Reyes',NULL,'2026-06-25 15:00:00','2026-08-12 13:17:49'),(9,1,1,'2026-07-29',1500,6.17,9250.00,'Maria Reyes',NULL,'2026-07-29 15:00:00','2026-08-12 13:17:49'),(10,1,1,'2026-07-29',1410,7.00,9870.00,'Maria Reyes',NULL,'2026-07-29 18:00:00','2026-08-12 13:17:49'),(11,1,1,'2026-05-15',1350,5.50,7425.00,'Maria Reyes',NULL,'2026-05-15 08:00:00','2026-08-12 13:17:49'),(12,1,1,'2026-05-30',510,6.33,3230.00,'Maria Reyes',NULL,'2026-05-30 17:00:00','2026-08-12 13:17:49'),(13,1,1,'2026-08-04',810,6.33,5130.00,'Maria Reyes',NULL,'2026-08-04 08:00:00','2026-08-12 13:17:49'),(14,1,1,'2026-07-22',720,6.17,4440.00,'Maria Reyes',NULL,'2026-07-22 11:00:00','2026-08-12 13:17:49'),(15,1,1,'2026-07-20',180,6.33,1140.00,'Maria Reyes',NULL,'2026-07-20 10:00:00','2026-08-12 13:17:49'),(16,1,1,'2026-07-15',210,5.50,1155.00,'Maria Reyes',NULL,'2026-07-15 16:00:00','2026-08-12 13:17:49'),(17,1,1,'2026-06-22',660,7.00,4620.00,'Maria Reyes',NULL,'2026-06-22 08:00:00','2026-08-12 13:17:49'),(18,1,1,'2026-06-02',360,6.17,2220.00,'Maria Reyes',NULL,'2026-06-02 13:00:00','2026-08-12 13:17:49'),(19,1,1,'2026-07-12',240,6.83,1640.00,'Maria Reyes',NULL,'2026-07-12 18:00:00','2026-08-12 13:17:49'),(20,1,1,'2026-06-11',870,5.67,4930.00,'Maria Reyes',NULL,'2026-06-11 13:00:00','2026-08-12 13:17:49'),(21,1,1,'2026-05-22',150,7.00,1050.00,'Maria Reyes',NULL,'2026-05-22 15:00:00','2026-08-12 13:17:49'),(22,1,1,'2026-05-14',1350,6.33,8550.00,'Maria Reyes',NULL,'2026-05-14 15:00:00','2026-08-12 13:17:49'),(23,1,1,'2026-05-23',810,6.83,5535.00,'Maria Reyes',NULL,'2026-05-23 18:00:00','2026-08-12 13:17:49'),(24,1,1,'2026-06-15',360,6.33,2280.00,'Maria Reyes',NULL,'2026-06-15 18:00:00','2026-08-12 13:17:49'),(25,1,1,'2026-06-03',150,5.50,825.00,'Maria Reyes',NULL,'2026-06-03 16:00:00','2026-08-12 13:17:49'),(26,1,1,'2026-07-06',840,5.50,4620.00,'Maria Reyes',NULL,'2026-07-06 14:00:00','2026-08-12 13:17:49'),(27,1,1,'2026-06-10',360,5.50,1980.00,'Maria Reyes',NULL,'2026-06-10 15:00:00','2026-08-12 13:17:49'),(28,1,1,'2026-06-01',270,6.33,1710.00,'Maria Reyes',NULL,'2026-06-01 17:00:00','2026-08-12 13:17:49'),(29,1,1,'2026-08-03',690,6.17,4255.00,'Maria Reyes',NULL,'2026-08-03 18:00:00','2026-08-12 13:17:49'),(30,1,1,'2026-06-12',300,5.50,1650.00,'Maria Reyes',NULL,'2026-06-12 15:00:00','2026-08-12 13:17:49'),(31,1,1,'2026-06-24',540,7.00,3780.00,'Maria Reyes',NULL,'2026-06-24 18:00:00','2026-08-12 13:17:49'),(32,1,1,'2026-06-23',930,6.17,5735.00,'Maria Reyes',NULL,'2026-06-23 18:00:00','2026-08-12 13:17:49'),(33,1,1,'2026-07-24',540,6.83,3690.00,'Maria Reyes',NULL,'2026-07-24 14:00:00','2026-08-12 13:17:49'),(34,1,1,'2026-06-13',630,5.50,3465.00,'Maria Reyes',NULL,'2026-06-13 12:00:00','2026-08-12 13:17:49'),(35,1,1,'2026-07-11',420,6.83,2870.00,'Maria Reyes',NULL,'2026-07-11 17:00:00','2026-08-12 13:17:49'),(36,1,1,'2026-08-04',1500,6.83,10250.00,'Maria Reyes',NULL,'2026-08-04 12:00:00','2026-08-12 13:17:49'),(37,1,1,'2026-05-20',870,5.50,4785.00,'Maria Reyes',NULL,'2026-05-20 11:00:00','2026-08-12 13:17:49'),(38,1,1,'2026-07-12',360,6.17,2220.00,'Maria Reyes',NULL,'2026-07-12 10:00:00','2026-08-12 13:17:49'),(39,1,1,'2026-05-31',870,5.50,4785.00,'Maria Reyes',NULL,'2026-05-31 17:00:00','2026-08-12 13:17:49'),(40,1,1,'2026-05-31',1200,6.33,7600.00,'Maria Reyes',NULL,'2026-05-31 13:00:00','2026-08-12 13:17:50'),(41,1,1,'2026-07-06',930,6.17,5735.00,'Maria Reyes',NULL,'2026-07-06 18:00:00','2026-08-12 13:17:50'),(42,1,1,'2026-07-18',930,7.00,6510.00,'Maria Reyes',NULL,'2026-07-18 09:00:00','2026-08-12 13:17:50'),(43,1,1,'2026-05-26',630,6.83,4305.00,'Maria Reyes',NULL,'2026-05-26 11:00:00','2026-08-12 13:17:50'),(44,1,1,'2026-06-29',390,6.17,2405.00,'Maria Reyes',NULL,'2026-06-29 09:00:00','2026-08-12 13:17:50'),(45,1,1,'2026-08-07',1320,7.00,9240.00,'Maria Reyes',NULL,'2026-08-07 09:00:00','2026-08-12 13:17:50'),(46,1,1,'2026-06-28',1350,6.33,8550.00,'Maria Reyes',NULL,'2026-06-28 16:00:00','2026-08-12 13:17:50'),(47,1,1,'2026-08-03',1080,5.67,6120.00,'Maria Reyes',NULL,'2026-08-03 18:00:00','2026-08-12 13:17:50'),(48,1,1,'2026-06-16',630,7.00,4410.00,'Maria Reyes',NULL,'2026-06-16 14:00:00','2026-08-12 13:17:50'),(49,1,1,'2026-08-04',1470,6.33,9310.00,'Maria Reyes',NULL,'2026-08-04 15:00:00','2026-08-12 13:17:50'),(50,1,1,'2026-05-31',210,6.33,1330.00,'Maria Reyes',NULL,'2026-05-31 08:00:00','2026-08-12 13:17:50'),(51,1,1,'2026-08-07',1350,6.33,8550.00,'Maria Reyes',NULL,'2026-08-07 13:00:00','2026-08-12 13:17:50'),(52,1,1,'2026-07-24',270,6.33,1710.00,'Maria Reyes',NULL,'2026-07-24 14:00:00','2026-08-12 13:17:50'),(53,1,1,'2026-07-24',240,6.33,1520.00,'Maria Reyes',NULL,'2026-07-24 11:00:00','2026-08-12 13:17:50'),(54,1,1,'2026-06-13',1170,6.17,7215.00,'Maria Reyes',NULL,'2026-06-13 11:00:00','2026-08-12 13:17:50'),(55,1,1,'2026-06-29',480,5.67,2720.00,'Maria Reyes',NULL,'2026-06-29 15:00:00','2026-08-12 13:17:50'),(56,1,1,'2026-06-03',1290,5.50,7095.00,'Maria Reyes',NULL,'2026-06-03 12:00:00','2026-08-12 13:17:50'),(57,1,1,'2026-07-30',1440,5.50,7920.00,'Maria Reyes',NULL,'2026-07-30 15:00:00','2026-08-12 13:17:50'),(58,1,1,'2026-07-25',570,6.33,3610.00,'Maria Reyes',NULL,'2026-07-25 15:00:00','2026-08-12 13:17:50'),(59,1,1,'2026-08-02',390,5.67,2210.00,'Maria Reyes',NULL,'2026-08-02 14:00:00','2026-08-12 13:17:50'),(60,1,1,'2026-07-19',990,6.17,6105.00,'Maria Reyes',NULL,'2026-07-19 17:00:00','2026-08-12 13:17:50'),(61,1,1,'2026-06-08',330,6.83,2255.00,'Maria Reyes',NULL,'2026-06-08 15:00:00','2026-08-12 13:17:50'),(62,1,1,'2026-05-14',270,6.17,1665.00,'Maria Reyes',NULL,'2026-05-14 15:00:00','2026-08-12 13:17:50'),(63,1,1,'2026-05-27',450,6.83,3075.00,'Maria Reyes',NULL,'2026-05-27 12:00:00','2026-08-12 13:17:50'),(64,1,1,'2026-06-02',360,7.00,2520.00,'Maria Reyes',NULL,'2026-06-02 09:00:00','2026-08-12 13:17:50'),(65,1,1,'2026-06-21',870,5.67,4930.00,'Maria Reyes',NULL,'2026-06-21 14:00:00','2026-08-12 13:17:50'),(66,1,1,'2026-06-06',270,6.33,1710.00,'Maria Reyes',NULL,'2026-06-06 11:00:00','2026-08-12 13:17:50'),(67,1,1,'2026-07-29',810,6.33,5130.00,'Maria Reyes',NULL,'2026-07-29 15:00:00','2026-08-12 13:17:50'),(68,1,1,'2026-06-11',180,5.67,1020.00,'Maria Reyes',NULL,'2026-06-11 16:00:00','2026-08-12 13:17:50'),(69,1,1,'2026-07-18',1470,6.17,9065.00,'Maria Reyes',NULL,'2026-07-18 15:00:00','2026-08-12 13:17:50');
+/*!40000 ALTER TABLE `sales_records` ENABLE KEYS */;
+UNLOCK TABLES;
 
 --
 -- Table structure for table `users`
 --
 
+DROP TABLE IF EXISTS `users`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `users` (
-  `id` int(10) UNSIGNED NOT NULL,
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
   `username` varchar(64) NOT NULL,
   `email` varchar(120) NOT NULL,
   `password_hash` varchar(256) NOT NULL,
@@ -706,269 +636,33 @@ CREATE TABLE `users` (
   `created_at` datetime NOT NULL DEFAULT current_timestamp(),
   `updated_at` datetime NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
   `address` varchar(200) DEFAULT NULL,
-  `landmark` varchar(255) DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+  `landmark` varchar(255) DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uq_users_username` (`username`),
+  UNIQUE KEY `uq_users_email` (`email`),
+  KEY `idx_users_role` (`role`),
+  KEY `idx_users_email` (`email`),
+  KEY `idx_users_username` (`username`)
+) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
 
 --
 -- Dumping data for table `users`
 --
 
-INSERT INTO `users` (`id`, `username`, `email`, `password_hash`, `role`, `first_name`, `last_name`, `phone`, `is_active`, `online_status`, `last_seen`, `created_at`, `updated_at`, `address`, `landmark`) VALUES
-(1, 'jdelacruz', 'farmer@poultryconnect.com', 'scrypt:32768:8:1$LkAHcyjFUKkQ3oeJ$0c70859616fd4df6dc44dbb7adc47cac741e29966bc07711dbe81471b8ef6fd39ee620f800b078d731299c096a62adb0ada3a6dd5aae840cb04356b7c4fa173c', 'farmer', 'Juan', 'Dela Cruz', '09171234567', 1, 0, NULL, '2026-08-12 13:17:48', '2026-08-12 13:17:48', 'San Jose, Batangas', NULL),
-(2, 'mreyes', 'buyer@poultryconnect.com', 'scrypt:32768:8:1$XwGZYqV20X2D91rp$a667ee3259ce1c270c6457009c1edd859fb21c2357b70f7f776027b4ed6e958e711efef19399309d58445a0a694905b2b23db18bac00edaeb0c404fb2fb61701', 'buyer', 'Maria', 'Reyes', '09189876543', 1, 0, NULL, '2026-08-12 13:17:49', '2026-08-12 13:17:49', 'Quezon City, Metro Manila', NULL);
+LOCK TABLES `users` WRITE;
+/*!40000 ALTER TABLE `users` DISABLE KEYS */;
+INSERT INTO `users` VALUES (1,'jdelacruz','farmer@poultryconnect.com','scrypt:32768:8:1$LkAHcyjFUKkQ3oeJ$0c70859616fd4df6dc44dbb7adc47cac741e29966bc07711dbe81471b8ef6fd39ee620f800b078d731299c096a62adb0ada3a6dd5aae840cb04356b7c4fa173c','farmer','Juan','Dela Cruz','09171234567',1,0,NULL,'2026-08-12 13:17:48','2026-08-12 13:17:48','San Jose, Batangas',NULL),(2,'mreyes','buyer@poultryconnect.com','scrypt:32768:8:1$XwGZYqV20X2D91rp$a667ee3259ce1c270c6457009c1edd859fb21c2357b70f7f776027b4ed6e958e711efef19399309d58445a0a694905b2b23db18bac00edaeb0c404fb2fb61701','buyer','Maria','Reyes','09189876543',1,0,NULL,'2026-08-12 13:17:49','2026-08-12 13:17:49','Quezon City, Metro Manila',NULL);
+/*!40000 ALTER TABLE `users` ENABLE KEYS */;
+UNLOCK TABLES;
+/*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
---
--- Indexes for dumped tables
---
-
---
--- Indexes for table `alembic_version`
---
-ALTER TABLE `alembic_version`
-  ADD PRIMARY KEY (`version_num`);
-
---
--- Indexes for table `conversations`
---
-ALTER TABLE `conversations`
-  ADD PRIMARY KEY (`id`),
-  ADD UNIQUE KEY `uq_convo_pair` (`farmer_id`,`participant_id`),
-  ADD KEY `idx_conversations_farmer` (`farmer_id`),
-  ADD KEY `idx_conversations_participant` (`participant_id`);
-
---
--- Indexes for table `expenses`
---
-ALTER TABLE `expenses`
-  ADD PRIMARY KEY (`id`),
-  ADD KEY `idx_expenses_farm` (`farm_id`),
-  ADD KEY `idx_expenses_user` (`user_id`),
-  ADD KEY `idx_expenses_date` (`expense_date`),
-  ADD KEY `idx_expenses_category` (`category`);
-
---
--- Indexes for table `farms`
---
-ALTER TABLE `farms`
-  ADD PRIMARY KEY (`id`),
-  ADD KEY `idx_farms_farmer_id` (`farmer_id`);
-
---
--- Indexes for table `messages`
---
-ALTER TABLE `messages`
-  ADD PRIMARY KEY (`id`),
-  ADD KEY `idx_messages_conversation` (`conversation_id`),
-  ADD KEY `idx_messages_sender` (`sender_id`),
-  ADD KEY `idx_messages_receiver` (`receiver_id`),
-  ADD KEY `idx_messages_sent_at` (`sent_at`),
-  ADD KEY `idx_messages_seen` (`is_seen`);
-
---
--- Indexes for table `notifications`
---
-ALTER TABLE `notifications`
-  ADD PRIMARY KEY (`id`),
-  ADD KEY `idx_notifications_user` (`user_id`),
-  ADD KEY `idx_notifications_read` (`is_read`);
-
---
--- Indexes for table `orders`
---
-ALTER TABLE `orders`
-  ADD PRIMARY KEY (`id`),
-  ADD KEY `idx_orders_buyer` (`buyer_id`),
-  ADD KEY `idx_orders_status` (`status`);
-
---
--- Indexes for table `order_items`
---
-ALTER TABLE `order_items`
-  ADD PRIMARY KEY (`id`),
-  ADD KEY `idx_order_items_order` (`order_id`),
-  ADD KEY `idx_order_items_product` (`product_id`);
-
---
--- Indexes for table `production_records`
---
-ALTER TABLE `production_records`
-  ADD PRIMARY KEY (`id`),
-  ADD UNIQUE KEY `uq_farm_record_date_size_variety` (`farm_id`,`record_date`,`size`,`variety`),
-  ADD KEY `idx_production_farm` (`farm_id`),
-  ADD KEY `idx_production_user` (`user_id`),
-  ADD KEY `idx_production_date` (`record_date`);
-
---
--- Indexes for table `products`
---
-ALTER TABLE `products`
-  ADD PRIMARY KEY (`id`),
-  ADD KEY `idx_products_farmer` (`farmer_id`),
-  ADD KEY `idx_products_farm` (`farm_id`),
-  ADD KEY `idx_products_available` (`is_available`);
-
---
--- Indexes for table `sales_records`
---
-ALTER TABLE `sales_records`
-  ADD PRIMARY KEY (`id`),
-  ADD KEY `farm_id` (`farm_id`),
-  ADD KEY `user_id` (`user_id`);
-
---
--- Indexes for table `users`
---
-ALTER TABLE `users`
-  ADD PRIMARY KEY (`id`),
-  ADD UNIQUE KEY `uq_users_username` (`username`),
-  ADD UNIQUE KEY `uq_users_email` (`email`),
-  ADD KEY `idx_users_role` (`role`),
-  ADD KEY `idx_users_email` (`email`),
-  ADD KEY `idx_users_username` (`username`);
-
---
--- AUTO_INCREMENT for dumped tables
---
-
---
--- AUTO_INCREMENT for table `conversations`
---
-ALTER TABLE `conversations`
-  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT;
-
---
--- AUTO_INCREMENT for table `expenses`
---
-ALTER TABLE `expenses`
-  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=23;
-
---
--- AUTO_INCREMENT for table `farms`
---
-ALTER TABLE `farms`
-  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
-
---
--- AUTO_INCREMENT for table `messages`
---
-ALTER TABLE `messages`
-  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT;
-
---
--- AUTO_INCREMENT for table `notifications`
---
-ALTER TABLE `notifications`
-  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT;
-
---
--- AUTO_INCREMENT for table `orders`
---
-ALTER TABLE `orders`
-  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=71;
-
---
--- AUTO_INCREMENT for table `order_items`
---
-ALTER TABLE `order_items`
-  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=71;
-
---
--- AUTO_INCREMENT for table `production_records`
---
-ALTER TABLE `production_records`
-  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=181;
-
---
--- AUTO_INCREMENT for table `products`
---
-ALTER TABLE `products`
-  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
-
---
--- AUTO_INCREMENT for table `sales_records`
---
-ALTER TABLE `sales_records`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=70;
-
---
--- AUTO_INCREMENT for table `users`
---
-ALTER TABLE `users`
-  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
-
---
--- Constraints for dumped tables
---
-
---
--- Constraints for table `conversations`
---
-ALTER TABLE `conversations`
-  ADD CONSTRAINT `fk_conversations_farmer` FOREIGN KEY (`farmer_id`) REFERENCES `users` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
-  ADD CONSTRAINT `fk_conversations_participant` FOREIGN KEY (`participant_id`) REFERENCES `users` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
-
---
--- Constraints for table `expenses`
---
-ALTER TABLE `expenses`
-  ADD CONSTRAINT `fk_expenses_farm` FOREIGN KEY (`farm_id`) REFERENCES `farms` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
-  ADD CONSTRAINT `fk_expenses_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
-
---
--- Constraints for table `farms`
---
-ALTER TABLE `farms`
-  ADD CONSTRAINT `fk_farms_farmer` FOREIGN KEY (`farmer_id`) REFERENCES `users` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
-
---
--- Constraints for table `messages`
---
-ALTER TABLE `messages`
-  ADD CONSTRAINT `fk_messages_conversation` FOREIGN KEY (`conversation_id`) REFERENCES `conversations` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
-  ADD CONSTRAINT `fk_messages_receiver` FOREIGN KEY (`receiver_id`) REFERENCES `users` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
-  ADD CONSTRAINT `fk_messages_sender` FOREIGN KEY (`sender_id`) REFERENCES `users` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
-
---
--- Constraints for table `notifications`
---
-ALTER TABLE `notifications`
-  ADD CONSTRAINT `fk_notifications_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
-
---
--- Constraints for table `orders`
---
-ALTER TABLE `orders`
-  ADD CONSTRAINT `fk_orders_buyer` FOREIGN KEY (`buyer_id`) REFERENCES `users` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
-
---
--- Constraints for table `order_items`
---
-ALTER TABLE `order_items`
-  ADD CONSTRAINT `fk_order_items_order` FOREIGN KEY (`order_id`) REFERENCES `orders` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
-  ADD CONSTRAINT `fk_order_items_product` FOREIGN KEY (`product_id`) REFERENCES `products` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
-
---
--- Constraints for table `production_records`
---
-ALTER TABLE `production_records`
-  ADD CONSTRAINT `fk_production_farm` FOREIGN KEY (`farm_id`) REFERENCES `farms` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
-  ADD CONSTRAINT `fk_production_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
-
---
--- Constraints for table `products`
---
-ALTER TABLE `products`
-  ADD CONSTRAINT `fk_products_farm` FOREIGN KEY (`farm_id`) REFERENCES `farms` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
-  ADD CONSTRAINT `fk_products_farmer` FOREIGN KEY (`farmer_id`) REFERENCES `users` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
-
---
--- Constraints for table `sales_records`
---
-ALTER TABLE `sales_records`
-  ADD CONSTRAINT `sales_records_ibfk_1` FOREIGN KEY (`farm_id`) REFERENCES `farms` (`id`),
-  ADD CONSTRAINT `sales_records_ibfk_2` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`);
-COMMIT;
-
+/*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
+/*!40014 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS */;
+/*!40014 SET UNIQUE_CHECKS=@OLD_UNIQUE_CHECKS */;
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
 /*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
+/*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
+
+-- Dump completed on 2026-09-22  0:41:57

@@ -63,7 +63,13 @@ def create_app(config_class=Config):
             preview_farms=preview_farms,
         )
 
+    with app.app_context():
+        try:
+            from app import models  # Ensure all models are registered
+            db.create_all()
+        except Exception as e:
+            app.logger.warning(f"Auto db.create_all() warning: {e}")
+
     return app
 
 from app import models
-
