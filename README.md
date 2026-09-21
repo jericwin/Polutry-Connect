@@ -11,7 +11,7 @@
 
 *A centralized web-based platform to monitor operations, analyze production, and connect with the agricultural community.*
 
-[Explore Features](#-core-features) • [Installation Guide](#-setup-guide) • [User Roles](#-user-roles)
+[Explore Features](#-core-features) • [Quick Setup Guide](SETUP_GUIDE.md) • [User Roles](#-user-roles)
 
 </div>
 
@@ -45,13 +45,14 @@ Analyzes farm data to generate actionable insights:
 ### 🛒 Marketplace Module
 - Direct-to-consumer product listings (e.g., eggs, live birds).
 - Seamless order placement and tracking for buyers.
+- Multi-category buyer review and feedback intelligence.
 
 ### 🔗 Community Linkage
 - Integrated directory of Veterinarians, Feed Suppliers, and Cooperatives.
 - Basic contact and messaging features to support farm operations.
 
 ### ⚙️ Admin Dashboard
-- Manage users, monitor the system, and generate comprehensive reports.
+- Manage users, monitor the system, review farmer verifications, and oversee accounts.
 
 ---
 
@@ -67,71 +68,61 @@ Analyzes farm data to generate actionable insights:
 
 ## 🚀 Setup Guide
 
-Follow these steps to get a local copy up and running.
+> 📖 **Detailed Step-by-Step Guide with Screenshots and Troubleshooting:**  
+> Tingnan ang [**`SETUP_GUIDE.md`**](SETUP_GUIDE.md) para sa kumpletong gabay gamit ang **VS Code** at **XAMPP**.
 
-### 1. Prerequisites
-Ensure you have the following installed:
-- [Python 3.10+](https://www.python.org/downloads/)
-- [XAMPP](https://www.apachefriends.org/index.html) (for Apache + MySQL)
-- Git
+### Quick Start:
 
-### 2. Clone the Repository
+#### 1. Clone the Repository
 ```bash
-git clone https://github.com/Luxanna22/poultryconnect.git
-cd poultryconnect
+git clone https://github.com/jericwin/Polutry-Connect.git
+cd Polutry-Connect
 ```
 
-### 3. Create a Virtual Environment
-Isolate your dependencies using a virtual environment:
-
+#### 2. Create and Activate Virtual Environment
 **Windows:**
 ```bash
 python -m venv venv
 venv\Scripts\activate
 ```
 
-**macOS / Linux:**
-```bash
-python3 -m venv venv
-source venv/bin/activate
-```
-
-### 4. Install Dependencies
+#### 3. Install Dependencies
 ```bash
 pip install -r requirements.txt
 ```
 
-### 5. Configure Environment Variables
-Copy the example environment file and fill in your details:
+#### 4. Configure `.env`
+Copy the `.env.example` file:
 ```bash
 cp .env.example .env
 ```
-Update your `.env` file:
+Ensure your `.env` connects to your XAMPP MySQL database:
 ```env
 FLASK_ENV=development
-SECRET_KEY=your-super-secret-key
-# XAMPP default format (no password):
+SECRET_KEY=poultryconnect-super-secret-key-2026
 DATABASE_URL=mysql+pymysql://root:@localhost/poultryconnect
 ```
 
-### 6. XAMPP MySQL Setup
-1. Open **XAMPP Control Panel** and **Start** both `Apache` and `MySQL`.
-2. Navigate to `http://localhost/phpmyadmin` in your browser.
-3. Create a new database named `poultryconnect` with collation `utf8mb4_unicode_ci`.
+#### 5. Database Setup (XAMPP phpMyAdmin)
+1. Start **Apache** and **MySQL** in XAMPP Control Panel.
+2. Open `http://localhost/phpmyadmin` and create a database named `poultryconnect`.
+3. Select `poultryconnect`, go to the **Import** tab, choose `poultryconnect.sql`, and click **Import**.
 
-### 7. Run Database Migrations
-Initialize and create the database tables:
-```bash
-flask db init              # Only needed the first time
-flask db migrate -m "init"
-flask db upgrade
-```
-
-### 8. Run the Application
+#### 6. Run the Application
 ```bash
 python run.py
 ```
-Open your browser and navigate to **http://127.0.0.1:5000**.
+Open **http://127.0.0.1:5000** in your browser.
+
+---
+
+## 🔑 Default Login Credentials
+
+| Role | Username / Email | Password | Access |
+| :--- | :--- | :--- | :--- |
+| 👑 **Admin** | `admin` / `admin@poultryconnect.com` | `admin123` | System Management, Farmer Verification, All Reports |
+| 🐔 **Farmer** | `jdelacruz` / `farmer@poultryconnect.com` | `password123` | Farm Management, Production Logs, P&L Analytics, Products |
+| 🛒 **Buyer** | `mreyes` / `buyer@poultryconnect.com` | `password123` | Marketplace Shopping, Order Tracking, Feedback |
 
 ---
 
