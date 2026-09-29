@@ -22,6 +22,18 @@ with app.app_context():
     db.session.execute(db.text("PRAGMA foreign_keys = ON;"))
     db.session.commit()
 
+    print("Creating Admin...")
+    admin = User(
+        username='admin',
+        email='admin@poultryconnect.com',
+        role=UserRole.ADMIN,
+        first_name='System',
+        last_name='Admin',
+        phone='09170000000'
+    )
+    admin.set_password('admin123')
+    db.session.add(admin)
+    
     print("Creating Farmer...")
     farmer = User(
         username='jdelacruz',
@@ -212,6 +224,7 @@ with app.app_context():
     db.session.commit()
     print("=========================================")
     print("Database seeded successfully with expanded realistic data!")
+    print(f"Admin: {admin.email} / admin123")
     print(f"Farmer: {farmer.email} / password123")
     print(f"Buyer: {buyer.email} / password123")
     print("=========================================")
