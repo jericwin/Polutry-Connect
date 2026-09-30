@@ -22,7 +22,7 @@ from datetime import datetime
 from app import db
 from app.models import (
     User, UserRole, Farm, Product, Order,
-    FarmerVerification, VerificationStatus
+    FarmerVerification, VerificationStatus, SubscriptionPlan
 )
 
 admin_bp = Blueprint('admin', __name__)
@@ -49,12 +49,37 @@ from datetime import timedelta
 def index():
     _require_admin()
 
-    # Platform stats
-    total_users   = User.query.count()
-    total_farmers = User.query.filter_by(role=UserRole.FARMER).count()
-    total_buyers  = User.query.filter_by(role=UserRole.BUYER).count()
-    total_products = Product.query.count()
-    total_orders   = Order.query.count()
+    # Date filtering
+    date_filter = request.args.get('filter', 'all')
+    now = datetime.utcnow()
+    
+    base_user_query = User.query
+    base_prod_query = Product.query
+    base_order_query = Order.query
+    
+    if date_filter == 'today':
+        cutoff = now - timedelta(days=1)
+    elif date_filter == 'week':
+        cutoff = now - timedelta(days=7)
+    elif date_filter == 'month':
+        cutoff = now - timedelta(days=30)
+    else:
+        cutoff = None
+        
+    if cutoff:
+        base_user_query = base_user_query.filter(User.created_at >= cutoff)
+        base_prod_query = base_prod_query.filter(Product.created_at >= cutoff)
+        base_order_query = base_order_query.filter(Order.created_at >= cutoff)
+
+    total_users   = base_user_query.count()
+    total_farmers = base_user_query.filter_by(role=UserRole.FARMER).count()
+    total_buyers  = base_user_query.filter_by(role=UserRole.BUYER).count()
+    total_products = base_prod_query.count()
+    total_orders   = base_order_query.count()
+    
+    monthly_subs = User.query.filter_by(role=UserRole.FARMER, subscription_plan=SubscriptionPlan.MONTHLY).count()
+    yearly_subs = User.query.filter_by(role=UserRole.FARMER, subscription_plan=SubscriptionPlan.YEARLY).count()
+    total_revenue = (monthly_subs * 299) + (yearly_subs * 2990)
 
     # Farmer verification stats
     pending_verifications  = FarmerVerification.query.filter_by(status=VerificationStatus.PENDING).count()
@@ -111,6 +136,10 @@ def index():
         total_buyers=total_buyers,
         total_products=total_products,
         total_orders=total_orders,
+        monthly_subs=monthly_subs,
+        yearly_subs=yearly_subs,
+        total_revenue=total_revenue,
+        date_filter=date_filter,
         pending_verifications=pending_verifications,
         approved_verifications=approved_verifications,
         rejected_verifications=rejected_verifications,
@@ -387,3 +416,39 @@ def edit_user(user_id):
     db.session.commit()
     flash(f'Account details updated for {user.full_name}.', 'success')
     return redirect(url_for('admin.users'))
+
+@admin_bp.route('/subscribers')
+@login_required
+def subscribers():
+    _require_admin()
+    farmers = User.query.filter_by(role=UserRole.FARMER).order_by(User.created_at.desc()).all()
+    return render_template('admin/subscribers.html', farmers=farmers, today=datetime.utcnow())
+
+@admin_bp.route('/subscribers/<int:user_id>/end-trial', methods=['POST'])
+@login_required
+def end_trial(user_id):
+    _require_admin()
+    farmer = User.query.get_or_404(user_id)
+    if farmer.role != UserRole.FARMER:
+        flash('Can only end trials for farmers.', 'error')
+        return redirect(url_for('admin.subscribers'))
+        
+    farmer.trial_end = datetime.utcnow()
+    db.session.commit()
+    flash(f"Ended 7-day free trial for {farmer.full_name}.", 'success')
+    return redirect(url_for('admin.subscribers'))
+
+@admin_bp.route('/subscribers/<int:user_id>/end-subscription', methods=['POST'])
+@login_required
+def end_subscription(user_id):
+    _require_admin()
+    farmer = User.query.get_or_404(user_id)
+    if farmer.role != UserRole.FARMER:
+        flash('Can only end subscriptions for farmers.', 'error')
+        return redirect(url_for('admin.subscribers'))
+        
+    farmer.subscription_plan = SubscriptionPlan.FREE
+    farmer.subscription_end = None
+    db.session.commit()
+    flash(f"Ended subscription for {farmer.full_name}.", 'success')
+    return redirect(url_for('admin.subscribers'))

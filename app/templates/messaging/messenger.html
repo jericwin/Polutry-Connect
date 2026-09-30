@@ -213,6 +213,13 @@
     </div>
 
     <!-- Input area -->
+    {% if current_user.role.value == 'farmer' and not current_user.is_premium %}
+    <div class="msg-input-area" style="background:#fefce8; border-top:1px solid #fef08a; padding:1.5rem; justify-content:center; text-align:center;">
+        <span style="color:#854d0e; font-weight:600; font-size:0.95rem;">
+            Replying to messages is a PRO feature. <a href="{{ url_for('dashboard.subscription') }}" style="color:#a16207; text-decoration:underline;">Upgrade now</a> to chat.
+        </span>
+    </div>
+    {% else %}
     <div class="msg-input-area">
       <div class="msg-input-wrap">
         <textarea id="msgInput" placeholder="Type a message… (Enter to send)" rows="1" autocomplete="off"></textarea>
@@ -224,6 +231,7 @@
         </svg>
       </button>
     </div>
+    {% endif %}
 
     {% else %}
     <!-- No conversation selected -->

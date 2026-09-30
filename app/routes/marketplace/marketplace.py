@@ -676,8 +676,8 @@ def order_feedback(order_id):
     db.session.add(fb_deliv)
 
     db.session.commit()
-    flash('Thank you for your comprehensive feedback!', 'success')
-    return redirect(url_for('marketplace.order_detail', order_id=order_id))
+    flash('Thank you for your comprehensive feedback! Here is your receipt.', 'success')
+    return redirect(url_for('buyer.receipt', order_id=order_id))
 
 @marketplace_bp.route('/manage')
 @login_required
@@ -728,6 +728,12 @@ def manage():
 def manage_add():
     """Add a new product listing."""
     _require_farmer()
+    
+    if not current_user.is_premium:
+        current_product_count = Product.query.filter_by(farmer_id=current_user.id).count()
+        if current_product_count >= 10:
+            flash('Free tier is limited to 10 products. Please upgrade to Premium to add more.', 'error')
+            return redirect(url_for('dashboard.subscription'))
     farms = Farm.query.filter_by(
         farmer_id=current_user.id, is_active=True
     ).order_by(Farm.name).all()
@@ -999,6 +1005,10 @@ def farmer_orders():
 def farmer_feedback():
     """View buyer feedback on the farmer's orders."""
     _require_farmer()
+    
+    if not current_user.is_premium:
+        flash('Want to see what buyers are saying? Upgrade to Pro to read all your customer feedback.', 'error')
+        return redirect(url_for('dashboard.subscription'))
 
     search_category = request.args.get('category', '').strip().lower()
     search_sentiment = request.args.get('sentiment', '').strip().lower()

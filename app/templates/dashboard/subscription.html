@@ -1,0 +1,205 @@
+{% extends "dashboard_base.html" %}
+
+{% block title %}Subscription Plan — PoultryConnect{% endblock %}
+{% block page_title %}Subscription Plan{% endblock %}
+{% block breadcrumb %}PoultryConnect / Subscription{% endblock %}
+
+{% block content %}
+<div style="max-width: 1200px; margin: 0 auto; display: flex; flex-direction: column; gap: 3rem;">
+    
+    <!-- Header -->
+    <div style="text-align: center; max-width: 600px; margin: 0 auto; padding-top: 1rem;">
+        <h1 style="font-size: 2.5rem; font-family: var(--font-display); font-weight: 800; color: var(--on-surface); margin-bottom: 1rem; letter-spacing: -0.025em;">Grow your farm faster with Pro</h1>
+        <p style="font-size: 1.1rem; color: var(--on-surface-variant); line-height: 1.5;">Get the tools you need to track profits, reach more buyers, and manage your poultry business effortlessly.</p>
+    </div>
+
+    <!-- Alerts -->
+    {% if not current_user.is_premium and current_user.trial_end and current_user.trial_end > today %}
+    <div style="background: var(--surface-container); border-left: 4px solid var(--primary); padding: 1.5rem; border-radius: var(--radius-md); display: flex; gap: 1rem; align-items: center; box-shadow: 0 4px 12px rgba(0,0,0,0.05);">
+        <div style="color: var(--primary); background: rgba(0,0,0,0.05); padding: 0.75rem; border-radius: 50%;">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+        </div>
+        <div>
+            <div style="font-weight: 700; font-size: 1.1rem; color: var(--on-surface); margin-bottom: 0.25rem;">Active Free Trial</div>
+            <div style="font-size: 0.95rem; color: var(--on-surface-variant);">You have full access to all premium features until {{ current_user.trial_end.strftime('%B %d, %Y') }}. Make the most out of it!</div>
+        </div>
+    </div>
+    {% elif not current_user.is_premium %}
+    <div style="background: #fffbeb; border-left: 4px solid #f59e0b; padding: 1.5rem; border-radius: var(--radius-md); display: flex; gap: 1rem; align-items: center; box-shadow: 0 4px 12px rgba(0,0,0,0.05);">
+        <div style="color: #f59e0b; background: rgba(245,158,11,0.1); padding: 0.75rem; border-radius: 50%;">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+        </div>
+        <div>
+            <div style="font-weight: 700; font-size: 1.1rem; color: #92400e; margin-bottom: 0.25rem;">Your Free Trial has ended</div>
+            <div style="font-size: 0.95rem; color: #92400e; opacity: 0.8;">You're now on the Basic plan. To continue using advanced tools like direct messaging, PDF exports, and detailed analytics, please subscribe to a Pro plan.</div>
+        </div>
+    </div>
+    {% else %}
+    <div style="background: #f0fdf4; border-left: 4px solid #22c55e; padding: 1.5rem; border-radius: var(--radius-md); display: flex; gap: 1rem; align-items: center; box-shadow: 0 4px 12px rgba(0,0,0,0.05);">
+        <div style="color: #22c55e; background: rgba(34,197,94,0.1); padding: 0.75rem; border-radius: 50%;">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+        </div>
+        <div>
+            <div style="font-weight: 700; font-size: 1.1rem; color: #166534; margin-bottom: 0.25rem;">Premium Member</div>
+            <div style="font-size: 0.95rem; color: #166534; opacity: 0.8;">Thank you for subscribing! Your premium access is active{% if current_user.subscription_end %} until {{ current_user.subscription_end.strftime('%B %d, %Y') }}{% endif %}.</div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Pricing Cards Grid -->
+    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 2rem; align-items: stretch;">
+        
+        <!-- Basic Plan -->
+        <div style="background: white; border-radius: 24px; padding: 2.5rem; border: 1px solid var(--outline); box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); display: flex; flex-direction: column;">
+            <div style="margin-bottom: 2rem;">
+                <div style="font-weight: 700; font-size: 1.1rem; color: var(--on-surface-variant); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 1rem;">Basic</div>
+                <div style="font-size: 3rem; font-weight: 800; color: var(--on-surface); line-height: 1; font-family: var(--font-display);">₱0<span style="font-size: 1.25rem; color: var(--on-surface-variant); font-weight: 500;">/mo</span></div>
+                <p style="color: var(--on-surface-variant); margin-top: 1rem; font-size: 0.95rem;">For hobbyists and starting farmers.</p>
+            </div>
+            <div style="flex-grow: 1;">
+                <ul style="list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 1rem;">
+                    <li style="display: flex; gap: 0.75rem; color: var(--on-surface); font-size: 0.95rem;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: var(--primary); flex-shrink: 0;"><polyline points="20 6 9 17 4 12"></polyline></svg> Max 1 Registered Farm</li>
+                    <li style="display: flex; gap: 0.75rem; color: var(--on-surface); font-size: 0.95rem;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: var(--primary); flex-shrink: 0;"><polyline points="20 6 9 17 4 12"></polyline></svg> Max 10 Product Listings</li>
+                    <li style="display: flex; gap: 0.75rem; color: var(--on-surface); font-size: 0.95rem;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: var(--primary); flex-shrink: 0;"><polyline points="20 6 9 17 4 12"></polyline></svg> Read Buyer Messages</li>
+                    
+                    <div style="font-size: 0.75rem; font-weight: 700; color: var(--on-surface-variant); text-transform: uppercase; letter-spacing: 0.1em; margin: 1.5rem 0 0.5rem 0; border-bottom: 1px solid var(--outline); padding-bottom: 0.5rem;">Locked Features</div>
+                    
+                    <li style="display: flex; gap: 0.75rem; color: var(--on-surface-variant); font-size: 0.95rem;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: #ef4444; flex-shrink: 0;"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg> Cannot Reply to Messages</li>
+                    <li style="display: flex; gap: 0.75rem; color: var(--on-surface-variant); font-size: 0.95rem;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: #ef4444; flex-shrink: 0;"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg> No Advanced Analytics</li>
+                    <li style="display: flex; gap: 0.75rem; color: var(--on-surface-variant); font-size: 0.95rem;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: #ef4444; flex-shrink: 0;"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg> No Feed/Mortality Log</li>
+                </ul>
+            </div>
+            <div style="margin-top: 2rem;">
+                <button class="btn" style="width: 100%; background: var(--surface-container-high); color: var(--on-surface-variant); padding: 1rem; border-radius: 12px; font-weight: 700; border: none; cursor: not-allowed;" disabled>Current Plan</button>
+            </div>
+        </div>
+
+        <!-- Pro Monthly Plan (Recommended) -->
+        <div style="background: white; border-radius: 24px; padding: 2.5rem; border: 2px solid var(--primary); box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1); transform: scale(1.05); position: relative; z-index: 10; display: flex; flex-direction: column;">
+            <div style="position: absolute; top: -15px; left: 50%; transform: translateX(-50%); background: var(--primary); color: white; padding: 0.35rem 1.25rem; border-radius: 99px; font-size: 0.8rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">Recommended</div>
+            <div style="margin-bottom: 2rem;">
+                <div style="font-weight: 700; font-size: 1.1rem; color: var(--primary); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 1rem;">Pro Monthly</div>
+                <div style="font-size: 3rem; font-weight: 800; color: var(--on-surface); line-height: 1; font-family: var(--font-display);">₱299<span style="font-size: 1.25rem; color: var(--on-surface-variant); font-weight: 500;">/mo</span></div>
+                <p style="color: var(--on-surface-variant); margin-top: 1rem; font-size: 0.95rem;">Full suite of professional tools to scale your business.</p>
+            </div>
+            <div style="flex-grow: 1;">
+                <ul style="list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 1rem;">
+                    <li style="display: flex; gap: 0.75rem; color: var(--on-surface); font-size: 0.95rem;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: var(--primary); flex-shrink: 0;"><polyline points="20 6 9 17 4 12"></polyline></svg> <strong>Unlimited Farms</strong></li>
+                    <li style="display: flex; gap: 0.75rem; color: var(--on-surface); font-size: 0.95rem;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: var(--primary); flex-shrink: 0;"><polyline points="20 6 9 17 4 12"></polyline></svg> <strong>Unlimited Products</strong></li>
+                    <li style="display: flex; gap: 0.75rem; color: var(--on-surface); font-size: 0.95rem;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: var(--primary); flex-shrink: 0;"><polyline points="20 6 9 17 4 12"></polyline></svg> Reply to Buyers Directly</li>
+                    <li style="display: flex; gap: 0.75rem; color: var(--on-surface); font-size: 0.95rem;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: var(--primary); flex-shrink: 0;"><polyline points="20 6 9 17 4 12"></polyline></svg> Advanced Profit Analytics</li>
+                    <li style="display: flex; gap: 0.75rem; color: var(--on-surface); font-size: 0.95rem;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: var(--primary); flex-shrink: 0;"><polyline points="20 6 9 17 4 12"></polyline></svg> PDF & Excel Exporting</li>
+                    <li style="display: flex; gap: 0.75rem; color: var(--on-surface); font-size: 0.95rem;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: var(--primary); flex-shrink: 0;"><polyline points="20 6 9 17 4 12"></polyline></svg> Read Buyer Feedback</li>
+                </ul>
+            </div>
+            <div style="margin-top: 2rem;">
+                <form action="{{ url_for('dashboard.subscribe_plan', plan='monthly') }}" method="POST">
+                    <button type="submit" class="btn" style="width: 100%; background: var(--primary); color: white; padding: 1rem; border-radius: 12px; font-weight: 700; font-size: 1rem; border: none; cursor: pointer; box-shadow: 0 4px 12px rgba(0,0,0,0.15); transition: transform 0.2s;">Upgrade to Monthly</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Pro Yearly Plan -->
+        <div style="background: white; border-radius: 24px; padding: 2.5rem; border: 1px solid var(--outline); box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); display: flex; flex-direction: column;">
+            <div style="margin-bottom: 2rem;">
+                <div style="font-weight: 700; font-size: 1.1rem; color: var(--primary); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 1rem;">Pro Yearly</div>
+                <div style="font-size: 3rem; font-weight: 800; color: var(--on-surface); line-height: 1; font-family: var(--font-display);">₱2,990<span style="font-size: 1.25rem; color: var(--on-surface-variant); font-weight: 500;">/yr</span></div>
+                <p style="color: var(--on-surface-variant); margin-top: 1rem; font-size: 0.95rem;">Best value. Save 16% annually (2 Months FREE).</p>
+            </div>
+            <div style="flex-grow: 1;">
+                <ul style="list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 1rem;">
+                    <li style="display: flex; gap: 0.75rem; color: var(--on-surface); font-size: 0.95rem;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: var(--primary); flex-shrink: 0;"><polyline points="20 6 9 17 4 12"></polyline></svg> All <strong>Pro Monthly</strong> features</li>
+                    <li style="display: flex; gap: 0.75rem; color: var(--on-surface); font-size: 0.95rem;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: var(--primary); flex-shrink: 0;"><polyline points="20 6 9 17 4 12"></polyline></svg> <strong>Save ₱598 per year</strong></li>
+                    <li style="display: flex; gap: 0.75rem; color: var(--on-surface); font-size: 0.95rem;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: var(--primary); flex-shrink: 0;"><polyline points="20 6 9 17 4 12"></polyline></svg> Premium Search Placement</li>
+                    <li style="display: flex; gap: 0.75rem; color: var(--on-surface); font-size: 0.95rem;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: var(--primary); flex-shrink: 0;"><polyline points="20 6 9 17 4 12"></polyline></svg> Dedicated Priority Support</li>
+                </ul>
+            </div>
+            <div style="margin-top: 2rem;">
+                <form action="{{ url_for('dashboard.subscribe_plan', plan='yearly') }}" method="POST">
+                    <button type="submit" class="btn" style="width: 100%; background: transparent; color: var(--primary); padding: 1rem; border-radius: 12px; font-weight: 700; font-size: 1rem; border: 2px solid var(--primary); cursor: pointer; transition: background 0.2s;">Upgrade to Yearly</button>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Detailed Feature Comparison Table -->
+    <div style="background: white; border-radius: 24px; padding: 3rem; box-shadow: 0 4px 12px rgba(0,0,0,0.03); border: 1px solid var(--outline); margin-top: 2rem;">
+        <h2 style="text-align: center; font-size: 2rem; font-family: var(--font-display); font-weight: 800; color: var(--on-surface); margin-bottom: 2.5rem;">Detailed Feature Comparison</h2>
+        <div style="overflow-x: auto;">
+            <table style="width: 100%; border-collapse: collapse; text-align: center; font-size: 0.95rem;">
+                <thead>
+                    <tr>
+                        <th style="text-align: left; padding: 1.5rem 1rem; font-size: 1.25rem; color: var(--on-surface); border-bottom: 2px solid var(--outline); width: 40%;">Features</th>
+                        <th style="padding: 1.5rem 1rem; font-size: 1.25rem; color: var(--on-surface); border-bottom: 2px solid var(--outline);">Basic <br><span style="font-weight: 400; font-size: 0.85rem; color: var(--on-surface-variant);">₱0/mo</span></th>
+                        <th style="padding: 1.5rem 1rem; font-size: 1.25rem; color: var(--primary); border-bottom: 2px solid var(--primary); background: var(--surface-container-low); border-radius: 12px 12px 0 0;">Pro <br><span style="font-weight: 500; font-size: 0.85rem;">₱299/mo or ₱2,990/yr</span></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr style="background: var(--surface-container);"><td colspan="3" style="text-align: left; font-weight: 700; color: var(--on-surface); font-size: 1rem; padding: 1rem; text-transform: uppercase; letter-spacing: 0.05em;">Farm & Listing Management</td></tr>
+                    <tr>
+                        <td style="text-align: left; padding: 1.25rem 1rem; border-bottom: 1px solid var(--outline); font-weight: 500; color: var(--on-surface-variant);">Registered Farms</td>
+                        <td style="padding: 1.25rem 1rem; border-bottom: 1px solid var(--outline); color: var(--on-surface-variant);">Limit 1</td>
+                        <td style="background: var(--surface-container-low); font-weight: 700; color: var(--primary); padding: 1.25rem 1rem; border-bottom: 1px solid var(--outline);">Unlimited</td>
+                    </tr>
+                    <tr>
+                        <td style="text-align: left; padding: 1.25rem 1rem; border-bottom: 1px solid var(--outline); font-weight: 500; color: var(--on-surface-variant);">Marketplace Product Listings</td>
+                        <td style="padding: 1.25rem 1rem; border-bottom: 1px solid var(--outline); color: var(--on-surface-variant);">Limit 10</td>
+                        <td style="background: var(--surface-container-low); font-weight: 700; color: var(--primary); padding: 1.25rem 1rem; border-bottom: 1px solid var(--outline);">Unlimited</td>
+                    </tr>
+                    <tr>
+                        <td style="text-align: left; padding: 1.25rem 1rem; border-bottom: 1px solid var(--outline); font-weight: 500; color: var(--on-surface-variant);">Marketplace Visibility</td>
+                        <td style="padding: 1.25rem 1rem; border-bottom: 1px solid var(--outline); color: var(--on-surface-variant);">Standard</td>
+                        <td style="background: var(--surface-container-low); font-weight: 700; color: var(--primary); padding: 1.25rem 1rem; border-bottom: 1px solid var(--outline);">Priority Search Placement</td>
+                    </tr>
+
+                    <tr style="background: var(--surface-container);"><td colspan="3" style="text-align: left; font-weight: 700; color: var(--on-surface); font-size: 1rem; padding: 1rem; text-transform: uppercase; letter-spacing: 0.05em;">Communication</td></tr>
+                    <tr>
+                        <td style="text-align: left; padding: 1.25rem 1rem; border-bottom: 1px solid var(--outline); font-weight: 500; color: var(--on-surface-variant);">Read Buyer Messages</td>
+                        <td style="padding: 1.25rem 1rem; border-bottom: 1px solid var(--outline);"><svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="3" style="color: var(--primary);"><polyline points="20 6 9 17 4 12"></polyline></svg></td>
+                        <td style="background: var(--surface-container-low); padding: 1.25rem 1rem; border-bottom: 1px solid var(--outline);"><svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="3" style="color: var(--primary);"><polyline points="20 6 9 17 4 12"></polyline></svg></td>
+                    </tr>
+                    <tr>
+                        <td style="text-align: left; padding: 1.25rem 1rem; border-bottom: 1px solid var(--outline); font-weight: 500; color: var(--on-surface-variant);">Reply to Buyer Messages</td>
+                        <td style="padding: 1.25rem 1rem; border-bottom: 1px solid var(--outline);"><svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="3" style="color: var(--outline);"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></td>
+                        <td style="background: var(--surface-container-low); padding: 1.25rem 1rem; border-bottom: 1px solid var(--outline);"><svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="3" style="color: var(--primary);"><polyline points="20 6 9 17 4 12"></polyline></svg></td>
+                    </tr>
+                    <tr>
+                        <td style="text-align: left; padding: 1.25rem 1rem; border-bottom: 1px solid var(--outline); font-weight: 500; color: var(--on-surface-variant);">View Notifications & Buyer Feedback</td>
+                        <td style="padding: 1.25rem 1rem; border-bottom: 1px solid var(--outline);"><svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="3" style="color: var(--outline);"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></td>
+                        <td style="background: var(--surface-container-low); padding: 1.25rem 1rem; border-bottom: 1px solid var(--outline);"><svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="3" style="color: var(--primary);"><polyline points="20 6 9 17 4 12"></polyline></svg></td>
+                    </tr>
+
+                    <tr style="background: var(--surface-container);"><td colspan="3" style="text-align: left; font-weight: 700; color: var(--on-surface); font-size: 1rem; padding: 1rem; text-transform: uppercase; letter-spacing: 0.05em;">Data Logging & Export</td></tr>
+                    <tr>
+                        <td style="text-align: left; padding: 1.25rem 1rem; border-bottom: 1px solid var(--outline); font-weight: 500; color: var(--on-surface-variant);">Egg Production & Sales Log</td>
+                        <td style="padding: 1.25rem 1rem; border-bottom: 1px solid var(--outline);"><svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="3" style="color: var(--primary);"><polyline points="20 6 9 17 4 12"></polyline></svg></td>
+                        <td style="background: var(--surface-container-low); padding: 1.25rem 1rem; border-bottom: 1px solid var(--outline);"><svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="3" style="color: var(--primary);"><polyline points="20 6 9 17 4 12"></polyline></svg></td>
+                    </tr>
+                    <tr>
+                        <td style="text-align: left; padding: 1.25rem 1rem; border-bottom: 1px solid var(--outline); font-weight: 500; color: var(--on-surface-variant);">Mortality / Flock History Log</td>
+                        <td style="padding: 1.25rem 1rem; border-bottom: 1px solid var(--outline);"><svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="3" style="color: var(--outline);"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></td>
+                        <td style="background: var(--surface-container-low); padding: 1.25rem 1rem; border-bottom: 1px solid var(--outline);"><svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="3" style="color: var(--primary);"><polyline points="20 6 9 17 4 12"></polyline></svg></td>
+                    </tr>
+                    <tr>
+                        <td style="text-align: left; padding: 1.25rem 1rem; border-bottom: 1px solid var(--outline); font-weight: 500; color: var(--on-surface-variant);">Feed Consumption Tracking</td>
+                        <td style="padding: 1.25rem 1rem; border-bottom: 1px solid var(--outline);"><svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="3" style="color: var(--outline);"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></td>
+                        <td style="background: var(--surface-container-low); padding: 1.25rem 1rem; border-bottom: 1px solid var(--outline);"><svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="3" style="color: var(--primary);"><polyline points="20 6 9 17 4 12"></polyline></svg></td>
+                    </tr>
+                    <tr>
+                        <td style="text-align: left; padding: 1.25rem 1rem; border-bottom: 1px solid var(--outline); font-weight: 500; color: var(--on-surface-variant);">PDF & Excel Data Exports</td>
+                        <td style="padding: 1.25rem 1rem; border-bottom: 1px solid var(--outline);"><svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="3" style="color: var(--outline);"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></td>
+                        <td style="background: var(--surface-container-low); padding: 1.25rem 1rem; border-bottom: 1px solid var(--outline);"><svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="3" style="color: var(--primary);"><polyline points="20 6 9 17 4 12"></polyline></svg></td>
+                    </tr>
+
+                    <tr style="background: var(--surface-container);"><td colspan="3" style="text-align: left; font-weight: 700; color: var(--on-surface); font-size: 1rem; padding: 1rem; text-transform: uppercase; letter-spacing: 0.05em;">Analytics</td></tr>
+                    <tr>
+                        <td style="text-align: left; padding: 1.25rem 1rem; border-bottom: 1px solid var(--outline); font-weight: 500; color: var(--on-surface-variant);">Advanced Profit & Loss Dashboard</td>
+                        <td style="padding: 1.25rem 1rem; border-bottom: 1px solid var(--outline);"><svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="3" style="color: var(--outline);"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></td>
+                        <td style="background: var(--surface-container-low); padding: 1.25rem 1rem; border-bottom: 1px solid var(--outline);"><svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="3" style="color: var(--primary);"><polyline points="20 6 9 17 4 12"></polyline></svg></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

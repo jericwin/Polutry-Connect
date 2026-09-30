@@ -253,6 +253,11 @@ def contacts():
 @messaging_bp.route('/start', methods=['GET', 'POST'])
 @login_required
 def start():
+    if current_user.role == UserRole.FARMER and not current_user.is_premium:
+        flash('Premium required to start conversations.', 'error')
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return jsonify({'ok': False, 'error': 'Premium required.'}), 403
+        return redirect(url_for('dashboard.subscription'))
     participant_id = request.values.get('participant_id', type=int)
     if not participant_id:
         flash('Invalid contact.', 'error')
@@ -342,6 +347,9 @@ def get_messages(conv_id):
 @messaging_bp.route('/conversation/<int:conv_id>/send', methods=['POST'])
 @login_required
 def send_message(conv_id):
+    if current_user.role == UserRole.FARMER and not current_user.is_premium:
+        from flask import jsonify
+        return jsonify({'error': 'Premium required to send messages.'}), 403
     conv = _get_conv_or_404(conv_id)
     uid = current_user.id
     body = (request.form.get('body') or request.json.get('body', '') if request.is_json else request.form.get('body', '')).strip()

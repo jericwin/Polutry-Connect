@@ -42,6 +42,10 @@ def check_farmer_verification():
         if not current_user.verification or current_user.verification.status != VerificationStatus.APPROVED:
             flash('Your account is pending verification. Please wait for an administrator to approve your account before accessing analytics.', 'warning')
             return redirect(url_for('dashboard.farmer'))
+            
+        if not current_user.is_premium:
+            flash('Your free trial has ended. Please upgrade to Pro to continue using advanced analytics.', 'error')
+            return redirect(url_for('dashboard.subscription'))
 
 # Target gross margin for the recommendation engine (20%)
 RECOMMENDED_MARGIN = Decimal('0.20')
@@ -588,7 +592,7 @@ def index():
 def sales_report():
     """Generate Excel or PDF-printable HTML report for Sales."""
     _require_farmer()
-    farms = _get_my_farms()
+    farms = Farm.query.filter_by(farmer_id=current_user.id, is_active=True).all()
     farm_ids = [f.id for f in farms]
     if not farm_ids:
         flash('You have no registered farms.', 'error')
@@ -703,7 +707,7 @@ def expenses_report():
     """Generate Excel or PDF-printable HTML report for Expenses."""
     from app.models import Expense
     _require_farmer()
-    farms = _get_my_farms()
+    farms = Farm.query.filter_by(farmer_id=current_user.id, is_active=True).all()
     farm_ids = [f.id for f in farms]
     if not farm_ids:
         flash('You have no registered farms.', 'error')
@@ -793,20 +797,12 @@ def expenses_report():
             mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
         )
 
-    # Otherwise render PDF
-    html_out = render_template(
+    # Otherwise render HTML for printing to PDF
+    return render_template(
         'analytics/expenses_report_pdf.html',
         expenses=expenses,
         total_amount=total_amount,
         start_date=start_date,
         end_date=end_date,
-        report_date=datetime.utcnow()
-    )
-
-    pdf_file = _generate_pdf(html_out)
-    return send_file(
-        pdf_file,
-        as_attachment=False,
-        download_name=f"Expenses_Report_{datetime.utcnow().strftime('%Y%m%d')}.pdf",
-        mimetype='application/pdf'
+        today=datetime.now()
     )

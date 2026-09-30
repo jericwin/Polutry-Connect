@@ -13,7 +13,7 @@ Good practices applied:
 """
 
 import enum
-from datetime import datetime
+from datetime import datetime, timedelta
 from app import db, login
 from flask import current_app
 from flask_login import UserMixin
@@ -80,6 +80,11 @@ class ModerationStatus(str, enum.Enum):
     FLAGGED  = 'flagged'
     REJECTED = 'rejected'
 
+class SubscriptionPlan(str, enum.Enum):
+    FREE = 'free'
+    MONTHLY = 'monthly'
+    YEARLY = 'yearly'
+
 
 # â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 # TABLE 1: users
@@ -112,6 +117,9 @@ class User(UserMixin, db.Model):
     last_seen     = db.Column(db.DateTime, nullable=True)
     created_at    = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
     updated_at    = db.Column(db.DateTime, nullable=False, default=datetime.utcnow, onupdate=datetime.utcnow)
+    subscription_plan = db.Column(db.Enum(SubscriptionPlan, values_callable=lambda enum_cls: [e.value for e in enum_cls]), nullable=False, default=SubscriptionPlan.FREE)
+    subscription_end = db.Column(db.DateTime, nullable=True)
+    trial_end     = db.Column(db.DateTime, nullable=True, default=lambda: datetime.utcnow() + timedelta(days=7))
 
     # Relationships
     farms              = db.relationship('Farm', backref='owner', lazy='dynamic',
@@ -145,6 +153,21 @@ class User(UserMixin, db.Model):
         if self.first_name and self.last_name:
             return f'{self.first_name} {self.last_name}'
         return self.username
+
+    @property
+    def is_premium(self) -> bool:
+        if self.role != UserRole.FARMER:
+            return True
+            
+        now = datetime.utcnow()
+        if self.subscription_plan in [SubscriptionPlan.MONTHLY, SubscriptionPlan.YEARLY]:
+            if self.subscription_end and self.subscription_end > now:
+                return True
+                
+        if self.trial_end and self.trial_end > now:
+            return True
+            
+        return False
 
     def __repr__(self):
         return f'<User {self.username} [{self.role.value}]>'

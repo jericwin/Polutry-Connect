@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Order Receipt - #{{ order.id }}</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Courier+Prime:wght@400;700&display=swap');
+        
+        body {
+            background-color: #e2e8f0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            font-family: 'Courier Prime', monospace;
+            padding: 2rem;
+        }
+
+        .receipt-container {
+            position: relative;
+            background: #fff;
+            width: 320px;
+            padding: 2rem 1.5rem;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            color: #1e293b;
+        }
+
+        /* Jagged edges for receipt */
+        .receipt-container::before,
+        .receipt-container::after {
+            content: "";
+            position: absolute;
+            left: 0;
+            right: 0;
+            height: 8px;
+            background-size: 16px 16px;
+        }
+
+        .receipt-container::before {
+            top: -8px;
+            background-image: radial-gradient(circle at 8px 0, transparent 8px, #fff 9px);
+        }
+
+        .receipt-container::after {
+            bottom: -8px;
+            background-image: radial-gradient(circle at 8px 16px, transparent 8px, #fff 9px);
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .header h1 {
+            font-size: 1.5rem;
+            margin: 0 0 0.5rem 0;
+            font-weight: 700;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        .header p {
+            margin: 0.25rem 0;
+            font-size: 0.85rem;
+            color: #475569;
+        }
+
+        .divider {
+            border-bottom: 1px dashed #94a3b8;
+            margin: 1rem 0;
+        }
+        
+        .receipt-title {
+            text-align: center;
+            font-weight: 700;
+            font-size: 1.1rem;
+            margin: 1rem 0;
+            letter-spacing: 2px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9rem;
+            margin-bottom: 1rem;
+        }
+
+        th {
+            text-align: left;
+            font-weight: 700;
+            border-bottom: 1px dashed #94a3b8;
+            padding-bottom: 0.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        th.price {
+            text-align: right;
+        }
+
+        td {
+            padding: 0.25rem 0;
+            vertical-align: top;
+        }
+        
+        td.price {
+            text-align: right;
+        }
+
+        .totals {
+            margin-top: 1rem;
+        }
+
+        .totals-row {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.9rem;
+            margin-bottom: 0.25rem;
+        }
+
+        .totals-row.grand-total {
+            font-size: 1.25rem;
+            font-weight: 700;
+            margin-top: 0.5rem;
+            padding-top: 0.5rem;
+            border-top: 1px dashed #94a3b8;
+        }
+
+        .footer {
+            text-align: center;
+            margin-top: 2rem;
+            font-size: 0.85rem;
+        }
+        
+        .barcode-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-top: 1.5rem;
+        }
+        
+        /* CSS implementation of barcode look-alike */
+        .barcode {
+            height: 40px;
+            width: 80%;
+            background: 
+                linear-gradient(to right, 
+                    #1e293b 0%, #1e293b 4%, transparent 4%, transparent 6%,
+                    #1e293b 6%, #1e293b 8%, transparent 8%, transparent 12%,
+                    #1e293b 12%, #1e293b 18%, transparent 18%, transparent 20%,
+                    #1e293b 20%, #1e293b 22%, transparent 22%, transparent 26%,
+                    #1e293b 26%, #1e293b 30%, transparent 30%, transparent 32%,
+                    #1e293b 32%, #1e293b 34%, transparent 34%, transparent 38%,
+                    #1e293b 38%, #1e293b 42%, transparent 42%, transparent 46%,
+                    #1e293b 46%, #1e293b 50%, transparent 50%, transparent 54%,
+                    #1e293b 54%, #1e293b 58%, transparent 58%, transparent 62%,
+                    #1e293b 62%, #1e293b 64%, transparent 64%, transparent 66%,
+                    #1e293b 66%, #1e293b 70%, transparent 70%, transparent 72%,
+                    #1e293b 72%, #1e293b 76%, transparent 76%, transparent 80%,
+                    #1e293b 80%, #1e293b 82%, transparent 82%, transparent 84%,
+                    #1e293b 84%, #1e293b 88%, transparent 88%, transparent 92%,
+                    #1e293b 92%, #1e293b 96%, transparent 96%, transparent 100%
+                );
+            margin-bottom: 0.5rem;
+        }
+
+        .actions {
+            margin-top: 2rem;
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+        }
+
+        .btn {
+            background: #1e293b;
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            font-family: 'Courier Prime', monospace;
+            font-weight: 700;
+            border-radius: 4px;
+            cursor: pointer;
+            text-decoration: none;
+            font-size: 0.9rem;
+        }
+
+        .btn:hover {
+            background: #334155;
+        }
+        
+        .btn-outline {
+            background: transparent;
+            color: #1e293b;
+            border: 1px solid #1e293b;
+        }
+
+        @media print {
+            body {
+                background: white;
+                padding: 0;
+            }
+            .receipt-container {
+                box-shadow: none;
+                padding: 0;
+            }
+            .actions {
+                display: none;
+            }
+            .receipt-container::before,
+            .receipt-container::after {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div>
+        <div class="receipt-container" id="receipt">
+            <div class="header">
+                <h1>POULTRYCONNECT</h1>
+                <p>Order Reference: #{{ order.id }}</p>
+                <p>Date: {{ order.created_at.strftime('%Y-%m-%d %H:%M:%S') }}</p>
+                {% if order.items|length > 0 %}
+                    <p>Farm: {{ order.items[0].product.farmer.full_name }}</p>
+                {% endif %}
+            </div>
+
+            <div class="divider"></div>
+            
+            <div class="receipt-title">ORDER RECEIPT</div>
+            
+            <div class="divider"></div>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>Item</th>
+                        <th>Qty</th>
+                        <th class="price">Price</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in order.items %}
+                    <tr>
+                        <td>
+                            {{ item.product.product_name }}<br>
+                            <small>{{ item.product.variety.value|title }} ({{ item.product.size.value|title }})</small>
+                        </td>
+                        <td>x{{ item.quantity }}</td>
+                        <td class="price">₱{{ "{:,.2f}".format(item.subtotal) }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+
+            <div class="totals">
+                <div class="totals-row">
+                    <span>Subtotal</span>
+                    <span>₱{{ "{:,.2f}".format(order.total_amount) }}</span>
+                </div>
+                <div class="totals-row">
+                    <span>Tax (0%)</span>
+                    <span>₱0.00</span>
+                </div>
+                <div class="totals-row grand-total">
+                    <span>Total</span>
+                    <span>₱{{ "{:,.2f}".format(order.total_amount) }}</span>
+                </div>
+                <div class="totals-row" style="margin-top: 0.5rem; color: #475569;">
+                    <span>Payment Method</span>
+                    <span>{{ order.payment_method.value|title if order.payment_method else 'Cash' }}</span>
+                </div>
+                <div class="totals-row" style="color: #475569;">
+                    <span>Status</span>
+                    <span>{{ order.status.value|title }}</span>
+                </div>
+            </div>
+
+            <div class="divider"></div>
+
+            <div class="footer">
+                <strong>THANK YOU!</strong><br>
+                Please come again.
+                
+                <div class="barcode-container">
+                    <div class="barcode"></div>
+                    <div>{{ order.id | string | padLeft(8, '0') if filter else '%08d' % order.id }}</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="actions">
+            <a href="{{ url_for('marketplace.order_detail', order_id=order.id) }}" class="btn btn-outline">Back to Order Details</a>
+            <button onclick="window.print()" class="btn">Download / Print</button>
+        </div>
+    </div>
+
+</body>
+</html>

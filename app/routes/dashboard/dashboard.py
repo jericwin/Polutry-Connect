@@ -351,6 +351,10 @@ def farmer():
 @dashboard_bp.route('/notifications', methods=['GET', 'POST'])
 @login_required
 def notifications():
+    if current_user.role == UserRole.FARMER and not current_user.is_premium:
+        from flask import flash, redirect, url_for
+        flash('Notifications are a Premium feature. Please upgrade your subscription to view them.', 'error')
+        return redirect(url_for('dashboard.subscription'))
     from app.models import Notification
     from app import db
     
@@ -381,3 +385,31 @@ def notifications():
                 
     return render_template('dashboard/notifications.html', title='Notifications', notifications=notifs)
 
+@dashboard_bp.route('/subscription')
+@login_required
+def subscription():
+    if current_user.role != UserRole.FARMER:
+        return redirect(url_for('main.index'))
+    return render_template('dashboard/subscription.html', title='Subscription', today=datetime.utcnow())
+
+@dashboard_bp.route('/subscribe/<plan>', methods=['POST'])
+@login_required
+def subscribe_plan(plan):
+    if current_user.role != UserRole.FARMER:
+        return redirect(url_for('main.index'))
+    
+    from app.models import SubscriptionPlan
+    
+    if plan == 'monthly':
+        current_user.subscription_plan = SubscriptionPlan.MONTHLY
+        current_user.subscription_end = datetime.utcnow() + timedelta(days=30)
+        flash('Successfully subscribed to Pro Monthly!', 'success')
+    elif plan == 'yearly':
+        current_user.subscription_plan = SubscriptionPlan.YEARLY
+        current_user.subscription_end = datetime.utcnow() + timedelta(days=365)
+        flash('Successfully subscribed to Pro Yearly!', 'success')
+    else:
+        flash('Invalid plan selected.', 'error')
+        
+    db.session.commit()
+    return redirect(url_for('dashboard.subscription'))

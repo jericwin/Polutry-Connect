@@ -44,6 +44,17 @@ def _require_farmer():
     if current_user.role != UserRole.FARMER:
         abort(403)
 
+def _require_premium():
+    """Redirect to subscription if not premium."""
+    if not current_user.is_premium:
+        flash('This feature is exclusive to Pro members. Upgrade your account to unlock it.', 'error')
+        # We raise a custom exception or abort to handle redirect in a clean way if not returning.
+        # But wait, flask abort(403) is easier, or we can just return a redirect.
+        # A helper that returns a redirect means the caller has to check and return it.
+        # So we can't just call _require_premium() without handling the return.
+        # Let's just do it directly or use before_request.
+
+
 
 def _get_own_farm_or_404(farm_id: int) -> Farm:
     """
@@ -109,6 +120,13 @@ def farms():
 def farm_add():
     """Register a new farm."""
     _require_farmer()
+    
+    if not current_user.is_premium:
+        current_farm_count = Farm.query.filter_by(farmer_id=current_user.id).count()
+        if current_farm_count >= 1:
+            flash('Free tier is limited to 1 farm. Please upgrade to Premium to add more farms.', 'error')
+            return redirect(url_for('dashboard.subscription'))
+
 
     if request.method == 'POST':
         name        = request.form.get('name', '').strip()
@@ -859,6 +877,9 @@ def onsite_sales_add():
 def feed():
     """View all feed records."""
     _require_farmer()
+    if not current_user.is_premium:
+        flash('Tracking feed consumption is a Pro feature. Upgrade your account to unlock this tool.', 'error')
+        return redirect(url_for('dashboard.subscription'))
     farms = _get_my_farms()
     farm_ids = [f.id for f in farms]
     farm_map = {f.id: f.name for f in farms}
@@ -899,6 +920,9 @@ def feed():
 def feed_add():
     """Add a feed record."""
     _require_farmer()
+    if not current_user.is_premium:
+        flash('Tracking feed consumption is a Pro feature. Upgrade your account to unlock this tool.', 'error')
+        return redirect(url_for('dashboard.subscription'))
     farms = _get_my_farms()
     farm_ids = [f.id for f in farms]
 
@@ -939,6 +963,9 @@ def feed_add():
 def mortality():
     """View all flock history/mortality records."""
     _require_farmer()
+    if not current_user.is_premium:
+        flash('Mortality tracking is a Pro feature. Upgrade your account to unlock this tool.', 'error')
+        return redirect(url_for('dashboard.subscription'))
     farms = _get_my_farms()
     farm_ids = [f.id for f in farms]
     farm_map = {f.id: f.name for f in farms}
@@ -979,6 +1006,9 @@ def mortality():
 def mortality_add():
     """Add a flock history record."""
     _require_farmer()
+    if not current_user.is_premium:
+        flash('Mortality tracking is a Pro feature. Upgrade your account to unlock this tool.', 'error')
+        return redirect(url_for('dashboard.subscription'))
     farms = _get_my_farms()
     farm_ids = [f.id for f in farms]
 

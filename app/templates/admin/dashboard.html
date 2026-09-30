@@ -6,24 +6,23 @@
 {% block content %}
 <div style="display: flex; flex-direction: column; gap: 2rem;">
 
-  <!-- Insights Section -->
-  <div>
-    <h2 style="font-family: var(--font-display); font-size: 1.05rem; font-weight: 700; margin-bottom: 1rem; color: var(--on-surface-variant); text-transform: uppercase; letter-spacing: 0.05em;">Decision Insights</h2>
-    <div style="display: flex; flex-direction: column; gap: 0.75rem;">
-      {% for insight in insights %}
-      <div style="background: white; border-left: 4px solid var(--admin-{{ insight.type }}); border-radius: var(--radius-md); padding: 1.25rem 1.5rem; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 2px 8px rgba(0,0,0,0.03);">
-        <div>
-          <div style="font-weight: 700; font-size: 1.05rem; color: var(--on-surface); margin-bottom: 0.25rem;">{{ insight.title }}</div>
-          <div style="font-size: 0.9rem; color: var(--on-surface-variant);">{{ insight.desc }}</div>
-        </div>
-        {% if insight.action_url != '#' %}
-        <a href="{{ insight.action_url }}" class="btn btn-sm" style="background: var(--admin-{{ insight.type }}-light); color: var(--admin-{{ insight.type }}); border: 1.5px solid var(--admin-{{ insight.type }}); flex-shrink: 0;">
-          {{ insight.action_text }} →
-        </a>
-        {% endif %}
+  <!-- Header & Filters -->
+  <div style="display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: 1rem;">
+      <div class="header-text">
+          <h2 style="font-size: 2rem; color: var(--on-surface); margin-bottom: 0.5rem; letter-spacing: -0.025em; font-family: var(--font-display);">Welcome back, Admin! 👋</h2>
+          <p style="color: var(--on-surface-variant); font-size: 1.05rem; margin: 0;">Here's what's happening with your platform today.</p>
       </div>
-      {% endfor %}
-    </div>
+      <div>
+          <form method="GET" action="{{ url_for('admin.index') }}" style="display: flex; gap: 0.75rem; align-items: center; background: white; padding: 0.5rem 1rem; border-radius: 99px; border: 1px solid var(--outline); box-shadow: 0 1px 3px rgba(0,0,0,0.02);">
+              <label for="filter" style="font-size: 0.85rem; font-weight: 700; color: var(--on-surface-variant); margin: 0;">Timeframe:</label>
+              <select name="filter" id="filter" class="form-control" style="border: none; background: transparent; font-size: 0.9rem; font-weight: 600; color: var(--on-surface); padding-right: 1.5rem; outline: none; cursor: pointer;" onchange="this.form.submit()">
+                  <option value="all" {% if date_filter == 'all' %}selected{% endif %}>All Time</option>
+                  <option value="today" {% if date_filter == 'today' %}selected{% endif %}>Today</option>
+                  <option value="week" {% if date_filter == 'week' %}selected{% endif %}>Last 7 Days</option>
+                  <option value="month" {% if date_filter == 'month' %}selected{% endif %}>Last 30 Days</option>
+              </select>
+          </form>
+      </div>
   </div>
 
   <!-- Key Metrics -->
@@ -31,7 +30,7 @@
     <h2 style="font-family: var(--font-display); font-size: 1.05rem; font-weight: 700; margin-bottom: 1rem; color: var(--on-surface-variant); text-transform: uppercase; letter-spacing: 0.05em;">Key Metrics</h2>
     <div class="stat-grid">
       <div class="stat-card">
-        <div class="stat-card__icon" style="background: var(--admin-accent-light); color: var(--admin-accent);">
+        <div class="stat-card__icon" style="background: var(--admin-info-light); color: var(--admin-info);">
           <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg>
         </div>
         <div class="stat-card__value">{{ total_users }}</div>
@@ -39,7 +38,7 @@
       </div>
       
       <div class="stat-card">
-        <div class="stat-card__icon" style="background: var(--admin-accent-light); color: var(--admin-accent);">
+        <div class="stat-card__icon" style="background: var(--admin-info-light); color: var(--admin-info);">
           <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 22l5-5m10 5l5-5M12 2l-2.5 10-5 2.5 5 2.5L12 22l2.5-5 5-2.5-5-2.5z"/></svg>
         </div>
         <div class="stat-card__value">{{ total_farmers }}</div>
@@ -61,48 +60,108 @@
         <div class="stat-card__value">{{ pending_verifications }}</div>
         <div class="stat-card__label">Pending Farmers</div>
       </div>
-
     </div>
   </div>
 
-  <!-- Analytics Charts -->
+  <!-- Revenue & Subscriptions -->
   <div>
-    <h2 style="font-family: var(--font-display); font-size: 1.05rem; font-weight: 700; margin-bottom: 1rem; color: var(--on-surface-variant); text-transform: uppercase; letter-spacing: 0.05em;">Analytics & Trends</h2>
-    <div style="display: grid; grid-template-columns: 1fr; gap: 1.5rem; flex-wrap: wrap;">
-      
-      <!-- Line Chart -->
-      <div class="content-card">
-        <h3 style="font-family: var(--font-display); font-size: 1rem; font-weight: 700; margin-bottom: 1rem;">Farmer Registration Trend (Last 30 Days)</h3>
-        <div style="height: 250px; width: 100%;">
-          <canvas id="regChart"></canvas>
+    <h2 style="font-family: var(--font-display); font-size: 1.05rem; font-weight: 700; margin-bottom: 1rem; color: var(--on-surface-variant); text-transform: uppercase; letter-spacing: 0.05em;">Revenue & Subscriptions</h2>
+    <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 1rem;">
+      <!-- Main Revenue Card -->
+      <div class="stat-card" style="background: linear-gradient(135deg, var(--admin-success), #15803d); color: white; border: none;">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; height: 100%;">
+            <div>
+                <div style="font-size: 0.85rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; opacity: 0.9; margin-bottom: 0.5rem;">Estimated MRR</div>
+                <div style="font-size: 2.5rem; font-weight: 800; font-family: var(--font-display); line-height: 1.1; margin-bottom: 0.5rem;">₱{{ "{:,.2f}".format(total_revenue) }}</div>
+                <div style="font-size: 0.9rem; opacity: 0.8;">Total projected revenue from all active subscriptions.</div>
+            </div>
+            <div style="background: rgba(255,255,255,0.2); padding: 1rem; border-radius: 1rem;">
+                <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 15h8a4 4 0 0 0 0-8H7v14"></path><path d="M5 11h11"></path><path d="M5 15h11"></path></svg>
+            </div>
         </div>
       </div>
 
+      <!-- Active Subscribers Card -->
+      <div class="stat-card">
+        <div class="stat-card__icon" style="background: var(--admin-success-light); color: var(--admin-success);">
+          <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+        </div>
+        <div class="stat-card__value">{{ monthly_subs + yearly_subs }}</div>
+        <div class="stat-card__label">Active Pro Subscribers</div>
+        <div style="display: flex; gap: 0.5rem; margin-top: 0.75rem;">
+            <span class="badge" style="background: var(--surface-container-high); color: var(--on-surface-variant);">{{ monthly_subs }} Monthly</span>
+            <span class="badge" style="background: var(--admin-success-light); color: var(--admin-success);">{{ yearly_subs }} Yearly</span>
+        </div>
+      </div>
     </div>
   </div>
 
-  <!-- Recent Activity -->
-  <div>
-    <h2 style="font-family: var(--font-display); font-size: 1.05rem; font-weight: 700; margin-bottom: 1rem; color: var(--on-surface-variant); text-transform: uppercase; letter-spacing: 0.05em;">Recent Activity</h2>
-    <div style="display: grid; grid-template-columns: 1fr; gap: 1.5rem; flex-wrap: wrap;">
-
-      <!-- Recent Farmers -->
+  <!-- Main Content Layout -->
+  <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 1.5rem;">
+      <!-- Chart -->
       <div class="content-card">
-        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.25rem;">
-          <h3 style="font-family: var(--font-display); font-size: 1rem; font-weight: 700;">Recent Farmer Registrations</h3>
-          <a href="{{ url_for('admin.farmer_verification') }}" style="font-size: 0.8rem; color: var(--admin-accent); font-weight: 600; text-decoration: none;">View all →</a>
-        </div>
-        {% if recent_farmers %}
+          <h3 style="font-family: var(--font-display); font-size: 1rem; font-weight: 700; margin-bottom: 1rem; color: var(--on-surface);">Farmer Registration Trend (Last 30 Days)</h3>
+          <div style="height: 300px; width: 100%;">
+              <canvas id="regChart"></canvas>
+          </div>
+      </div>
+
+      <!-- Insights Section -->
+      <div class="content-card">
+          <h3 style="font-family: var(--font-display); font-size: 1rem; font-weight: 700; margin-bottom: 1rem; color: var(--on-surface);">Decision Insights</h3>
+          <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+              {% if insights %}
+                  {% for insight in insights %}
+                  <div style="background: var(--admin-{{ insight.type }}-light); border-left: 4px solid var(--admin-{{ insight.type }}); border-radius: var(--radius-sm); padding: 1rem; display: flex; flex-direction: column; gap: 0.5rem;">
+                      <div>
+                          <div style="font-weight: 700; font-size: 0.95rem; color: var(--admin-{{ insight.type }});">{{ insight.title }}</div>
+                          <div style="font-size: 0.85rem; color: var(--on-surface-variant);">{{ insight.desc }}</div>
+                      </div>
+                      {% if insight.action_url != '#' %}
+                      <a href="{{ insight.action_url }}" class="btn btn-sm" style="background: white; color: var(--admin-{{ insight.type }}); border: 1px solid var(--admin-{{ insight.type }}); align-self: flex-start; margin-top: 0.25rem;">
+                          {{ insight.action_text }} →
+                      </a>
+                      {% endif %}
+                  </div>
+                  {% endfor %}
+              {% else %}
+                  <div style="font-size: 0.9rem; color: var(--on-surface-variant);">No active insights at the moment.</div>
+              {% endif %}
+          </div>
+      </div>
+  </div>
+
+  <!-- Recent Activity -->
+  <div class="content-card">
+    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.25rem;">
+      <h3 style="font-family: var(--font-display); font-size: 1rem; font-weight: 700; color: var(--on-surface);">Recent Farmer Registrations</h3>
+      <a href="{{ url_for('admin.farmer_verification') }}" style="font-size: 0.85rem; color: var(--admin-accent); font-weight: 600; text-decoration: none;">View all →</a>
+    </div>
+    {% if recent_farmers %}
+    <div style="overflow-x: auto;">
         <table class="admin-table">
-          <thead><tr><th>Farmer</th><th>Joined</th><th>Status</th></tr></thead>
+          <thead>
+            <tr>
+              <th>Farmer Details</th>
+              <th>Joined Date</th>
+              <th>Status</th>
+            </tr>
+          </thead>
           <tbody>
             {% for farmer in recent_farmers %}
             <tr>
               <td>
-                <div style="font-weight: 600;">{{ farmer.full_name }}</div>
-                <div style="font-size: 0.78rem; color: var(--on-surface-variant);">{{ farmer.email }}</div>
+                <div style="display: flex; align-items: center; gap: 0.75rem;">
+                    <div style="width: 36px; height: 36px; border-radius: 8px; background: var(--admin-accent-light); color: var(--admin-accent); display: flex; align-items: center; justify-content: center; font-weight: 700; font-family: var(--font-display);">
+                        {{ farmer.full_name[:1].upper() }}
+                    </div>
+                    <div>
+                        <div style="font-weight: 600; color: var(--on-surface);">{{ farmer.full_name }}</div>
+                        <div style="font-size: 0.8rem; color: var(--on-surface-variant);">{{ farmer.email }}</div>
+                    </div>
+                </div>
               </td>
-              <td style="font-size: 0.8rem; color: var(--on-surface-variant);">{{ farmer.created_at.strftime('%b %d, %Y') }}</td>
+              <td style="color: var(--on-surface-variant);">{{ farmer.created_at.strftime('%b %d, %Y') }}</td>
               <td>
                 {% if farmer.verification %}
                   <span class="badge badge-{{ farmer.verification.status.value }}">{{ farmer.verification.status.value|title }}</span>
@@ -114,11 +173,10 @@
             {% endfor %}
           </tbody>
         </table>
-        {% else %}
-        <p style="color: var(--on-surface-variant); font-size: 0.9rem;">No farmers registered yet.</p>
-        {% endif %}
-      </div>
     </div>
+    {% else %}
+    <p style="color: var(--on-surface-variant); font-size: 0.9rem;">No farmers registered in this timeframe.</p>
+    {% endif %}
   </div>
 
 </div>
@@ -127,33 +185,55 @@
 {% block extra_js %}
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-  // Line Chart for Farmer Registrations
   const regCtx = document.getElementById('regChart').getContext('2d');
   new Chart(regCtx, {
     type: 'line',
     data: {
-      labels: {{ farmer_reg_labels|default([])|tojson }},
+      labels: {{ farmer_reg_labels | tojson | safe }},
       datasets: [{
         label: 'New Farmers',
-        data: {{ farmer_reg_data|default([])|tojson }},
-        borderColor: '#15803d',
-        backgroundColor: 'rgba(21, 128, 61, 0.1)',
-        tension: 0.3,
-        fill: true,
+        data: {{ farmer_reg_data | tojson | safe }},
+        borderColor: '#16a34a',
+        backgroundColor: 'rgba(22, 163, 74, 0.1)',
+        borderWidth: 3,
         pointBackgroundColor: '#15803d',
-        borderWidth: 2
+        pointBorderColor: '#ffffff',
+        pointBorderWidth: 2,
+        pointRadius: 4,
+        pointHoverRadius: 6,
+        fill: true,
+        tension: 0.4
       }]
     },
     options: {
       responsive: true,
       maintainAspectRatio: false,
       plugins: {
-        legend: { display: false }
+        legend: { display: false },
+        tooltip: {
+            backgroundColor: '#0f172a',
+            padding: 12,
+            titleFont: { size: 13, family: "'Outfit', sans-serif" },
+            bodyFont: { size: 14, weight: 'bold', family: "'Outfit', sans-serif" },
+            displayColors: false,
+            cornerRadius: 8,
+        }
       },
       scales: {
-        y: { beginAtZero: true, ticks: { precision: 0 } },
-        x: { grid: { display: false }, ticks: { maxTicksLimit: 7 } }
-      }
+        x: {
+          grid: { display: false },
+          ticks: { font: { family: "'Outfit', sans-serif", size: 11 }, color: '#64748b', maxTicksLimit: 7 }
+        },
+        y: {
+          beginAtZero: true,
+          grid: { color: '#f1f5f9', drawBorder: false },
+          ticks: { font: { family: "'Outfit', sans-serif", size: 11 }, color: '#64748b', precision: 0 }
+        }
+      },
+      interaction: {
+          intersect: false,
+          mode: 'index',
+      },
     }
   });
 });

@@ -57,7 +57,7 @@ def feedback():
                 try:
                     order = Order.query.get(int(order_id))
                     if order and order.buyer_id == current_user.id:
-                        if order.items.count() > 0:
+                        if len(order.items) > 0:
                             farmer_id = order.items[0].product.farmer_id
                     else:
                         order = None
@@ -89,6 +89,8 @@ def feedback():
         db.session.add(new_feedback)
         db.session.commit()
         flash("Thank you for your feedback!", "success")
+        if order:
+            return redirect(url_for('buyer.receipt', order_id=order.id))
         return redirect(url_for('buyer.feedback'))
 
     # GET Request
@@ -122,3 +124,12 @@ def feedback():
         recent_orders=recent_orders,
         recent_products=recent_products
     )
+
+@buyer_bp.route('/orders/<int:order_id>/receipt')
+@login_required
+def receipt(order_id):
+    _require_buyer()
+    order = Order.query.get_or_404(order_id)
+    if order.buyer_id != current_user.id:
+        abort(403)
+    return render_template('buyer/receipt.html', order=order)
