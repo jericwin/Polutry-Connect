@@ -42,8 +42,8 @@ def _get_matching_contacts(role, uid, q=''):
     """Return matching contacts for the current role and optional query."""
     current_role = _role_value(role)
     if current_role == UserRole.FARMER.value:
-        allowed_roles = [UserRole.BUYER.value]
-    elif current_role == UserRole.BUYER.value:
+        allowed_roles = [UserRole.BUYER.value, UserRole.FEED_SUPPLIER.value, UserRole.VETERINARIAN.value]
+    elif current_role in [UserRole.BUYER.value, UserRole.FEED_SUPPLIER.value, UserRole.VETERINARIAN.value]:
         allowed_roles = [UserRole.FARMER.value]
     else:
         return []
@@ -218,8 +218,8 @@ def contacts():
     """Return the matching contact list for the current role."""
     current_role = _role_value(current_user.role)
     if current_role == UserRole.FARMER.value:
-        allowed_roles = [UserRole.BUYER.value]
-    elif current_role == UserRole.BUYER.value:
+        allowed_roles = [UserRole.BUYER.value, UserRole.FEED_SUPPLIER.value, UserRole.VETERINARIAN.value]
+    elif current_role in [UserRole.BUYER.value, UserRole.FEED_SUPPLIER.value, UserRole.VETERINARIAN.value]:
         allowed_roles = [UserRole.FARMER.value]
     else:
         return jsonify([])
@@ -347,49 +347,55 @@ def get_messages(conv_id):
 @messaging_bp.route('/conversation/<int:conv_id>/send', methods=['POST'])
 @login_required
 def send_message(conv_id):
-    if current_user.role == UserRole.FARMER and not current_user.is_premium:
-        from flask import jsonify
-        return jsonify({'error': 'Premium required to send messages.'}), 403
-    conv = _get_conv_or_404(conv_id)
-    uid = current_user.id
-    body = (request.form.get('body') or request.json.get('body', '') if request.is_json else request.form.get('body', '')).strip()
-    if not body:
-        return jsonify({'error': 'empty'}), 400
+    try:
+        if current_user.role == UserRole.FARMER and not current_user.is_premium:
+            from flask import jsonify
+            return jsonify({'error': 'Premium required to send messages.'}), 403
+        conv = _get_conv_or_404(conv_id)
+        uid = current_user.id
+        body = (request.form.get('body') or request.json.get('body', '') if request.is_json else request.form.get('body', '')).strip()
+        if not body:
+            return jsonify({'error': 'empty'}), 400
 
-    # Determine receiver
-    receiver_id = conv.participant_id if conv.farmer_id == uid else conv.farmer_id
+        # Determine receiver
+        receiver_id = conv.participant_id if conv.farmer_id == uid else conv.farmer_id
 
-    msg = Message(
-        conversation_id=conv_id,
-        sender_id=uid,
-        receiver_id=receiver_id,
-        body=body,
-        delivered_at=datetime.utcnow(),
-    )
-    db.session.add(msg)
+        msg = Message(
+            conversation_id=conv_id,
+            sender_id=uid,
+            receiver_id=receiver_id,
+            body=body,
+            delivered_at=datetime.utcnow(),
+        )
+        db.session.add(msg)
 
-    # Un-soft-delete for receiver
-    if conv.farmer_id == uid:
-        conv.deleted_by_participant = False
-    else:
-        conv.deleted_by_farmer = False
+        # Un-soft-delete for receiver
+        if conv.farmer_id == uid:
+            conv.deleted_by_participant = False
+        else:
+            conv.deleted_by_farmer = False
 
-    # Update sender online status
-    current_user.online_status = True
-    current_user.last_seen = datetime.utcnow()
+        # Update sender online status
+        current_user.online_status = True
+        current_user.last_seen = datetime.utcnow()
 
-    db.session.flush()
+        db.session.flush()
 
-    # Create notification for receiver
-    _create_notif(
-        receiver_id,
-        f'New message from {current_user.full_name}',
-        body[:80] + ('…' if len(body) > 80 else ''),
-        link_url=url_for('messaging.index', open=conv_id, _external=False),
-    )
-    db.session.commit()
+        # Create notification for receiver
+        _create_notif(
+            receiver_id,
+            f'New message from {current_user.full_name}',
+            body[:80] + ('…' if len(body) > 80 else ''),
+            link_url=url_for('messaging.index', open=conv_id, _external=False),
+        )
+        
+        # Build dictionary before commit to avoid DetachedInstanceError
+        res_dict = msg.to_dict(uid)
+        db.session.commit()
 
-    return jsonify(msg.to_dict(uid))
+        return jsonify(res_dict)
+    except Exception as e:
+        return jsonify({'error': repr(e)}), 500
 
 
 # ────────────────────────────────────────────────────────────────

@@ -47,7 +47,7 @@
           Messages
         </span>
       </div>
-      {% if current_user.role.value in ['farmer', 'feed_supplier', 'veterinarian'] %}
+      {% if current_user.role.value in ['farmer', 'feed_supplier', 'veterinarian', 'buyer'] %}
       <button type="button" class="msg-new-btn" id="newChatBtn"
               onclick="const m=document.getElementById('newChatModal'); if (m){m.style.display='flex';} const s=document.getElementById('contactSearch'); if (s){s.value=''; s.focus();} const r=document.getElementById('contactResults'); if (r){r.innerHTML='<div class=\'msg-no-results\'>Loading contacts…</div>';} (function tryLoad(){ if (window.loadChatContacts){ window.loadChatContacts(''); } else { setTimeout(tryLoad, 50); } })();">
         <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none"
@@ -114,7 +114,7 @@
           <p>No conversations yet.<br>
           {% if current_user.role.value == 'farmer' %}
             Click <strong>New Chat</strong> to start!
-          {% elif current_user.role.value in ['feed_supplier','veterinarian'] %}
+          {% elif current_user.role.value in ['feed_supplier','veterinarian','buyer'] %}
             Click <strong>New Chat</strong> to reach a farmer.
           {% else %}
             Farmers will contact you here.
@@ -123,21 +123,7 @@
         </div>
       {% endif %}
     </div>
-    {% if farm_contacts and farm_contacts|length > 0 and current_user.role.value in ['feed_supplier','veterinarian'] %}
-    <div class="msg-farms-list">
-      <div class="msg-farms-title">Available Farmers</div>
-      <ul class="msg-farms-ul">
-        {% for f in farm_contacts %}
-        <li class="msg-farm-item">
-          <form method="POST" action="{{ url_for('messaging.start_from_farm') }}" class="farm-contact-form">
-            <input type="hidden" name="farm_id" value="{{ f.farm_id }}">
-            <button class="btn-link small" type="submit">{{ f.farm_name }} — {{ f.farmer_name }}</button>
-          </form>
-        </li>
-        {% endfor %}
-      </ul>
-    </div>
-    {% endif %}
+
   </div>
 
   <!-- ═══════════ RIGHT CHAT PANEL ═══════════ -->
@@ -244,13 +230,13 @@
       <p>
         {% if current_user.role.value == 'farmer' %}
           Select a conversation or start a new one by clicking <strong>New Chat</strong>.
-        {% elif current_user.role.value in ['feed_supplier','veterinarian'] %}
+        {% elif current_user.role.value in ['feed_supplier','veterinarian','buyer'] %}
           Select a conversation or start a new one by clicking <strong>New Chat</strong>.
         {% else %}
           Select a conversation from the left panel.
         {% endif %}
       </p>
-      {% if current_user.role.value in ['farmer', 'feed_supplier', 'veterinarian'] %}
+      {% if current_user.role.value in ['farmer', 'feed_supplier', 'veterinarian', 'buyer'] %}
       <button type="button" class="msg-new-btn" id="newChatBtnEmpty"
               onclick="(window.openChatModal || function(){const m=document.getElementById('newChatModal'); if (m) m.style.display='flex';})();"
               style="margin-top:0.5rem; padding: 0.6rem 1.25rem;">
@@ -265,7 +251,7 @@
 </div>
 
 <!-- ═══════════ NEW CHAT MODAL ═══════════ -->
-{% if current_user.role.value in ['farmer', 'feed_supplier', 'veterinarian'] %}
+{% if current_user.role.value in ['farmer', 'feed_supplier', 'veterinarian', 'buyer'] %}
 <div class="msg-modal-backdrop" id="newChatModal" style="display:none;">
   <div class="msg-modal" role="dialog" aria-modal="true" aria-label="Start New Conversation">
     <div class="msg-modal-header">
@@ -461,8 +447,10 @@
       })
       .catch(err => {
         console.error('Message send failed', err);
-        const message = err && err.error ? err.error : 'Unable to send message. Please try again.';
-        alert(message);
+        let errorMsg = 'Unable to send message. Please try again.';
+        if (err && err.message) errorMsg = err.message;
+        else if (err && err.error) errorMsg = err.error;
+        alert("Debug Error: " + errorMsg + "\nStack: " + (err && err.stack ? err.stack : ""));
       })
       .finally(() => {
         if (sendBtn) sendBtn.disabled = false;

@@ -32,7 +32,7 @@
   grid-template-columns: var(--msg-sidebar-w) minmax(420px, 1fr);
   width: 100%;
   min-width: 0;
-  min-height: calc(100vh - 64px); /* full height minus topbar */
+  height: calc(100vh - 64px - 4rem); /* Constrain for scrollable child, accounting for dash-content padding */
   border-radius: 1rem;
   overflow: hidden;
   background: transparent;
