@@ -21,8 +21,10 @@ from datetime import datetime
 
 from app import db
 from app.models import (
+    Notification,
     User, UserRole, Farm, Product, Order,
-    FarmerVerification, VerificationStatus, SubscriptionPlan
+    FarmerVerification, VerificationStatus, SubscriptionPlan,
+    BuyerFeedback, FeedbackCategory
 )
 
 admin_bp = Blueprint('admin', __name__)
@@ -230,6 +232,10 @@ def approve_farmer(farmer_id):
     if farmer.role != UserRole.FARMER:
         abort(400)
 
+    comment = request.form.get('comment', '').strip()
+    if not comment:
+        comment = 'Your poultry farm credentials and documents have been reviewed and approved. Welcome to PoultryConnect!'
+
     verification = FarmerVerification.query.filter_by(farmer_id=farmer_id).first()
     if not verification:
         verification = FarmerVerification(farmer_id=farmer_id)
@@ -239,9 +245,20 @@ def approve_farmer(farmer_id):
     verification.reviewed_by_id = current_user.id
     verification.reviewed_at = datetime.utcnow()
     verification.rejection_reason = None
+    verification.notes = comment
+
+    # Create in-app Notification for the farmer
+    notif = Notification(
+        user_id=farmer.id,
+        title='Account Verification Approved',
+        body=comment,
+        notif_type='verification',
+        link_url=url_for('dashboard.farmer')
+    )
+    db.session.add(notif)
     db.session.commit()
 
-    flash(f'Farmer {farmer.full_name} has been approved and verified.', 'success')
+    flash(f'Farmer {farmer.full_name} has been approved and notified.', 'success')
     return redirect(url_for('admin.farmer_verification', status='pending'))
 
 
@@ -255,7 +272,7 @@ def reject_farmer(farmer_id):
 
     reason = request.form.get('reason', '').strip()
     if not reason:
-        flash('A rejection reason is required.', 'error')
+        flash('A revision / rejection comment is required.', 'error')
         return redirect(url_for('admin.farmer_verification', status='pending'))
 
     verification = FarmerVerification.query.filter_by(farmer_id=farmer_id).first()
@@ -267,9 +284,20 @@ def reject_farmer(farmer_id):
     verification.reviewed_by_id = current_user.id
     verification.reviewed_at = datetime.utcnow()
     verification.rejection_reason = reason
+    verification.notes = reason
+
+    # Create in-app Notification for the farmer
+    notif = Notification(
+        user_id=farmer.id,
+        title='Action Required: Verification Revisions Needed',
+        body=f'Revision required: {reason}',
+        notif_type='verification',
+        link_url=url_for('dashboard.farmer')
+    )
+    db.session.add(notif)
     db.session.commit()
 
-    flash(f'Farmer {farmer.full_name} has been rejected.', 'warning')
+    flash(f'Revision request sent to {farmer.full_name}.', 'warning')
     return redirect(url_for('admin.farmer_verification', status='pending'))
 
 
@@ -452,3 +480,67 @@ def end_subscription(user_id):
     db.session.commit()
     flash(f"Ended subscription for {farmer.full_name}.", 'success')
     return redirect(url_for('admin.subscribers'))
+
+
+# ─────────────────────────────────────────────────────────
+# WEBSITE FEEDBACK / PLATFORM EXPERIENCE
+# ─────────────────────────────────────────────────────────
+
+@admin_bp.route('/feedback')
+@login_required
+def feedback():
+    """View and analyze website experience feedback submitted by buyers."""
+    _require_admin()
+
+    sentiment_filter = request.args.get('sentiment', '').strip().lower()
+    rating_filter = request.args.get('rating', '').strip()
+    q = request.args.get('q', '').strip()
+
+    query = BuyerFeedback.query.filter_by(category=FeedbackCategory.WEBSITE)
+
+    if sentiment_filter:
+        from sqlalchemy import func
+        query = query.filter(func.lower(BuyerFeedback.ai_sentiment) == sentiment_filter)
+
+    if rating_filter:
+        try:
+            r = int(rating_filter)
+            query = query.filter(BuyerFeedback.rating == r)
+        except ValueError:
+            pass
+
+    if q:
+        from sqlalchemy import or_
+        query = query.filter(
+            or_(
+                BuyerFeedback.feedback_text.ilike(f'%{q}%'),
+                BuyerFeedback.ai_issue.ilike(f'%{q}%'),
+                BuyerFeedback.ai_keywords.ilike(f'%{q}%')
+            )
+        )
+
+    feedbacks = query.order_by(BuyerFeedback.created_at.desc()).all()
+
+    # Calculate metrics
+    all_web_fbs = BuyerFeedback.query.filter_by(category=FeedbackCategory.WEBSITE).all()
+    total_count = len(all_web_fbs)
+    rated_fbs = [fb for fb in all_web_fbs if fb.rating]
+    avg_rating = round(sum(fb.rating for fb in rated_fbs) / len(rated_fbs), 1) if rated_fbs else 0
+
+    positive_count = sum(1 for fb in all_web_fbs if fb.ai_sentiment and fb.ai_sentiment.lower() == 'positive')
+    negative_count = sum(1 for fb in all_web_fbs if fb.ai_sentiment and fb.ai_sentiment.lower() == 'negative')
+    neutral_count = total_count - positive_count - negative_count
+
+    return render_template(
+        'admin/feedback.html',
+        feedbacks=feedbacks,
+        total_count=total_count,
+        avg_rating=avg_rating,
+        positive_count=positive_count,
+        negative_count=negative_count,
+        neutral_count=neutral_count,
+        sentiment_filter=sentiment_filter,
+        rating_filter=rating_filter,
+        q=q
+    )
+

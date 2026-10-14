@@ -1,9 +1,9 @@
 {% extends "admin/admin_base.html" %}
 
-{% block title %}Subscribers — Admin{% endblock %}
+{% block page_title %}Subscriptions{% endblock %}
+{% block breadcrumb %}Farmer Subscriptions{% endblock %}
 
 {% block content %}
-
 {# Calculate Stats #}
 {% set total_farmers = farmers|length %}
 {% set pro_farmers = [] %}
@@ -20,146 +20,136 @@
     {% endif %}
 {% endfor %}
 
-<div class="content-header" style="margin-bottom: 2rem; display: flex; justify-content: space-between; align-items: flex-end;">
-    <div class="header-text">
-        <h2 style="font-size: 2rem; color: #1e293b; margin-bottom: 0.5rem; letter-spacing: -0.025em;">Farmer Subscriptions</h2>
-        <p style="color: #64748b; font-size: 1.05rem;">Manage premium accounts and track trial conversions.</p>
-    </div>
-</div>
+<div style="display: flex; flex-direction: column; gap: 1.5rem;">
 
-<!-- Stats Overview -->
-<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1.5rem; margin-bottom: 2rem;">
-    <!-- Card 1 -->
-    <div style="background: white; border-radius: 16px; padding: 1.5rem; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03); border: 1px solid #f1f5f9; display: flex; align-items: center; gap: 1rem;">
-        <div style="width: 56px; height: 56px; background: #eff6ff; color: #3b82f6; border-radius: 12px; display: flex; align-items: center; justify-content: center;">
-            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
-        </div>
-        <div>
-            <div style="color: #64748b; font-size: 0.875rem; font-weight: 500; text-transform: uppercase; letter-spacing: 0.05em;">Total Farmers</div>
-            <div style="font-size: 1.75rem; font-weight: 700; color: #0f172a; line-height: 1.2;">{{ total_farmers }}</div>
-        </div>
+  <!-- Header Text -->
+  <div style="display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: 1rem;">
+    <div>
+      <h1 style="font-size: 1.5rem; font-weight: 800; letter-spacing: -0.02em; color: var(--adm-text-primary); margin-bottom: 0.25rem;">
+        Farmer Subscriptions &amp; Licenses
+      </h1>
+      <p style="font-size: 0.875rem; color: var(--adm-text-muted);">
+        Oversee active Pro memberships, monitor trial expiration windows, and manage farm tiers.
+      </p>
+    </div>
+  </div>
+
+  <!-- Stats Overview -->
+  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem;">
+    <div class="adm-card" style="padding: 1.15rem 1.25rem; display: flex; align-items: center; gap: 1rem;">
+      <div style="width: 40px; height: 40px; background: var(--adm-info-dim); color: #38bdf8; border: 1px solid var(--adm-info-border); border-radius: 8px; display: flex; align-items: center; justify-content: center;">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+      </div>
+      <div>
+        <div style="color: var(--adm-text-muted); font-size: 0.725rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em;">Total Farmers</div>
+        <div style="font-size: 1.65rem; font-weight: 800; color: var(--adm-text-primary); line-height: 1.1;">{{ total_farmers }}</div>
+      </div>
     </div>
     
-    <!-- Card 2 -->
-    <div style="background: white; border-radius: 16px; padding: 1.5rem; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03); border: 1px solid #f1f5f9; display: flex; align-items: center; gap: 1rem;">
-        <div style="width: 56px; height: 56px; background: #dcfce7; color: #16a34a; border-radius: 12px; display: flex; align-items: center; justify-content: center;">
-            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
-        </div>
-        <div>
-            <div style="color: #64748b; font-size: 0.875rem; font-weight: 500; text-transform: uppercase; letter-spacing: 0.05em;">Pro Members</div>
-            <div style="font-size: 1.75rem; font-weight: 700; color: #0f172a; line-height: 1.2;">{{ pro_farmers|length }}</div>
-        </div>
+    <div class="adm-card" style="padding: 1.15rem 1.25rem; display: flex; align-items: center; gap: 1rem;">
+      <div style="width: 40px; height: 40px; background: var(--adm-accent-dim); color: #34d399; border: 1px solid var(--adm-accent-border); border-radius: 8px; display: flex; align-items: center; justify-content: center;">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+      </div>
+      <div>
+        <div style="color: var(--adm-text-muted); font-size: 0.725rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em;">Pro Members</div>
+        <div style="font-size: 1.65rem; font-weight: 800; color: #34d399; line-height: 1.1;">{{ pro_farmers|length }}</div>
+      </div>
     </div>
     
-    <!-- Card 3 -->
-    <div style="background: white; border-radius: 16px; padding: 1.5rem; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03); border: 1px solid #f1f5f9; display: flex; align-items: center; gap: 1rem;">
-        <div style="width: 56px; height: 56px; background: #fef3c7; color: #d97706; border-radius: 12px; display: flex; align-items: center; justify-content: center;">
-            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
-        </div>
-        <div>
-            <div style="color: #64748b; font-size: 0.875rem; font-weight: 500; text-transform: uppercase; letter-spacing: 0.05em;">Active Trials</div>
-            <div style="font-size: 1.75rem; font-weight: 700; color: #0f172a; line-height: 1.2;">{{ trial_farmers|length }}</div>
-        </div>
+    <div class="adm-card" style="padding: 1.15rem 1.25rem; display: flex; align-items: center; gap: 1rem;">
+      <div style="width: 40px; height: 40px; background: var(--adm-warning-dim); color: #fbbf24; border: 1px solid var(--adm-warning-border); border-radius: 8px; display: flex; align-items: center; justify-content: center;">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+      </div>
+      <div>
+        <div style="color: var(--adm-text-muted); font-size: 0.725rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em;">Active Trials</div>
+        <div style="font-size: 1.65rem; font-weight: 800; color: #fbbf24; line-height: 1.1;">{{ trial_farmers|length }}</div>
+      </div>
     </div>
-</div>
+  </div>
 
-<div class="card" style="border-radius: 16px; overflow: hidden; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05); border: none;">
-    <div style="background: #f8fafc; padding: 1.25rem 1.5rem; border-bottom: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center;">
-        <h3 style="margin: 0; font-size: 1.1rem; color: #334155;">Subscriber Directory</h3>
+  <!-- Subscribers Directory Table -->
+  <div class="adm-card">
+    <div class="adm-card-header">
+      <span class="adm-card-title">Subscriber Directory</span>
     </div>
-    <table class="data-table" style="width: 100%; border-collapse: collapse;">
-        <thead>
-            <tr style="background: white; border-bottom: 2px solid #e2e8f0;">
-                <th style="padding: 1rem 1.5rem; text-transform: uppercase; font-size: 0.75rem; letter-spacing: 0.05em; color: #64748b;">Farmer</th>
-                <th style="padding: 1rem 1.5rem; text-transform: uppercase; font-size: 0.75rem; letter-spacing: 0.05em; color: #64748b;">Plan</th>
-                <th style="padding: 1rem 1.5rem; text-transform: uppercase; font-size: 0.75rem; letter-spacing: 0.05em; color: #64748b;">Expiration / Trial Status</th>
-                <th style="padding: 1rem 1.5rem; text-transform: uppercase; font-size: 0.75rem; letter-spacing: 0.05em; color: #64748b; text-align: right;">Actions</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for farmer in farmers %}
-            <tr style="border-bottom: 1px solid #f1f5f9; transition: background 0.2s;">
-                <td style="padding: 1rem 1.5rem;">
-                    <div style="display: flex; align-items: center; gap: 1rem;">
-                        <div style="width: 40px; height: 40px; background: linear-gradient(135deg, #16a34a, #15803d); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 1rem; box-shadow: 0 2px 4px rgba(22, 163, 74, 0.3);">
-                            {{ farmer.full_name[0] | upper }}
-                        </div>
-                        <div>
-                            <div style="font-weight: 600; color: #0f172a; font-size: 1rem;">{{ farmer.full_name }}</div>
-                            <div style="color: #64748b; font-size: 0.85rem;">{{ farmer.email }}</div>
-                        </div>
-                    </div>
-                </td>
-                
-                <td style="padding: 1rem 1.5rem;">
-                    {% if farmer.subscription_plan.value != 'free' %}
-                        <div style="display: inline-flex; align-items: center; gap: 0.25rem; background: #dcfce7; color: #166534; padding: 0.25rem 0.75rem; border-radius: 99px; font-size: 0.8rem; font-weight: 700; border: 1px solid #bbf7d0;">
-                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
-                            PRO {{ farmer.subscription_plan.value | upper }}
-                        </div>
-                    {% else %}
-                        <div style="display: inline-flex; align-items: center; gap: 0.25rem; background: #f1f5f9; color: #64748b; padding: 0.25rem 0.75rem; border-radius: 99px; font-size: 0.8rem; font-weight: 600; border: 1px solid #e2e8f0;">
-                            BASIC
-                        </div>
-                    {% endif %}
-                </td>
-                
-                <td style="padding: 1rem 1.5rem;">
-                    {% if farmer.subscription_plan.value != 'free' and farmer.subscription_end %}
-                        <div style="color: #0f172a; font-weight: 500;">Valid until {{ farmer.subscription_end.strftime('%b %d, %Y') }}</div>
-                        <div style="color: #64748b; font-size: 0.8rem;">Paid Membership</div>
-                    {% elif farmer.trial_end and farmer.trial_end > today %}
-                        <div style="color: #d97706; font-weight: 600; display: flex; align-items: center; gap: 0.25rem;">
-                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
-                            Ends {{ farmer.trial_end.strftime('%b %d, %Y') }}
-                        </div>
-                        <div style="color: #64748b; font-size: 0.8rem;">Active Free Trial</div>
-                    {% else %}
-                        <div style="color: #dc2626; font-weight: 500; display: flex; align-items: center; gap: 0.25rem;">
-                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg>
-                            Expired
-                        </div>
-                        <div style="color: #64748b; font-size: 0.8rem;">Needs Upgrade</div>
-                    {% endif %}
-                </td>
-                
-                <td style="padding: 1rem 1.5rem; text-align: right;">
-                    {% if farmer.subscription_plan.value != 'free' %}
-                    <form method="POST" action="{{ url_for('admin.end_subscription', user_id=farmer.id) }}" style="display:inline-block;" onsubmit="return confirm('Are you sure you want to end this user\'s Pro subscription?');">
-                        <button type="submit" style="background: white; border: 1px solid #fecaca; color: #dc2626; padding: 0.4rem 0.8rem; border-radius: 6px; cursor: pointer; font-size: 0.85rem; font-weight: 600; display: inline-flex; align-items: center; gap: 0.25rem; transition: all 0.2s;" onmouseover="this.style.background='#fef2f2'; this.style.borderColor='#ef4444';" onmouseout="this.style.background='white'; this.style.borderColor='#fecaca';">
-                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="7.86 2 16.14 2 22 7.86 22 16.14 16.14 22 7.86 22 2 16.14 2 7.86 7.86 2"></polygon><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg>
-                            End Subscription
-                        </button>
-                    </form>
-                    {% elif farmer.trial_end and farmer.trial_end > today %}
-                    <form method="POST" action="{{ url_for('admin.end_trial', user_id=farmer.id) }}" style="display:inline-block;" onsubmit="return confirm('Are you sure you want to end this user\'s free trial immediately?');">
-                        <button type="submit" style="background: white; border: 1px solid #fecaca; color: #dc2626; padding: 0.4rem 0.8rem; border-radius: 6px; cursor: pointer; font-size: 0.85rem; font-weight: 600; display: inline-flex; align-items: center; gap: 0.25rem; transition: all 0.2s;" onmouseover="this.style.background='#fef2f2'; this.style.borderColor='#ef4444';" onmouseout="this.style.background='white'; this.style.borderColor='#fecaca';">
-                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="7.86 2 16.14 2 22 7.86 22 16.14 16.14 22 7.86 22 2 16.14 2 7.86 7.86 2"></polygon><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg>
-                            End Trial
-                        </button>
-                    </form>
-                    {% else %}
-                    <span style="color: #94a3b8; font-size: 0.85rem; font-style: italic;">No actions</span>
-                    {% endif %}
-                </td>
-            </tr>
+
+    <table class="adm-table">
+      <thead>
+        <tr>
+          <th>Farmer Profile</th>
+          <th>Membership Tier</th>
+          <th>Coverage &amp; Expiration</th>
+          <th style="text-align: right;">Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for farmer in farmers %}
+        <tr>
+          <td>
+            <div style="display: flex; align-items: center; gap: 0.75rem;">
+              <div style="width: 32px; height: 32px; border-radius: 6px; background: var(--adm-surface-raised); border: 1px solid var(--adm-surface-border); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.8125rem; color: var(--adm-text-primary);">
+                {{ farmer.full_name[0] | upper }}
+              </div>
+              <div>
+                <div style="font-weight: 600; color: var(--adm-text-primary);">{{ farmer.full_name }}</div>
+                <div style="font-size: 0.78rem; color: var(--adm-text-muted);">{{ farmer.email }}</div>
+              </div>
+            </div>
+          </td>
+          
+          <td>
+            {% if farmer.subscription_plan.value != 'free' %}
+              <span class="adm-badge adm-badge-success">
+                PRO {{ farmer.subscription_plan.value | upper }}
+              </span>
             {% else %}
-            <tr>
-                <td colspan="4" style="text-align: center; padding: 4rem 2rem;">
-                    <div style="color: #94a3b8; margin-bottom: 1rem;">
-                        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
-                    </div>
-                    <div style="color: #64748b; font-size: 1.1rem;">No farmers found.</div>
-                </td>
-            </tr>
-            {% endfor %}
-        </tbody>
+              <span class="adm-badge" style="background: var(--adm-surface-raised); color: var(--adm-text-muted); border: 1px solid var(--adm-surface-border);">
+                BASIC
+              </span>
+            {% endif %}
+          </td>
+          
+          <td>
+            {% if farmer.subscription_plan.value != 'free' and farmer.subscription_end %}
+              <div style="color: var(--adm-text-primary); font-weight: 500; font-size: 0.8125rem;">Valid until {{ farmer.subscription_end.strftime('%b %d, %Y') }}</div>
+              <div style="color: #34d399; font-size: 0.75rem;">Paid Subscription</div>
+            {% elif farmer.trial_end and farmer.trial_end > today %}
+              <div style="color: #fbbf24; font-weight: 500; font-size: 0.8125rem;">Trial ends {{ farmer.trial_end.strftime('%b %d, %Y') }}</div>
+              <div style="color: var(--adm-text-muted); font-size: 0.75rem;">Active Free Trial</div>
+            {% else %}
+              <div style="color: #f87171; font-weight: 500; font-size: 0.8125rem;">Expired</div>
+              <div style="color: var(--adm-text-muted); font-size: 0.75rem;">Standard tier</div>
+            {% endif %}
+          </td>
+          
+          <td style="text-align: right;">
+            {% if farmer.subscription_plan.value != 'free' %}
+            <form method="POST" action="{{ url_for('admin.end_subscription', user_id=farmer.id) }}" style="display:inline-block;" onsubmit="return confirm('Are you sure you want to end this user\'s Pro subscription?');">
+              <button type="submit" class="adm-btn-secondary" style="padding: 0.35rem 0.65rem; font-size: 0.75rem; color: #f87171;" title="End Subscription">
+                End Plan
+              </button>
+            </form>
+            {% elif farmer.trial_end and farmer.trial_end > today %}
+            <form method="POST" action="{{ url_for('admin.end_trial', user_id=farmer.id) }}" style="display:inline-block;" onsubmit="return confirm('Are you sure you want to end this user\'s free trial immediately?');">
+              <button type="submit" class="adm-btn-secondary" style="padding: 0.35rem 0.65rem; font-size: 0.75rem; color: #fbbf24;" title="End Free Trial">
+                End Trial
+              </button>
+            </form>
+            {% else %}
+            <span style="color: var(--adm-text-muted); font-size: 0.75rem; font-style: italic;">No actions</span>
+            {% endif %}
+          </td>
+        </tr>
+        {% else %}
+        <tr>
+          <td colspan="4" style="text-align: center; padding: 3rem 2rem; color: var(--adm-text-muted); font-size: 0.875rem;">
+            No farmer subscription records found.
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
     </table>
-</div>
+  </div>
 
-<style>
-    .data-table tbody tr:hover {
-        background-color: #f8fafc !important;
-    }
-</style>
+</div>
 {% endblock %}

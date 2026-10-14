@@ -1,0 +1,205 @@
+{% extends "admin/admin_base.html" %}
+
+{% block title %}Website Experience Feedback — PoultryConnect Admin{% endblock %}
+{% block breadcrumb %}Website Feedback{% endblock %}
+
+{% block content %}
+<div style="display: flex; flex-direction: column; gap: 1.5rem;">
+
+  <!-- Header -->
+  <div style="display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: 1rem;">
+    <div>
+      <h1 style="font-size: 1.5rem; font-weight: 800; letter-spacing: -0.02em; color: var(--adm-text-primary); margin-bottom: 0.25rem;">
+        Website Experience Feedback
+      </h1>
+      <p style="font-size: 0.875rem; color: var(--adm-text-muted);">
+        Buyer ratings, system UX feedback, and platform sentiments. Visible only to system administrators.
+      </p>
+    </div>
+  </div>
+
+  <!-- KPI Grid -->
+  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 1rem;">
+    <div class="adm-card" style="padding: 1.15rem 1.25rem; display: flex; align-items: center; gap: 1rem;">
+      <div style="width: 40px; height: 40px; background: var(--adm-info-dim); color: var(--adm-info); border: 1px solid var(--adm-info-border); border-radius: 8px; display: flex; align-items: center; justify-content: center;">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
+      </div>
+      <div>
+        <div style="color: var(--adm-text-muted); font-size: 0.725rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em;">Total Reviews</div>
+        <div style="font-size: 1.65rem; font-weight: 800; color: var(--adm-text-primary); line-height: 1.1;">{{ total_count }}</div>
+      </div>
+    </div>
+
+    <div class="adm-card" style="padding: 1.15rem 1.25rem; display: flex; align-items: center; gap: 1rem;">
+      <div style="width: 40px; height: 40px; background: var(--adm-warning-dim); color: var(--adm-warning); border: 1px solid var(--adm-warning-border); border-radius: 8px; display: flex; align-items: center; justify-content: center;">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+      </div>
+      <div>
+        <div style="color: var(--adm-text-muted); font-size: 0.725rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em;">Average Rating</div>
+        <div style="font-size: 1.65rem; font-weight: 800; color: var(--adm-text-primary); line-height: 1.1;">
+          {{ avg_rating }} <span style="font-size: 0.85rem; color: var(--adm-text-muted); font-weight: 500;">/ 5.0</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="adm-card" style="padding: 1.15rem 1.25rem; display: flex; align-items: center; gap: 1rem;">
+      <div style="width: 40px; height: 40px; background: var(--adm-accent-dim); color: var(--adm-accent); border: 1px solid var(--adm-accent-border); border-radius: 8px; display: flex; align-items: center; justify-content: center;">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"/></svg>
+      </div>
+      <div>
+        <div style="color: var(--adm-text-muted); font-size: 0.725rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em;">Positive Sentiment</div>
+        <div style="font-size: 1.65rem; font-weight: 800; color: var(--adm-accent); line-height: 1.1;">{{ positive_count }}</div>
+      </div>
+    </div>
+
+    <div class="adm-card" style="padding: 1.15rem 1.25rem; display: flex; align-items: center; gap: 1rem;">
+      <div style="width: 40px; height: 40px; background: var(--adm-danger-dim); color: var(--adm-danger); border: 1px solid var(--adm-danger-border); border-radius: 8px; display: flex; align-items: center; justify-content: center;">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 15v4a3 3 0 0 0 3 3l4-9V2H5.72a2 2 0 0 0-2 1.7l-1.38 9a2 2 0 0 0 2 2.3zm7-13h3a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2h-3"/></svg>
+      </div>
+      <div>
+        <div style="color: var(--adm-text-muted); font-size: 0.725rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em;">Negative Sentiment</div>
+        <div style="font-size: 1.65rem; font-weight: 800; color: var(--adm-danger); line-height: 1.1;">{{ negative_count }}</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Filters -->
+  <div class="adm-card" style="padding: 1rem 1.25rem;">
+    <form method="GET" action="{{ url_for('admin.feedback') }}" style="display: flex; gap: 0.85rem; align-items: center; flex-wrap: wrap;">
+      <div style="flex: 1; min-width: 220px;">
+        <input type="text" name="q" value="{{ q }}" placeholder="Search comments, keywords, or issue..." 
+               class="adm-input" style="height: 38px;">
+      </div>
+
+      <div style="min-width: 140px;">
+        <select name="sentiment" class="adm-select" style="height: 38px; width: 100%;">
+          <option value="">All Sentiments</option>
+          <option value="positive" {% if sentiment_filter == 'positive' %}selected{% endif %}>Positive</option>
+          <option value="neutral" {% if sentiment_filter == 'neutral' %}selected{% endif %}>Neutral</option>
+          <option value="negative" {% if sentiment_filter == 'negative' %}selected{% endif %}>Negative</option>
+        </select>
+      </div>
+
+      <div style="min-width: 130px;">
+        <select name="rating" class="adm-select" style="height: 38px; width: 100%;">
+          <option value="">All Ratings</option>
+          <option value="5" {% if rating_filter == '5' %}selected{% endif %}>5 Stars</option>
+          <option value="4" {% if rating_filter == '4' %}selected{% endif %}>4 Stars</option>
+          <option value="3" {% if rating_filter == '3' %}selected{% endif %}>3 Stars</option>
+          <option value="2" {% if rating_filter == '2' %}selected{% endif %}>2 Stars</option>
+          <option value="1" {% if rating_filter == '1' %}selected{% endif %}>1 Star</option>
+        </select>
+      </div>
+
+      <button type="submit" class="adm-btn-primary" style="height: 38px; padding: 0 1.25rem;">
+        Filter
+      </button>
+
+      {% if q or sentiment_filter or rating_filter %}
+      <a href="{{ url_for('admin.feedback') }}" class="adm-btn-secondary" style="height: 38px; padding: 0 1rem;">
+        Clear
+      </a>
+      {% endif %}
+    </form>
+  </div>
+
+  <!-- Table View -->
+  <div class="adm-card">
+    <div class="adm-card-header">
+      <div class="adm-card-title">
+        Buyer Feedback Records ({{ feedbacks|length }})
+      </div>
+      <div style="font-size: 0.75rem; color: var(--adm-text-muted); font-family: var(--font-mono);">
+        CATEGORY: WEBSITE_EXPERIENCE
+      </div>
+    </div>
+
+    {% if feedbacks %}
+    <div style="overflow-x: auto;">
+      <table class="adm-table">
+        <thead>
+          <tr>
+            <th style="width: 160px;">Date &amp; Order</th>
+            <th style="width: 180px;">Buyer</th>
+            <th style="width: 130px;">Rating</th>
+            <th>Buyer Comment</th>
+            <th style="width: 130px;">NLP Sentiment</th>
+            <th style="width: 140px;">Detected Issue</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for fb in feedbacks %}
+          <tr>
+            <td>
+              <div style="font-weight: 600; color: var(--adm-text-primary);">
+                {{ fb.created_at.strftime('%b %d, %Y') }}
+              </div>
+              <div style="font-size: 0.75rem; font-family: var(--font-mono); color: var(--adm-text-muted);">
+                {% if fb.order_id %}Order #{{ fb.order_id }}{% else %}General{% endif %}
+              </div>
+            </td>
+            <td>
+              <div style="font-weight: 600; color: var(--adm-text-primary);">
+                {{ fb.buyer.full_name if fb.buyer else 'Anonymous' }}
+              </div>
+              <div style="font-size: 0.75rem; color: var(--adm-text-muted);">
+                {{ fb.buyer.email if fb.buyer else '' }}
+              </div>
+            </td>
+            <td>
+              {% if fb.rating %}
+              <div style="display: flex; align-items: center; gap: 0.35rem; color: #f59e0b; font-weight: 700;">
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+                <span>{{ fb.rating }} / 5</span>
+              </div>
+              {% else %}
+              <span style="color: var(--adm-text-muted); font-size: 0.8rem;">No rating</span>
+              {% endif %}
+            </td>
+            <td>
+              {% if fb.feedback_text %}
+              <div style="color: var(--adm-text-primary); font-size: 0.845rem; line-height: 1.45;">
+                "{{ fb.feedback_text }}"
+              </div>
+              {% else %}
+              <span style="color: var(--adm-text-muted); font-style: italic; font-size: 0.8rem;">No written text</span>
+              {% endif %}
+            </td>
+            <td>
+              {% if fb.ai_sentiment %}
+                {% set s = fb.ai_sentiment.lower() %}
+                {% if s == 'positive' %}
+                <span class="adm-badge adm-badge-success">Positive</span>
+                {% elif s == 'negative' %}
+                <span class="adm-badge adm-badge-danger">Negative</span>
+                {% else %}
+                <span class="adm-badge adm-badge-info">{{ fb.ai_sentiment|title }}</span>
+                {% endif %}
+              {% else %}
+              <span style="color: var(--adm-text-muted); font-size: 0.78rem;">—</span>
+              {% endif %}
+            </td>
+            <td>
+              {% if fb.ai_issue %}
+              <span class="adm-badge" style="background: var(--adm-surface-raised); border: 1px solid var(--adm-surface-border); color: var(--adm-text-secondary);">
+                {{ fb.ai_issue }}
+              </span>
+              {% else %}
+              <span style="color: var(--adm-text-muted); font-size: 0.78rem;">—</span>
+              {% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <div style="padding: 3rem 1.5rem; text-align: center; color: var(--adm-text-muted); font-size: 0.875rem;">
+      <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="margin-bottom: 0.75rem; opacity: 0.5;"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
+      <div>No website feedback records found matching your filters.</div>
+    </div>
+    {% endif %}
+  </div>
+
+</div>
+{% endblock %}

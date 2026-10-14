@@ -554,6 +554,99 @@
         </div>
     </div>
     {% endif %}
+    <!-- ═══ Service & Delivery Feedback Section ═══ -->
+    <div style="margin-top: 4rem; padding-top: 2.5rem; border-top: 1px solid var(--outline-variant);">
+        <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem;">
+            <div>
+                <div style="display: inline-flex; align-items: center; gap: 0.4rem; padding: 0.25rem 0.75rem; border-radius: 99px; background: rgba(16, 185, 129, 0.1); color: var(--primary); font-size: 0.78rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.5rem;">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+                    Customer Experience
+                </div>
+                <h2 style="font-family: var(--font-display); font-size: 1.6rem; font-weight: 800; color: var(--on-surface); margin: 0 0 0.25rem 0;">
+                    Farmer Service &amp; Delivery Reviews
+                </h2>
+                <p style="color: var(--on-surface-variant); font-size: 0.9rem; margin: 0;">
+                    Ratings and comments from verified buyers about this farm's delivery and customer service.
+                </p>
+            </div>
+
+            {% if avg_service_rating > 0 %}
+            <div style="display: flex; align-items: center; gap: 0.75rem; background: var(--surface-container-lowest); padding: 0.75rem 1.25rem; border-radius: var(--radius-md); border: 1px solid var(--outline-variant);">
+                <div style="display: flex; align-items: center; color: #f59e0b;">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+                </div>
+                <div>
+                    <div style="font-size: 1.25rem; font-weight: 800; color: var(--on-surface); line-height: 1;">{{ avg_service_rating }} <span style="font-size: 0.85rem; color: var(--on-surface-variant); font-weight: 500;">/ 5.0</span></div>
+                    <div style="font-size: 0.72rem; color: var(--text-muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; margin-top: 0.2rem;">{{ service_feedbacks|length }} Verified Review{% if service_feedbacks|length != 1 %}s{% endif %}</div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+
+        {% if service_feedbacks %}
+        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 1.25rem;">
+            {% for fb in service_feedbacks %}
+            <div style="background: var(--surface-container-lowest); border: 1px solid var(--outline-variant); border-radius: var(--radius-lg); padding: 1.25rem; display: flex; flex-direction: column; justify-content: space-between; gap: 1rem; box-shadow: 0 2px 6px rgba(0,0,0,0.02);">
+                <div>
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
+                        <div style="display: flex; align-items: center; gap: 0.6rem;">
+                            <div style="width: 34px; height: 34px; border-radius: 50%; background: var(--primary-container); color: var(--on-primary-container); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.85rem;">
+                                {{ fb.buyer.full_name[0]|upper if fb.buyer and fb.buyer.full_name else 'B' }}
+                            </div>
+                            <div>
+                                <div style="font-size: 0.85rem; font-weight: 700; color: var(--on-surface);">{{ fb.buyer.full_name if fb.buyer else 'Verified Buyer' }}</div>
+                                <div style="font-size: 0.75rem; color: var(--text-muted);">{{ fb.created_at.strftime('%b %d, %Y') }}</div>
+                            </div>
+                        </div>
+
+                        {% if fb.rating %}
+                        <div style="display: flex; align-items: center; gap: 0.15rem; color: #f59e0b;">
+                            {% for i in range(5) %}
+                            <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="{% if i < fb.rating %}currentColor{% else %}none{% endif %}" stroke="{% if i < fb.rating %}currentColor{% else %}#cbd5e1{% endif %}" stroke-width="2"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    {% if fb.feedback_text %}
+                    <p style="font-size: 0.885rem; color: var(--on-surface); line-height: 1.5; font-style: italic; margin: 0;">
+                        "{{ fb.feedback_text }}"
+                    </p>
+                    {% else %}
+                    <p style="font-size: 0.825rem; color: var(--text-muted); font-style: italic; margin: 0;">
+                        Buyer gave a {{ fb.rating }}-star service rating with no written notes.
+                    </p>
+                    {% endif %}
+                </div>
+
+                {% if fb.ai_sentiment or fb.ai_issue %}
+                <div style="display: flex; gap: 0.4rem; flex-wrap: wrap; padding-top: 0.75rem; border-top: 1px solid var(--outline-variant);">
+                    {% if fb.ai_sentiment %}
+                        {% set s = fb.ai_sentiment.lower() %}
+                        <span style="font-size: 0.7rem; font-weight: 600; padding: 0.15rem 0.45rem; border-radius: 4px; background: {% if s == 'positive' %}#dcfce7; color: #15803d;{% elif s == 'negative' %}#fee2e2; color: #b91c1c;{% else %}#f1f5f9; color: #475569;{% endif %}">
+                            {{ fb.ai_sentiment|title }}
+                        </span>
+                    {% endif %}
+                    {% if fb.ai_issue %}
+                        <span style="font-size: 0.7rem; font-weight: 600; padding: 0.15rem 0.45rem; border-radius: 4px; background: #f3f4f6; color: #374151;">
+                            {{ fb.ai_issue }}
+                        </span>
+                    {% endif %}
+                </div>
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div style="background: var(--surface-container-lowest); border: 1px dashed var(--outline-variant); border-radius: var(--radius-lg); padding: 2.5rem 1.5rem; text-align: center;">
+            <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="color: var(--text-muted); margin-bottom: 0.75rem; opacity: 0.6;"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+            <div style="font-weight: 700; color: var(--on-surface); font-size: 0.95rem; margin-bottom: 0.25rem;">No service reviews yet</div>
+            <p style="color: var(--text-muted); font-size: 0.85rem; margin: 0; max-width: 480px; margin: 0 auto;">
+                When buyers complete orders from {{ farm.name }}, their feedback on delivery and service will appear here.
+            </p>
+        </div>
+        {% endif %}
+    </div>
 
 </div>
 {% endblock %}

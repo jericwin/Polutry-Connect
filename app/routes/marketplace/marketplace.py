@@ -182,11 +182,30 @@ def farm_profile(farm_id):
 
     products = query.all()
 
+    # Query delivery and service feedbacks for this farm
+    # Look up via orders with products from this farmer or directly linked by farmer_id
+    from app.models import Order
+    farm_orders_query = db.session.query(Order.id).join(OrderItem).join(Product).filter(Product.farmer_id == farm.farmer_id)
+    service_feedbacks = BuyerFeedback.query.filter(
+        db.or_(
+            BuyerFeedback.farmer_id == farm.farmer_id,
+            BuyerFeedback.order_id.in_(farm_orders_query)
+        ),
+        BuyerFeedback.category == FeedbackCategory.DELIVERY
+    ).order_by(BuyerFeedback.created_at.desc()).all()
+
+    avg_service_rating = 0
+    rated_srv = [fb for fb in service_feedbacks if fb.rating]
+    if rated_srv:
+        avg_service_rating = round(sum(fb.rating for fb in rated_srv) / len(rated_srv), 1)
+
     return render_template(
         'marketplace/farm_profile.html',
         title=farm.name,
         farm=farm,
         products=products,
+        service_feedbacks=service_feedbacks,
+        avg_service_rating=avg_service_rating,
         search=search,
         size=size,
         variety=variety,
@@ -1017,15 +1036,17 @@ def farmer_feedback():
 
     from app.models import Order, OrderItem, Product
     order_ids_query = db.session.query(Order.id).join(OrderItem).join(Product).filter(Product.farmer_id == current_user.id)
-    query = BuyerFeedback.query.filter(BuyerFeedback.order_id.in_(order_ids_query))
-    
-    # Exclude product feedback? The requirement before was delivery and service only.
-    # But since they want the old UI back, maybe we just show all feedbacks linked to this farmer.
+    # Exclude website feedback - Website Experience feedback belongs to Admin console only
+    query = BuyerFeedback.query.filter(
+        BuyerFeedback.order_id.in_(order_ids_query),
+        BuyerFeedback.category != FeedbackCategory.WEBSITE
+    )
     
     if search_category:
         try:
             cat_enum = FeedbackCategory(search_category)
-            query = query.filter(BuyerFeedback.category == cat_enum)
+            if cat_enum != FeedbackCategory.WEBSITE:
+                query = query.filter(BuyerFeedback.category == cat_enum)
         except ValueError:
             pass
             
@@ -1072,10 +1093,13 @@ def farmer_feedback():
             
     feedbacks_grouped = list(grouped.values())
 
-    # Get unique sentiments and categories for filters
-    all_fbs = BuyerFeedback.query.filter(BuyerFeedback.order_id.in_(order_ids_query)).all()
+    # Get unique sentiments and categories for filters (excluding website feedback)
+    all_fbs = BuyerFeedback.query.filter(
+        BuyerFeedback.order_id.in_(order_ids_query),
+        BuyerFeedback.category != FeedbackCategory.WEBSITE
+    ).all()
     
-    unique_categories = [c.value for c in FeedbackCategory]
+    unique_categories = [c.value for c in FeedbackCategory if c != FeedbackCategory.WEBSITE]
     unique_sentiments = list(set([fb.ai_sentiment for fb in all_fbs if fb.ai_sentiment]))
     
     import json

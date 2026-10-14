@@ -1,3 +1,5 @@
+import os
+from werkzeug.utils import secure_filename
 from flask import Blueprint, render_template, redirect, url_for, flash, request
 from flask_login import login_required, current_user
 from app.models import UserRole, Farm, ProductionRecord, Expense, SalesRecord, ExpenseFrequency, VerificationStatus, FarmerVerification
@@ -9,16 +11,25 @@ from calendar import monthrange
 
 dashboard_bp = Blueprint('dashboard', __name__)
 
-def _calculate_expenses(farm_ids, start_date, end_date):
-    """Calculate total expenses considering frequency."""
+def _calculate_expenses(farm_ids, start_date=None, end_date=None):
+    """Calculate total expenses considering frequency and optional date bounds."""
     if not farm_ids: return 0.0
-    expenses = Expense.query.filter(
-        Expense.farm_id.in_(farm_ids),
-        Expense.expense_date <= end_date,
-        db.or_(Expense.end_date.is_(None), Expense.end_date >= start_date)
-    ).all()
+    
+    query = Expense.query.filter(Expense.farm_id.in_(farm_ids))
+    if end_date:
+        query = query.filter(Expense.expense_date <= end_date)
+    if start_date:
+        query = query.filter(db.or_(Expense.end_date.is_(None), Expense.end_date >= start_date))
+    expenses = query.all()
     
     total = 0.0
+    
+    # If all-time (no bounds), sum one_time expenses directly
+    if not start_date or not end_date:
+        for exp in expenses:
+            total += float(exp.amount)
+        return total
+
     days_in_period = (end_date - start_date).days + 1
     
     for exp in expenses:
@@ -44,14 +55,17 @@ def _calculate_expenses(farm_ids, start_date, end_date):
             
     return total
 
-def _calculate_revenue(farm_ids, start_date, end_date):
-    """Calculate revenue from SalesRecord."""
+def _calculate_revenue(farm_ids, start_date=None, end_date=None):
+    """Calculate revenue from SalesRecord with optional date bounds."""
     if not farm_ids: return 0.0
-    result = db.session.query(func.sum(SalesRecord.total_revenue)).filter(
-        SalesRecord.farm_id.in_(farm_ids),
-        SalesRecord.sale_date >= start_date,
-        SalesRecord.sale_date <= end_date,
-    ).scalar()
+    query = db.session.query(func.sum(SalesRecord.total_revenue)).filter(
+        SalesRecord.farm_id.in_(farm_ids)
+    )
+    if start_date:
+        query = query.filter(SalesRecord.sale_date >= start_date)
+    if end_date:
+        query = query.filter(SalesRecord.sale_date <= end_date)
+    result = query.scalar()
     return float(result or 0.0)
 
 
@@ -236,55 +250,136 @@ def farmer():
         )
 
     today = date.today()
-    month_start = today.replace(day=1)
     week_ago = today - timedelta(days=6)
 
     # Fetch farmer's farms
     farms = Farm.query.filter_by(farmer_id=current_user.id, is_active=True).all()
-    farm_ids = [f.id for f in farms]
+    all_farm_ids = [f.id for f in farms]
 
     selected_farm_id = request.args.get('farm_id', type=int, default=0)
-    if selected_farm_id and selected_farm_id in farm_ids:
-        farm_ids = [selected_farm_id]
+    farm_ids = [selected_farm_id] if (selected_farm_id and selected_farm_id in all_farm_ids) else all_farm_ids
 
-    # ── KPI: Total eggs this month ────────────────────────────────────────────
+    # ── Month Filtering (Month selector or 'all') ────────────────────────────
+    # Discover available record months from user's production & sales
+    available_months_set = set()
+    if all_farm_ids:
+        prod_dates = ProductionRecord.query.with_entities(ProductionRecord.record_date).filter(
+            ProductionRecord.farm_id.in_(all_farm_ids)
+        ).all()
+        for d in prod_dates:
+            if d[0]: available_months_set.add(d[0].strftime('%Y-%m'))
+            
+        sales_dates = SalesRecord.query.with_entities(SalesRecord.sale_date).filter(
+            SalesRecord.farm_id.in_(all_farm_ids)
+        ).all()
+        for d in sales_dates:
+            if d[0]: available_months_set.add(d[0].strftime('%Y-%m'))
+
+    # Always ensure current month is present
+    available_months_set.add(today.strftime('%Y-%m'))
+    available_months = sorted(list(available_months_set), reverse=True)
+
+    # Default to current month if no filter specified, or respect 'all' / specific YYYY-MM
+    selected_month = request.args.get('month', today.strftime('%Y-%m')).strip()
+    
+    is_all_time = (selected_month == 'all')
+    period_start = None
+    period_end = None
+    period_label = 'All Time'
+
+    if not is_all_time:
+        try:
+            parts = selected_month.split('-')
+            y = int(parts[0])
+            m = int(parts[1])
+            _, last_day = monthrange(y, m)
+            period_start = date(y, m, 1)
+            period_end = date(y, m, last_day)
+            period_label = period_start.strftime('%B %Y')
+        except (ValueError, IndexError):
+            # Fallback to current month
+            selected_month = today.strftime('%Y-%m')
+            period_start = today.replace(day=1)
+            _, last_day = monthrange(today.year, today.month)
+            period_end = date(today.year, today.month, last_day)
+            period_label = period_start.strftime('%B %Y')
+
+    # ── KPI: Total eggs (Filtered by selected month / all-time) ───────────────
     eggs_this_month = 0
     if farm_ids:
-        result = ProductionRecord.query.with_entities(
+        query_eggs = ProductionRecord.query.with_entities(
             func.sum(ProductionRecord.egg_count)
-        ).filter(
-            ProductionRecord.farm_id.in_(farm_ids),
-            ProductionRecord.record_date >= month_start,
-            ProductionRecord.record_date <= today,
-        ).scalar()
-        eggs_this_month = result or 0
+        ).filter(ProductionRecord.farm_id.in_(farm_ids))
+        if period_start and period_end:
+            query_eggs = query_eggs.filter(
+                ProductionRecord.record_date >= period_start,
+                ProductionRecord.record_date <= period_end
+            )
+        eggs_this_month = query_eggs.scalar() or 0
 
-    # ── KPI: Total expenses this month ───────────────────────────────────────
-    expenses_this_month = _calculate_expenses(farm_ids, month_start, today)
+    # ── KPI: Total expenses (Filtered) ───────────────────────────────────────
+    expenses_this_month = _calculate_expenses(farm_ids, period_start, period_end)
 
-    # ── Chart: 7-day daily egg production ────────────────────────────────────
+    # ── KPI: Total Revenue & Profit (Filtered) ───────────────────────────────
+    revenue_this_month = _calculate_revenue(farm_ids, period_start, period_end)
+    profit_this_month = revenue_this_month - expenses_this_month
+
+    # ── Chart: Daily egg production (Last 7 days or month daily trajectory) ──
     chart_labels = []
     chart_data = []
-    for i in range(6, -1, -1):
-        day = today - timedelta(days=i)
-        chart_labels.append(day.strftime('%b %d'))
-        if farm_ids:
-            day_eggs = ProductionRecord.query.with_entities(
-                func.sum(ProductionRecord.egg_count)
-            ).filter(
-                ProductionRecord.farm_id.in_(farm_ids),
-                ProductionRecord.record_date == day,
-            ).scalar()
-            chart_data.append(int(day_eggs or 0))
-        else:
-            chart_data.append(0)
+    
+    if is_all_time:
+        # For All-Time: show past 6 months aggregate
+        for i in range(5, -1, -1):
+            ref = today.replace(day=1)
+            m = ref.month - i
+            y = ref.year
+            while m <= 0:
+                m += 12
+                y -= 1
+            _, ld = monthrange(y, m)
+            m_start = date(y, m, 1)
+            m_end = date(y, m, ld)
+            chart_labels.append(m_start.strftime('%b'))
+            if farm_ids:
+                m_eggs = ProductionRecord.query.with_entities(
+                    func.sum(ProductionRecord.egg_count)
+                ).filter(
+                    ProductionRecord.farm_id.in_(farm_ids),
+                    ProductionRecord.record_date >= m_start,
+                    ProductionRecord.record_date <= m_end
+                ).scalar() or 0
+                chart_data.append(int(m_eggs))
+            else:
+                chart_data.append(0)
+    else:
+        # For Specific Month: show days of that month up to end/today
+        end_day_num = period_end.day
+        step = 1 if end_day_num <= 15 else 2
+        for d in range(1, end_day_num + 1, step):
+            day_dt = date(period_start.year, period_start.month, d)
+            chart_labels.append(day_dt.strftime('%b %d'))
+            if farm_ids:
+                day_eggs = ProductionRecord.query.with_entities(
+                    func.sum(ProductionRecord.egg_count)
+                ).filter(
+                    ProductionRecord.farm_id.in_(farm_ids),
+                    ProductionRecord.record_date == day_dt,
+                ).scalar() or 0
+                chart_data.append(int(day_eggs))
+            else:
+                chart_data.append(0)
 
     # ── Recent production records (last 5) ───────────────────────────────────
     recent_records = []
     if farm_ids:
-        recent_records = ProductionRecord.query.filter(
-            ProductionRecord.farm_id.in_(farm_ids)
-        ).order_by(ProductionRecord.record_date.desc()).limit(5).all()
+        rec_query = ProductionRecord.query.filter(ProductionRecord.farm_id.in_(farm_ids))
+        if period_start and period_end:
+            rec_query = rec_query.filter(
+                ProductionRecord.record_date >= period_start,
+                ProductionRecord.record_date <= period_end
+            )
+        recent_records = rec_query.order_by(ProductionRecord.record_date.desc()).limit(5).all()
 
     # Build farm lookup for display
     farm_map = {f.id: f.name for f in farms}
@@ -295,18 +390,13 @@ def farmer():
         today,
     )
 
-    # ── KPI: Total Revenue & Profit ──────────────────────────────────────────
-    revenue_this_month = _calculate_revenue(farm_ids, month_start, today)
-            
-    profit_this_month = revenue_this_month - expenses_this_month
-
     # ── 6-month trend (revenue + expenses per month) ───────────────────────
     trend_labels   = []
     trend_revenue  = []
     trend_expenses = []
 
     for i in range(5, -1, -1):
-        # Walk back i months from the selected month
+        # Walk back i months from the reference
         ref = today.replace(day=1)
         m = ref.month - i
         y = ref.year
@@ -346,6 +436,9 @@ def farmer():
         trend_expenses=trend_expenses,
         today=today,
         selected_farm_id=selected_farm_id,
+        selected_month=selected_month,
+        period_label=period_label,
+        available_months=available_months,
     )
 
 @dashboard_bp.route('/notifications', methods=['GET', 'POST'])
@@ -413,3 +506,109 @@ def subscribe_plan(plan):
         
     db.session.commit()
     return redirect(url_for('dashboard.subscription'))
+
+
+ALLOWED_VERIFICATION_EXTENSIONS = {'png', 'jpg', 'jpeg', 'webp', 'pdf'}
+
+def _allowed_verification_file(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_VERIFICATION_EXTENSIONS
+
+@dashboard_bp.route('/farmer/submit-verification', methods=['POST'])
+@login_required
+def submit_verification():
+    if current_user.role != UserRole.FARMER:
+        return redirect(url_for('main.index'))
+
+    # Form fields
+    farm_name = request.form.get('farm_name', '').strip()
+    farm_location = request.form.get('farm_location', '').strip()
+    initial_flock_str = request.form.get('initial_flock_size', '').strip()
+    id_type = request.form.get('id_type', '').strip()
+    id_number = request.form.get('id_number', '').strip()
+    permit_type = request.form.get('permit_type', '').strip()
+
+    try:
+        initial_flock_size = int(initial_flock_str) if initial_flock_str else 0
+    except ValueError:
+        initial_flock_size = 0
+
+    if not farm_name or not farm_location or not id_type or not id_number or not permit_type:
+        flash('Please complete all required fields and submit appropriate documents.', 'error')
+        return redirect(url_for('dashboard.farmer'))
+
+    verification = FarmerVerification.query.filter_by(farmer_id=current_user.id).first()
+    if not verification:
+        verification = FarmerVerification(farmer_id=current_user.id)
+        db.session.add(verification)
+
+    upload_dir = os.path.join('app', 'static', 'uploads', 'verifications')
+    os.makedirs(upload_dir, exist_ok=True)
+
+    # File uploads
+    id_file = request.files.get('id_document')
+    permit_file = request.files.get('permit_document')
+    farm_file = request.files.get('farm_photo')
+
+    timestamp = int(datetime.utcnow().timestamp())
+
+    if id_file and id_file.filename and _allowed_verification_file(id_file.filename):
+        ext = id_file.filename.rsplit('.', 1)[1].lower()
+        id_filename = f'id_{current_user.id}_{timestamp}.{ext}'
+        id_file.save(os.path.join(upload_dir, id_filename))
+        verification.id_document_url = f'uploads/verifications/{id_filename}'
+    elif not verification.id_document_url:
+        flash('Valid Government ID document is required.', 'error')
+        return redirect(url_for('dashboard.farmer'))
+
+    if permit_file and permit_file.filename and _allowed_verification_file(permit_file.filename):
+        ext = permit_file.filename.rsplit('.', 1)[1].lower()
+        permit_filename = f'permit_{current_user.id}_{timestamp}.{ext}'
+        permit_file.save(os.path.join(upload_dir, permit_filename))
+        verification.permit_document_url = f'uploads/verifications/{permit_filename}'
+    elif not verification.permit_document_url:
+        flash('Farm permit / Barangay clearance document is required.', 'error')
+        return redirect(url_for('dashboard.farmer'))
+
+    if farm_file and farm_file.filename and _allowed_verification_file(farm_file.filename):
+        ext = farm_file.filename.rsplit('.', 1)[1].lower()
+        farm_filename = f'farm_{current_user.id}_{timestamp}.{ext}'
+        farm_file.save(os.path.join(upload_dir, farm_filename))
+        verification.farm_photo_url = f'uploads/verifications/{farm_filename}'
+
+    verification.farm_name = farm_name
+    verification.farm_location = farm_location
+    verification.initial_flock_size = initial_flock_size
+    verification.id_type = id_type
+    verification.id_number = id_number
+    verification.permit_type = permit_type
+    verification.status = VerificationStatus.PENDING
+    verification.rejection_reason = None
+    verification.updated_at = datetime.utcnow()
+
+    # Also automatically ensure user has their initial farm created or updated
+    farm = Farm.query.filter_by(farmer_id=current_user.id).first()
+    if not farm:
+        farm = Farm(
+            farmer_id=current_user.id,
+            name=farm_name,
+            location=farm_location,
+            flock_size=initial_flock_size if initial_flock_size > 0 else 0,
+            is_active=True
+        )
+        db.session.add(farm)
+    else:
+        farm.name = farm_name
+        farm.location = farm_location
+        if initial_flock_size > 0 and (not farm.flock_size or farm.flock_size == 0):
+            farm.flock_size = initial_flock_size
+
+    db.session.commit()
+    flash('Requirements submitted successfully! Your application is now under review by an administrator.', 'success')
+    return redirect(url_for('dashboard.farmer'))
+
+
+@dashboard_bp.route('/resubmit-verification', methods=['GET', 'POST'])
+@login_required
+def resubmit_verification():
+    # Helper to allow GET or redirect to dashboard.farmer
+    return redirect(url_for('dashboard.farmer'))

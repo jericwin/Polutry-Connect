@@ -741,8 +741,17 @@ class FarmerVerification(db.Model):
                            default=VerificationStatus.PENDING,
                            index=True
                        )
-    rejection_reason = db.Column(db.Text, nullable=True)
-    reviewed_by_id   = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True)
+    farm_name           = db.Column(db.String(150), nullable=True)
+    farm_location       = db.Column(db.String(255), nullable=True)
+    initial_flock_size  = db.Column(db.Integer, nullable=True)
+    id_type             = db.Column(db.String(100), nullable=True)
+    id_number           = db.Column(db.String(100), nullable=True)
+    id_document_url     = db.Column(db.String(500), nullable=True)
+    permit_type         = db.Column(db.String(100), nullable=True)
+    permit_document_url = db.Column(db.String(500), nullable=True)
+    farm_photo_url      = db.Column(db.String(500), nullable=True)
+    rejection_reason    = db.Column(db.Text, nullable=True)
+    reviewed_by_id      = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True)
     reviewed_at      = db.Column(db.DateTime, nullable=True)
     notes            = db.Column(db.Text, nullable=True)   # admin notes
     created_at       = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)

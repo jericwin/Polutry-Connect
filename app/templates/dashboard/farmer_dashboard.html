@@ -27,32 +27,57 @@
     <div class="section-header">
         <div class="section-header-badge">Farm overview</div>
         <h2>Good day, {{ current_user.first_name or current_user.username }}.</h2>
-        <p>Here's a summary of your farm operations for {{ today.strftime('%B %Y') }}.</p>
+        <p>Here's a summary of your farm operations for <strong style="color: var(--on-surface);">{{ period_label }}</strong>.</p>
     </div>
     <div class="hero-note">
         <span class="hero-note-dot"></span>
-        <span>Steady operations</span>
+        <span>{{ period_label }}</span>
     </div>
 </div>
 
-<!-- ── Farm Chips ─────────────────────────────────── -->
-<!-- Farm Pills -->
-<div style="display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 2rem;">
-    <a href="{{ url_for('dashboard.farmer', farm_id=0) }}" 
-       class="btn btn-sm" 
-       style="border-radius: 99px; font-weight: 600; padding: 0.4rem 1.2rem; text-decoration: none; border: 1.5px solid {% if selected_farm_id == 0 or not selected_farm_id %}#15803d{% else %}var(--outline-variant){% endif %}; background: {% if selected_farm_id == 0 or not selected_farm_id %}#dcfce7{% else %}var(--surface){% endif %}; color: {% if selected_farm_id == 0 or not selected_farm_id %}#166534{% else %}var(--on-surface-variant){% endif %}; transition: all 0.2s;">
-       All Farms ({{ farms_count }})
-    </a>
-    {% for farm in farms %}
-    <a href="{{ url_for('dashboard.farmer', farm_id=farm.id) }}" 
-       class="btn btn-sm" 
-       style="border-radius: 99px; font-weight: 600; padding: 0.4rem 1.2rem; text-decoration: none; border: 1.5px solid {% if selected_farm_id == farm.id %}#15803d{% else %}var(--outline-variant){% endif %}; background: {% if selected_farm_id == farm.id %}#dcfce7{% else %}var(--surface){% endif %}; color: {% if selected_farm_id == farm.id %}#166534{% else %}var(--on-surface-variant){% endif %}; transition: all 0.2s;">
-       {{ farm.name }}
-    </a>
-    {% endfor %}
-    <a href="{{ url_for('production.farm_add') }}" class="btn btn-sm" style="border-radius: 99px; font-weight: 600; padding: 0.4rem 1.2rem; text-decoration: none; border: 1.5px dashed var(--outline-variant); background: transparent; color: var(--text-muted); transition: all 0.2s;">
-        + Add Farm
-    </a>
+<!-- ── Controls Bar: Farm Filter & Month / All-time Filter ──────────────── -->
+<div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; margin-bottom: 2rem;">
+    <!-- Farm Pills -->
+    <div style="display: flex; gap: 0.5rem; flex-wrap: wrap; align-items: center;">
+        <a href="{{ url_for('dashboard.farmer', farm_id=0, month=selected_month) }}" 
+           class="btn btn-sm" 
+           style="border-radius: 99px; font-weight: 600; padding: 0.4rem 1.2rem; text-decoration: none; border: 1.5px solid {% if selected_farm_id == 0 or not selected_farm_id %}#15803d{% else %}var(--outline-variant){% endif %}; background: {% if selected_farm_id == 0 or not selected_farm_id %}#dcfce7{% else %}var(--surface){% endif %}; color: {% if selected_farm_id == 0 or not selected_farm_id %}#166534{% else %}var(--on-surface-variant){% endif %}; transition: all 0.2s;">
+           All Farms ({{ farms_count }})
+        </a>
+        {% for farm in farms %}
+        <a href="{{ url_for('dashboard.farmer', farm_id=farm.id, month=selected_month) }}" 
+           class="btn btn-sm" 
+           style="border-radius: 99px; font-weight: 600; padding: 0.4rem 1.2rem; text-decoration: none; border: 1.5px solid {% if selected_farm_id == farm.id %}#15803d{% else %}var(--outline-variant){% endif %}; background: {% if selected_farm_id == farm.id %}#dcfce7{% else %}var(--surface){% endif %}; color: {% if selected_farm_id == farm.id %}#166534{% else %}var(--on-surface-variant){% endif %}; transition: all 0.2s;">
+           {{ farm.name }}
+        </a>
+        {% endfor %}
+        <a href="{{ url_for('production.farm_add') }}" class="btn btn-sm" style="border-radius: 99px; font-weight: 600; padding: 0.4rem 1.2rem; text-decoration: none; border: 1.5px dashed var(--outline-variant); background: transparent; color: var(--text-muted); transition: all 0.2s;">
+            + Add Farm
+        </a>
+    </div>
+
+    <!-- Month / All-Time Selector -->
+    <div style="display: flex; align-items: center; gap: 0.5rem; background: var(--surface); padding: 0.35rem 0.65rem 0.35rem 0.85rem; border-radius: 99px; border: 1.5px solid var(--outline-variant); box-shadow: 0 1px 3px rgba(0,0,0,0.03);">
+        <label for="farmerMonthSelect" style="font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; display: flex; align-items: center; gap: 0.35rem; margin: 0;">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+            Period:
+        </label>
+        <form method="GET" action="{{ url_for('dashboard.farmer') }}" style="margin: 0; display: inline-flex;">
+            {% if selected_farm_id %}
+            <input type="hidden" name="farm_id" value="{{ selected_farm_id }}">
+            {% endif %}
+            <select id="farmerMonthSelect" name="month" onchange="this.form.submit()" 
+                    style="border: none; background: transparent; font-weight: 700; font-size: 0.845rem; color: #166534; cursor: pointer; outline: none; padding-right: 0.5rem; font-family: inherit;">
+                <option value="all" {% if selected_month == 'all' %}selected{% endif %}>All Time</option>
+                {% for ym in available_months %}
+                    {% set dt = ym ~ '-01' %}
+                    <option value="{{ ym }}" {% if selected_month == ym %}selected{% endif %}>
+                        {{ ym }} ({{ ym[:4] }})
+                    </option>
+                {% endfor %}
+            </select>
+        </form>
+    </div>
 </div>
 
 <!-- ── KPI Cards ──────────────────────────────────── -->
@@ -67,7 +92,7 @@
         </div>
         <div class="kpi-label">Eggs Collected</div>
         <div class="kpi-value">{{ "{:,}".format(eggs_this_month) }}</div>
-        <div class="kpi-sub">This month · <span class="positive">active tracking</span></div>
+        <div class="kpi-sub">{{ period_label }} · <span class="positive">active tracking</span></div>
     </div>
 
     <!-- Active Farms -->
@@ -99,7 +124,7 @@
         </div>
         <div class="kpi-label">Total Expenses</div>
         <div class="kpi-value">&#8369;{{ "{:,.0f}".format(expenses_this_month) }}</div>
-        <div class="kpi-sub">This month · all categories</div>
+        <div class="kpi-sub">{{ period_label }} · all categories</div>
     </div>
 
     <!-- Total Revenue -->
@@ -111,7 +136,7 @@
         </div>
         <div class="kpi-label">Total Revenue</div>
         <div class="kpi-value">&#8369;{{ "{:,.0f}".format(revenue_this_month) }}</div>
-        <div class="kpi-sub">This month · egg sales</div>
+        <div class="kpi-sub">{{ period_label }} · egg sales</div>
     </div>
 
 </div>

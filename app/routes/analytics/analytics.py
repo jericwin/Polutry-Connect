@@ -254,6 +254,122 @@ def index():
     if monthly_eggs > 0 and monthly_feed_kg > 0:
         feed_efficiency = round((monthly_feed_kg * 1000) / monthly_eggs, 1)
 
+    # ── Source Data Records (for data drill-down & auditability) ────────────
+    source_sales = []
+    source_expenses = []
+    source_production = []
+    source_feed = []
+    source_mortality = []
+
+    if farm_ids:
+        # 1. Sales Records (Revenue source)
+        raw_sales = SalesRecord.query.filter(
+            SalesRecord.farm_id.in_(farm_ids),
+            SalesRecord.sale_date >= month_start,
+            SalesRecord.sale_date <= month_end
+        ).order_by(SalesRecord.sale_date.desc()).all()
+        for s in raw_sales:
+            f_name = s.farm.name if hasattr(s, 'farm') and s.farm else 'Farm'
+            source_sales.append({
+                'date': s.sale_date.strftime('%b %d, %Y'),
+                'farm': f_name,
+                'buyer': s.buyer_name or 'Walk-in / Direct Buyer',
+                'quantity': s.quantity_sold,
+                'price_per_egg': float(s.price_per_egg),
+                'total_revenue': float(s.total_revenue),
+                'notes': s.notes or ''
+            })
+
+        # 2. Expenses Records (Expense source with allocated amount)
+        raw_expenses = Expense.query.filter(
+            Expense.farm_id.in_(farm_ids),
+            Expense.expense_date <= month_end,
+            db.or_(Expense.end_date.is_(None), Expense.end_date >= month_start)
+        ).order_by(Expense.expense_date.desc()).all()
+        for e in raw_expenses:
+            active_start = max(e.expense_date, month_start)
+            active_end = min(e.end_date, month_end) if e.end_date else month_end
+            if active_start > active_end:
+                continue
+            active_days = (active_end - active_start).days + 1
+            amt = float(e.amount)
+            allocated = 0.0
+            freq_str = e.frequency.value if hasattr(e.frequency, 'value') else str(e.frequency)
+            if freq_str == 'one_time':
+                if month_start <= e.expense_date <= month_end:
+                    allocated = amt
+            elif freq_str == 'daily':
+                allocated = amt * active_days
+            elif freq_str == 'weekly':
+                allocated = amt * (active_days / 7.0)
+            elif freq_str == 'monthly':
+                allocated = amt * (active_days / 30.0)
+
+            f_name = e.farm.name if hasattr(e, 'farm') and e.farm else 'Farm'
+            cat_name = e.category.value.replace('_', ' ').title() if hasattr(e.category, 'value') else str(e.category)
+            source_expenses.append({
+                'date': e.expense_date.strftime('%b %d, %Y'),
+                'farm': f_name,
+                'category': cat_name,
+                'frequency': freq_str.replace('_', ' ').title(),
+                'base_amount': amt,
+                'allocated_amount': round(allocated, 2),
+                'description': e.description or 'No description'
+            })
+
+        # 3. Production Records (Egg collection source)
+        raw_prod = ProductionRecord.query.filter(
+            ProductionRecord.farm_id.in_(farm_ids),
+            ProductionRecord.record_date >= month_start,
+            ProductionRecord.record_date <= month_end
+        ).order_by(ProductionRecord.record_date.desc()).all()
+        for p in raw_prod:
+            f_name = p.farm.name if hasattr(p, 'farm') and p.farm else 'Farm'
+            s_val = p.size.value.title() if p.size else 'Standard'
+            v_val = p.variety.value.title() if p.variety else 'Egg'
+            source_production.append({
+                'date': p.record_date.strftime('%b %d, %Y'),
+                'farm': f_name,
+                'egg_count': p.egg_count,
+                'size': s_val,
+                'variety': v_val,
+                'notes': p.notes or ''
+            })
+
+        # 4. Feed Records
+        raw_feed = FeedRecord.query.filter(
+            FeedRecord.farm_id.in_(farm_ids),
+            FeedRecord.record_date >= month_start,
+            FeedRecord.record_date <= month_end
+        ).order_by(FeedRecord.record_date.desc()).all()
+        for fd in raw_feed:
+            f_name = fd.farm.name if hasattr(fd, 'farm') and fd.farm else 'Farm'
+            source_feed.append({
+                'date': fd.record_date.strftime('%b %d, %Y'),
+                'farm': f_name,
+                'feed_type': fd.feed_type or 'Standard Feed',
+                'consumed_kg': float(fd.feed_consumed_kg or 0),
+                'cost': float(fd.feed_cost or 0),
+                'notes': fd.notes or ''
+            })
+
+        # 5. Mortality Records
+        raw_mort = MortalityRecord.query.filter(
+            MortalityRecord.farm_id.in_(farm_ids),
+            MortalityRecord.record_date >= month_start,
+            MortalityRecord.record_date <= month_end
+        ).order_by(MortalityRecord.record_date.desc()).all()
+        for m in raw_mort:
+            f_name = m.farm.name if hasattr(m, 'farm') and m.farm else 'Farm'
+            source_mortality.append({
+                'date': m.record_date.strftime('%b %d, %Y'),
+                'farm': f_name,
+                'quantity_died': m.quantity_died,
+                'reason': m.reason or 'Unspecified',
+                'notes': m.notes or ''
+            })
+
+
     # ── price recommendation ───────────────────────────────────────────────
     breakeven_price    = None
     recommended_price  = None
@@ -365,25 +481,132 @@ def index():
     daily_sales_labels = [s['date'] for s in daily_sales]
     daily_sales_data = [s['revenue'] for s in daily_sales]
 
-    # ── sales by egg size ───────────────────────────────────────────────
-    from app.models import Order, OrderItem, Product, OrderStatus
+    # ── sales and profit by egg size ─────────────────────────────────────
+    from app.models import Order, OrderItem, Product, OrderStatus, ProductSize
     sales_by_size = {}
+    size_profit_stats = []
+    weekly_labels = []
+    size_weekly_datasets = []
+
+    # Prepare weeks for the current month view (e.g. Week 1, Week 2, ...)
+    curr = month_start
+    weeks = []
+    week_idx = 1
+    while curr <= month_end:
+        w_end = min(curr + timedelta(days=6), month_end)
+        label = f"W{week_idx} ({curr.strftime('%b %d')}-{w_end.strftime('%d')})"
+        weeks.append((curr, w_end, label))
+        weekly_labels.append(label)
+        curr = w_end + timedelta(days=1)
+        week_idx += 1
+
+    # Cost per egg for this month (total expenses / total eggs produced)
+    cost_per_egg_month = float(breakeven_price or 0.0) if breakeven_price else 0.0
+
     if farm_ids:
-        size_res = db.session.query(
+        # Match orders by payment_date or created_at within month
+        order_date_col = func.coalesce(func.date(Order.payment_date), func.date(Order.created_at))
+        delivered_items = db.session.query(
             Product.size,
-            func.sum(OrderItem.quantity)
+            order_date_col,
+            OrderItem.quantity,
+            OrderItem.unit_price,
+            Product.unit
         ).join(OrderItem, OrderItem.product_id == Product.id) \
          .join(Order, Order.id == OrderItem.order_id) \
          .filter(
             Product.farm_id.in_(farm_ids),
             Order.status == OrderStatus.DELIVERED,
-            Order.payment_date >= month_start,
-            Order.payment_date <= month_end
-        ).group_by(Product.size).all()
-        sales_by_size = {r[0].value.replace('_', ' ').title(): int(r[1]) for r in size_res}
-        
-    size_labels = list(sales_by_size.keys())
-    size_data = list(sales_by_size.values())
+            order_date_col >= month_start,
+            order_date_col <= month_end
+        ).all()
+
+        # Group data per size
+        # Standard sizes in display order
+        all_sizes_enum = [ProductSize.SMALL, ProductSize.MEDIUM, ProductSize.LARGE, ProductSize.EXTRA_LARGE, ProductSize.JUMBO]
+        size_dict = {
+            s.value: {
+                'size_key': s.value,
+                'size_name': s.value.replace('_', ' ').title(),
+                'trays_sold': 0,
+                'eggs_sold': 0,
+                'revenue': 0.0,
+                'cost': 0.0,
+                'profit': 0.0,
+                'margin': 0.0,
+                'weekly_sales': [0.0] * len(weeks)
+            } for s in all_sizes_enum
+        }
+
+        for p_size, dt_val, qty, unit_price, p_unit in delivered_items:
+            if not p_size:
+                continue
+            s_key = p_size.value
+            if s_key not in size_dict:
+                size_dict[s_key] = {
+                    'size_key': s_key,
+                    'size_name': s_key.replace('_', ' ').title(),
+                    'trays_sold': 0,
+                    'eggs_sold': 0,
+                    'revenue': 0.0,
+                    'cost': 0.0,
+                    'profit': 0.0,
+                    'margin': 0.0,
+                    'weekly_sales': [0.0] * len(weeks)
+                }
+
+            line_rev = float(qty * unit_price)
+            # 1 tray = 30 eggs; if piece unit, qty = eggs
+            eggs_count = qty * 30 if getattr(p_unit, 'value', str(p_unit)) == 'tray' or unit_price > 25 else qty
+            line_cost = eggs_count * cost_per_egg_month
+
+            size_dict[s_key]['trays_sold'] += (qty if getattr(p_unit, 'value', str(p_unit)) == 'tray' or unit_price > 25 else round(qty / 30, 1))
+            size_dict[s_key]['eggs_sold'] += eggs_count
+            size_dict[s_key]['revenue'] += line_rev
+            size_dict[s_key]['cost'] += line_cost
+            size_dict[s_key]['profit'] += (line_rev - line_cost)
+
+            # Assign to week
+            item_date = dt_val if isinstance(dt_val, date) else datetime.strptime(str(dt_val)[:10], '%Y-%m-%d').date()
+            for w_i, (w_s, w_e, _) in enumerate(weeks):
+                if w_s <= item_date <= w_e:
+                    size_dict[s_key]['weekly_sales'][w_i] += line_rev
+
+        # Calculate margins & format
+        palette = {
+            'small': {'color': '#16a34a', 'bg': 'rgba(22, 163, 74, 0.1)'},
+            'medium': {'color': '#2563eb', 'bg': 'rgba(37, 99, 235, 0.1)'},
+            'large': {'color': '#d97706', 'bg': 'rgba(217, 119, 6, 0.1)'},
+            'extra_large': {'color': '#9333ea', 'bg': 'rgba(147, 51, 234, 0.1)'},
+            'jumbo': {'color': '#dc2626', 'bg': 'rgba(220, 38, 38, 0.1)'}
+        }
+
+        for s_key, s_data in size_dict.items():
+            if s_data['revenue'] > 0:
+                s_data['margin'] = round((s_data['profit'] / s_data['revenue']) * 100, 1)
+            else:
+                s_data['margin'] = 0.0
+            s_data['color'] = palette.get(s_key, {}).get('color', '#64748b')
+            s_data['bg'] = palette.get(s_key, {}).get('bg', 'rgba(100, 116, 139, 0.1)')
+            size_profit_stats.append(s_data)
+            sales_by_size[s_data['size_name']] = s_data['trays_sold']
+
+        # Prepare chart datasets for weekly sales per size
+        for s_data in size_profit_stats:
+            size_weekly_datasets.append({
+                'label': s_data['size_name'],
+                'data': [round(v, 2) for v in s_data['weekly_sales']],
+                'borderColor': s_data['color'],
+                'backgroundColor': s_data['bg'],
+                'borderWidth': 2.5,
+                'tension': 0.3,
+                'fill': False,
+                'pointRadius': 4,
+                'pointHoverRadius': 6,
+            })
+
+    size_labels = [s['size_name'] for s in size_profit_stats if s['trays_sold'] > 0]
+    size_data = [s['trays_sold'] for s in size_profit_stats if s['trays_sold'] > 0]
 
     # ══════════════════════════════════════════════════════════════════════
     # DECISION SUPPORT & FORECASTING
@@ -561,6 +784,10 @@ def index():
         daily_sales_data=daily_sales_data,
         size_labels=size_labels,
         size_data=size_data,
+        size_profit_stats=size_profit_stats,
+        weekly_labels=weekly_labels,
+        size_weekly_datasets=size_weekly_datasets,
+        cost_per_egg_month=cost_per_egg_month,
 
         today=today,
 
@@ -583,6 +810,12 @@ def index():
         prev_revenue=float(prev_revenue),
 
         farm_classifications=farm_classifications,
+
+        source_sales=source_sales,
+        source_expenses=source_expenses,
+        source_production=source_production,
+        source_feed=source_feed,
+        source_mortality=source_mortality,
     )
 
 

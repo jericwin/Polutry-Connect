@@ -988,12 +988,29 @@ def mortality():
         except ValueError:
             pass
 
-    records = query.order_by(FlockHistory.date.desc()).limit(60).all()
+    records = query.order_by(FlockHistory.date.desc(), FlockHistory.id.desc()).limit(60).all()
+
+    # Precompute running flock size for each record per farm
+    # Chronological cumulative sum of quantity per farm
+    all_farm_history = FlockHistory.query.filter(FlockHistory.farm_id.in_(farm_ids))\
+        .order_by(FlockHistory.farm_id, FlockHistory.date.asc(), FlockHistory.id.asc()).all()
+    running_flock_map = {}
+    farm_running = {}
+    for entry in all_farm_history:
+        farm_running[entry.farm_id] = farm_running.get(entry.farm_id, 0) + entry.quantity
+        running_flock_map[entry.id] = farm_running[entry.farm_id]
+
+    # Current flock sizes for modal/card
+    farm_flock_map = {f.id: f.flock_size for f in farms}
+    total_current_flock = sum(f.flock_size for f in farms)
 
     return render_template(
         'production/mortality_log.html',
         farms=farms,
         farm_map=farm_map,
+        farm_flock_map=farm_flock_map,
+        total_current_flock=total_current_flock,
+        running_flock_map=running_flock_map,
         records=records,
         selected_farm_id=selected_farm_id,
         start_date_str=start_date_str,
@@ -1014,7 +1031,7 @@ def mortality_add():
 
     farm_id = _safe_int(request.form.get('farm_id'))
     record_date = _parse_date(request.form.get('date'))
-    change_type = request.form.get('change_type', '').strip()
+    change_type = request.form.get('change_type', '').strip() or 'mortality'
     quantity = _safe_int(request.form.get('quantity'))
     notes = request.form.get('notes', '').strip()
 
@@ -1024,16 +1041,28 @@ def mortality_add():
     if not record_date:
         flash('A valid date is required.', 'error')
         return redirect(url_for('production.mortality'))
-    
+    if quantity <= 0:
+        flash('Birds died count must be greater than zero.', 'error')
+        return redirect(url_for('production.mortality'))
+
+    target_farm = db.session.get(Farm, farm_id)
+    if not target_farm:
+        flash('Selected farm not found.', 'error')
+        return redirect(url_for('production.mortality'))
+
+    # Store negative quantity in FlockHistory for mortality/reduction
+    # Deduct from current flock size of the farm
     record = FlockHistory(
         farm_id=farm_id,
         user_id=current_user.id,
         date=record_date,
         change_type=change_type,
-        quantity=quantity,
+        quantity=-quantity,
         notes=notes or None
     )
+    target_farm.flock_size = max(0, (target_farm.flock_size or 0) - quantity)
+
     db.session.add(record)
     db.session.commit()
-    flash('Mortality/Flock record saved.', 'success')
-    return redirect(url_for('production.mortality'))
+    flash(f'Mortality logged: {quantity} birds recorded. New flock size is {target_farm.flock_size:,}.', 'success')
+    return redirect(url_for('production.mortality', farm_id=farm_id))
