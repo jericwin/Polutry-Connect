@@ -414,6 +414,7 @@ content %}
   </div>
 
 {% endif %} {% endblock %} {% block extra_js %}
+{{ super() }}
 <script>
   function adjustQty(delta) {
     const input = document.getElementById("qtyInput");

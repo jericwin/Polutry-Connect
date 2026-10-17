@@ -152,18 +152,23 @@
   {% if current_user.is_authenticated %}
   <script>
     (function () {
-      const badge = document.getElementById('sidebarMsgBadge');
-      if (!badge) return;
+      function updateBadges(count) {
+        const badges = document.querySelectorAll('#sidebarMsgBadge, .sidebar-msg-badge');
+        badges.forEach(b => {
+          if (count > 0) {
+            b.textContent = count > 99 ? '99+' : count;
+            b.style.display = 'inline-flex';
+          } else {
+            b.style.display = 'none';
+          }
+        });
+      }
       function pollUnread() {
         fetch('/messaging/notifications')
           .then(r => r.json())
           .then(data => {
-            if (data.unread_count > 0) {
-              badge.textContent = data.unread_count > 99 ? '99+' : data.unread_count;
-              badge.style.display = 'flex';
-            } else {
-              badge.style.display = 'none';
-            }
+            const count = (data && data.unread_messages !== undefined) ? data.unread_messages : (data.unread_count || 0);
+            updateBadges(count);
           })
           .catch(() => { });
       }

@@ -2,107 +2,953 @@
 
 {% block title %}Shopping Cart — PoultryConnect{% endblock %}
 
-{% block extra_css %}
-<link rel="stylesheet" href="{{ url_for('static', filename='css/marketplace.css') }}">
+{% block extra_style %}
+/* ════════════════════════════════════════════════════════════════
+   SHOPPING CART PAGE — PREMIUM REDESIGN (DESKTOP & MOBILE)
+   ════════════════════════════════════════════════════════════════ */
+
+.cart-page-wrap {
+  max-width: 1240px;
+  margin: 0 auto;
+  padding: 2.25rem 1.75rem 4rem;
+  width: 100%;
+}
+
+/* Page Header & Progress Stepper */
+.cart-header-section {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid var(--outline);
+}
+
+.cart-header-title-box {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.cart-page-heading {
+  font-family: var(--font-display);
+  font-size: 2.1rem;
+  font-weight: 800;
+  color: var(--on-surface);
+  letter-spacing: -0.02em;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.cart-heading-badge {
+  font-size: 0.85rem;
+  font-weight: 700;
+  font-family: var(--font-body);
+  background: var(--primary-fixed);
+  color: var(--on-primary-container);
+  padding: 0.25rem 0.75rem;
+  border-radius: var(--radius-full);
+}
+
+.cart-header-subtitle {
+  font-size: 0.9rem;
+  color: var(--on-surface-variant);
+  margin: 0;
+}
+
+/* Checkout Progress Pills */
+.checkout-progress-bar {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: var(--surface-container-lowest);
+  padding: 0.5rem 1.15rem;
+  border-radius: var(--radius-full);
+  border: 1px solid var(--outline);
+  box-shadow: var(--shadow-card);
+}
+
+.progress-step {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--on-surface-variant);
+}
+
+.progress-step.active {
+  color: var(--primary);
+  font-weight: 800;
+}
+
+.step-num {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--surface-container);
+  color: var(--on-surface-variant);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  font-weight: 800;
+}
+
+.progress-step.active .step-num {
+  background: var(--primary);
+  color: #ffffff;
+}
+
+.progress-divider {
+  width: 24px;
+  height: 2px;
+  background: var(--outline);
+}
+
+/* Cart Grid Layout */
+.cart-layout {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) 340px !important;
+  gap: 1.75rem !important;
+  align-items: start !important;
+  width: 100% !important;
+}
+
+/* Items Card */
+.cart-items-wrap {
+  min-width: 0;
+  width: 100%;
+}
+
+.cart-items-card {
+  background: var(--surface-container-lowest);
+  border-radius: 20px;
+  border: 1px solid var(--outline);
+  box-shadow: 0 4px 20px rgba(0, 31, 42, 0.04);
+  overflow: hidden;
+  width: 100%;
+}
+
+.cart-items-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.25rem 1.75rem;
+  background: linear-gradient(180deg, #f8fbfd 0%, #ffffff 100%);
+  border-bottom: 1px solid var(--outline);
+}
+
+.cart-items-title {
+  font-family: var(--font-display);
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: var(--on-surface);
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.cart-continue-link {
+  font-size: 0.85rem;
+  color: var(--primary);
+  font-weight: 700;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.45rem 0.95rem;
+  border-radius: var(--radius-full);
+  background: rgba(13, 99, 27, 0.06);
+  transition: all 0.2s ease;
+}
+
+.cart-continue-link:hover {
+  background: var(--primary-fixed);
+  color: var(--on-primary-container);
+  transform: translateX(-2px);
+}
+
+/* Cart Item Row - modern card layout with zero overflow */
+.cart-items-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.cart-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 1.25rem;
+  padding: 1.5rem 1.75rem;
+  border-bottom: 1px solid var(--outline);
+  transition: background 0.2s ease;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.cart-row:last-child {
+  border-bottom: none;
+}
+
+.cart-row:hover {
+  background: rgba(244, 250, 255, 0.6);
+}
+
+/* Product Visual Badge */
+.cart-row__visual {
+  width: 76px;
+  height: 76px;
+  border-radius: 16px;
+  background: linear-gradient(135deg, #eef9f0 0%, #daedf7 100%);
+  border: 1px solid rgba(13, 99, 27, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  position: relative;
+  overflow: hidden;
+}
+
+.cart-row__egg-svg {
+  width: 42px;
+  height: 54px;
+  filter: drop-shadow(0 6px 10px rgba(0, 0, 0, 0.12));
+  transition: transform 0.25s ease;
+}
+
+.cart-row:hover .cart-row__egg-svg {
+  transform: scale(1.08) rotate(-3deg);
+}
+
+/* Product Content: Main column containing Top (title + remove) & Bottom (stepper + subtotal) */
+.cart-row__content {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
+.cart-row__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.cart-row__info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.cart-row__farm-badge {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--primary);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.cart-row__name {
+  font-family: var(--font-display);
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: var(--on-surface);
+  text-decoration: none;
+  line-height: 1.35;
+  transition: color 0.18s ease;
+  white-space: normal;
+  word-break: normal;
+  overflow-wrap: break-word;
+}
+
+.cart-row__name:hover {
+  color: var(--primary);
+}
+
+.cart-row__meta-pills {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  margin-top: 0.15rem;
+}
+
+.cart-pill {
+  font-size: 0.72rem;
+  font-weight: 600;
+  padding: 0.18rem 0.6rem;
+  border-radius: 6px;
+  background: var(--surface-container);
+  color: var(--on-surface-variant);
+}
+
+.cart-pill--unit {
+  background: #f0fdf4;
+  color: #166534;
+  border: 1px solid #bbf7d0;
+  font-weight: 700;
+}
+
+/* Bottom Action Bar: Stepper on left, Subtotal on right */
+.cart-row__bottom {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding-top: 0.75rem;
+  border-top: 1px dashed rgba(0, 31, 42, 0.08);
+}
+
+/* Stepper */
+.cart-qty-form {
+  margin: 0;
+}
+
+.cart-stepper {
+  display: inline-flex;
+  align-items: center;
+  background: var(--surface-container-lowest);
+  border: 1.5px solid var(--outline);
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0, 31, 42, 0.04);
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.cart-stepper:focus-within {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(13, 99, 27, 0.15);
+}
+
+.cart-stepper__btn {
+  width: 34px;
+  height: 36px;
+  background: var(--surface-container-low);
+  border: none;
+  color: var(--on-surface);
+  font-size: 1.1rem;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s, color 0.15s;
+  user-select: none;
+}
+
+.cart-stepper__btn:hover:not(:disabled) {
+  background: var(--primary-fixed);
+  color: var(--on-primary-container);
+}
+
+.cart-stepper__btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.cart-stepper__val {
+  min-width: 40px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-display);
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: var(--on-surface);
+  border-left: 1px solid var(--outline);
+  border-right: 1px solid var(--outline);
+  padding: 0 0.35rem;
+  background: #ffffff;
+}
+
+/* Subtotal Column */
+.cart-row__subtotal-col {
+  text-align: right;
+  display: flex;
+  align-items: baseline;
+  gap: 0.45rem;
+}
+
+.cart-row__subtotal-label {
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  color: var(--on-surface-variant);
+  font-weight: 700;
+  letter-spacing: 0.05em;
+}
+
+.cart-row__subtotal-val {
+  font-family: var(--font-display);
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: var(--primary);
+  line-height: 1;
+}
+
+/* Remove button */
+.cart-row__remove-wrap {
+  flex-shrink: 0;
+}
+
+.cart-row__remove-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--on-surface-variant);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.cart-row__remove-btn:hover {
+  background: var(--error-container);
+  color: var(--error);
+  border-color: rgba(186, 26, 26, 0.2);
+  transform: scale(1.05);
+}
+
+/* Order Summary Sticky Sidebar */
+.cart-summary {
+  position: sticky;
+  top: 90px;
+  min-width: 0;
+}
+
+.cart-summary-card {
+  background: var(--surface-container-lowest);
+  border-radius: 20px;
+  border: 1px solid var(--outline);
+  box-shadow: 0 8px 30px rgba(0, 31, 42, 0.06);
+  padding: 1.75rem;
+  display: flex;
+  flex-direction: column;
+}
+
+.cart-summary__title {
+  font-family: var(--font-display);
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: var(--on-surface);
+  margin: 0 0 1.25rem 0;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid var(--outline);
+}
+
+.cart-summary__rows {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
+.cart-summary__row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.88rem;
+  color: var(--on-surface-variant);
+}
+
+.cart-summary__row-name {
+  max-width: 210px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-weight: 500;
+}
+
+.cart-summary__row-val {
+  font-family: var(--font-display);
+  font-weight: 700;
+  color: var(--on-surface);
+}
+
+.cart-summary__divider {
+  height: 1px;
+  background: var(--outline);
+  margin: 1.25rem 0;
+}
+
+/* Total Box */
+.cart-summary__total-card {
+  background: linear-gradient(135deg, #f0fdf4 0%, #e6f7ec 100%);
+  border: 1px solid #bbf7d0;
+  border-radius: 14px;
+  padding: 1rem 1.15rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.25rem;
+}
+
+.cart-summary__total-label {
+  font-family: var(--font-display);
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: #14532d;
+  display: flex;
+  flex-direction: column;
+}
+
+.cart-summary__total-sub {
+  font-size: 0.72rem;
+  font-weight: 500;
+  color: #166534;
+  margin-top: 0.15rem;
+}
+
+.cart-summary__total-amount {
+  font-family: var(--font-display);
+  font-size: 1.7rem;
+  font-weight: 800;
+  color: var(--primary);
+  line-height: 1;
+}
+
+/* Payment Method Preview */
+.cart-summary__payment-box {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.85rem 1rem;
+  background: var(--surface-container-low);
+  border-radius: 12px;
+  border: 1px solid var(--outline);
+  margin-bottom: 1.5rem;
+}
+
+.cart-summary__payment-icon {
+  width: 34px;
+  height: 34px;
+  border-radius: 8px;
+  background: var(--surface-container-lowest);
+  border: 1px solid var(--outline);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--primary);
+  flex-shrink: 0;
+}
+
+.cart-summary__payment-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.cart-summary__payment-title {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--on-surface);
+}
+
+.cart-summary__payment-desc {
+  font-size: 0.72rem;
+  color: var(--on-surface-variant);
+}
+
+/* Checkout CTA Button */
+.cart-checkout-btn {
+  width: 100%;
+  padding: 1rem 1.5rem;
+  background: var(--grad-primary);
+  color: #ffffff;
+  border: none;
+  border-radius: 14px;
+  font-family: var(--font-display);
+  font-size: 1.05rem;
+  font-weight: 800;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.65rem;
+  text-decoration: none;
+  box-shadow: 0 4px 14px rgba(13, 99, 27, 0.35);
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.cart-checkout-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(13, 99, 27, 0.45);
+  color: #ffffff;
+}
+
+.cart-checkout-btn:active {
+  transform: translateY(0);
+}
+
+/* Guarantees Box */
+.cart-guarantees {
+  margin-top: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  padding-top: 1.25rem;
+  border-top: 1px dashed var(--outline);
+}
+
+.guarantee-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.78rem;
+  color: var(--on-surface-variant);
+}
+
+.guarantee-item svg {
+  color: var(--primary);
+  flex-shrink: 0;
+}
+
+/* ════════════════════════════════════════════════════════════════
+   EMPTY CART STATE
+   ════════════════════════════════════════════════════════════════ */
+
+.cart-empty-state {
+  text-align: center;
+  padding: 5rem 2rem;
+  max-width: 540px;
+  margin: 2rem auto;
+  background: var(--surface-container-lowest);
+  border-radius: 24px;
+  border: 1px solid var(--outline);
+  box-shadow: 0 10px 40px rgba(0, 31, 42, 0.05);
+}
+
+.cart-empty__icon-wrap {
+  width: 96px;
+  height: 96px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #eef9f0 0%, #daedf7 100%);
+  border: 2px dashed rgba(13, 99, 27, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 1.75rem;
+  color: var(--primary);
+}
+
+.cart-empty__title {
+  font-family: var(--font-display);
+  font-size: 1.6rem;
+  font-weight: 800;
+  color: var(--on-surface);
+  margin-bottom: 0.5rem;
+}
+
+.cart-empty__desc {
+  font-size: 0.95rem;
+  color: var(--on-surface-variant);
+  line-height: 1.6;
+  margin-bottom: 2rem;
+  max-width: 400px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.cart-empty__cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.9rem 2rem;
+  background: var(--grad-primary);
+  color: #ffffff;
+  border-radius: var(--radius-full);
+  font-weight: 700;
+  font-size: 0.95rem;
+  text-decoration: none;
+  box-shadow: 0 4px 14px rgba(13, 99, 27, 0.3);
+  transition: all 0.2s ease;
+}
+
+.cart-empty__cta:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(13, 99, 27, 0.4);
+  color: #ffffff;
+}
+
+/* ════════════════════════════════════════════════════════════════
+   RESPONSIVE DESIGN
+   ════════════════════════════════════════════════════════════════ */
+
+@media (max-width: 1024px) {
+  .cart-layout {
+    grid-template-columns: 1fr !important;
+    gap: 1.75rem !important;
+  }
+  
+  .cart-summary {
+    position: static;
+  }
+}
+
+@media (max-width: 768px) {
+  .cart-page-wrap {
+    padding: 1.5rem 1rem 3rem;
+  }
+
+  .cart-header-section {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+
+  .cart-page-heading {
+    font-size: 1.6rem;
+  }
+
+  .cart-row {
+    padding: 1.25rem 1rem;
+    gap: 1rem;
+  }
+
+  .cart-row__visual {
+    width: 60px;
+    height: 60px;
+  }
+
+  .cart-row__egg-svg {
+    width: 32px;
+    height: 42px;
+  }
+
+  .cart-row__name {
+    font-size: 0.95rem;
+  }
+}
 {% endblock %}
 
 {% block content %}
-<div class="mp-container" style="padding: 2rem 1.5rem; max-width: 1200px; margin: 0 auto;">
-    <h1 style="font-family: var(--font-display); font-size: 1.8rem; font-weight: 800; color: var(--on-surface); margin-bottom: 1.5rem;">Shopping Cart</h1>
+<div class="cart-page-wrap">
 
-{% if cart_items %}
-<div class="cart-layout">
+  <!-- Header & Progress Stepper -->
+  <div class="cart-header-section">
+    <div class="cart-header-title-box">
+      <h1 class="cart-page-heading">
+        Shopping Cart
+        <span class="cart-heading-badge" id="cartCountBadge">{{ cart_count }} item{{ 's' if cart_count != 1 }}</span>
+      </h1>
+      <p class="cart-header-subtitle">Review fresh poultry products from local verified farms before placing your order.</p>
+    </div>
 
-    <!-- ═══ Cart Items ═══ -->
+    <!-- Stepper Indicator -->
+    <div class="checkout-progress-bar" aria-label="Order progress">
+      <div class="progress-step active">
+        <span class="step-num">1</span>
+        <span>My Cart</span>
+      </div>
+      <div class="progress-divider"></div>
+      <div class="progress-step">
+        <span class="step-num">2</span>
+        <span>Checkout</span>
+      </div>
+      <div class="progress-divider"></div>
+      <div class="progress-step">
+        <span class="step-num">3</span>
+        <span>Confirmation</span>
+      </div>
+    </div>
+  </div>
+
+  {% if cart_items %}
+  <div class="cart-layout">
+
+    <!-- ═══ Cart Items List Card ═══ -->
     <div class="cart-items-wrap">
-        <div class="cart-items-card">
-            <div class="cart-items-header">
-                <h3 class="cart-items-title">Your Items ({{ cart_count }})</h3>
-                <a href="{{ url_for('marketplace.index') }}" class="cart-continue-link">← Continue Shopping</a>
+      <div class="cart-items-card">
+        <div class="cart-items-header">
+          <h2 class="cart-items-title">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--primary);"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 002 1.61h9.72a2 2 0 002-1.61L23 6H6"/></svg>
+            Selected Products
+          </h2>
+          <a href="{{ url_for('marketplace.index') }}" class="cart-continue-link">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+            Continue Shopping
+          </a>
+        </div>
+
+        <div class="cart-items-list">
+          {% for item in cart_items %}
+          <div class="cart-row" id="cartItem-{{ item.product.id }}">
+            
+            <!-- Visual Graphic with SVG Egg -->
+            <div class="cart-row__visual">
+              {% set variety_lower = (item.product.variety or '')|lower %}
+              <svg class="cart-row__egg-svg" viewBox="0 0 100 130" xmlns="http://www.w3.org/2000/svg">
+                <path d="M50 0 C15 0 0 50 0 90 C0 115 15 130 50 130 C85 130 100 115 100 90 C100 50 85 0 50 0 Z" 
+                      fill="url(#{{ 'eggGradWhite' if 'white' in variety_lower or 'white' in item.product.name|lower else ('eggGradPremium' if 'organic' in variety_lower or 'native' in variety_lower else 'eggGradBrown') }})" />
+                <path d="M50 8 C25 8 12 50 12 85 C12 105 25 118 50 118 C75 118 88 105 88 85 C88 50 75 8 50 8 Z" 
+                      fill="url(#{{ 'eggHighlightWhite' if 'white' in variety_lower or 'white' in item.product.name|lower else 'eggHighlightBrown' }})" opacity="0.6"/>
+              </svg>
             </div>
 
-            {% for item in cart_items %}
-            <div class="cart-item" id="cartItem-{{ item.product.id }}">
-                <div class="cart-item__img">
-                    🥚
+            <!-- Product Content (Flex Column) -->
+            <div class="cart-row__content">
+              <!-- Top line: Farm badge, Product Name, and Remove button -->
+              <div class="cart-row__header">
+                <div class="cart-row__info">
+                  <div class="cart-row__farm-badge">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
+                    {{ item.product.farm.name }}
+                  </div>
+                  <a href="{{ url_for('marketplace.product_detail', product_id=item.product.id) }}" class="cart-row__name">
+                    {{ item.product.name }}
+                  </a>
+                  <div class="cart-row__meta-pills">
+                    <span class="cart-pill cart-pill--unit">₱{{ "%.2f"|format(item.product.price) }} / {{ item.product.unit_label }}</span>
+                    {% if item.product.size %}
+                    <span class="cart-pill">{{ item.product.size|upper }}</span>
+                    {% endif %}
+                    {% if item.product.variety %}
+                    <span class="cart-pill">{{ item.product.variety|title }}</span>
+                    {% endif %}
+                  </div>
                 </div>
 
-                <div class="cart-item__info">
-                    <a href="{{ url_for('marketplace.product_detail', product_id=item.product.id) }}" class="cart-item__name">{{ item.product.name }}</a>
-                    <div class="cart-item__farm">{{ item.product.farm.name }}</div>
-                    <div class="cart-item__unit-price">₱{{ "%.2f"|format(item.product.price) }} / {{ item.product.unit_label }}</div>
-                </div>
-
-                <div class="cart-item__controls">
-                    <form method="post" action="{{ url_for('marketplace.cart_update') }}" class="cart-qty-form">
-                        <input type="hidden" name="product_id" value="{{ item.product.id }}">
-                        <div class="cart-qty-stepper">
-                            <button type="submit" name="quantity" value="{{ item.quantity - 1 }}" class="cart-qty-btn" {{ 'title=Remove' if item.quantity <= 1 }}>−</button>
-                            <span class="cart-qty-val">{{ item.quantity }}</span>
-                            <button type="submit" name="quantity" value="{{ item.quantity + 1 }}" class="cart-qty-btn" {{ 'disabled' if item.quantity >= item.product.stock }}>+</button>
-                        </div>
-                    </form>
-                </div>
-
-                <div class="cart-item__subtotal">
-                    ₱{{ "%.2f"|format(item.subtotal) }}
-                </div>
-
-                <form method="post" action="{{ url_for('marketplace.cart_remove') }}">
+                <!-- Remove Button -->
+                <div class="cart-row__remove-wrap">
+                  <form method="post" action="{{ url_for('marketplace.cart_remove') }}">
                     <input type="hidden" name="product_id" value="{{ item.product.id }}">
-                    <button type="submit" class="cart-item__remove" title="Remove">
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg>
+                    <button type="submit" class="cart-row__remove-btn" title="Remove {{ item.product.name }} from cart" aria-label="Remove {{ item.product.name }}">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg>
                     </button>
-                </form>
-            </div>
-            {% endfor %}
-        </div>
-    </div>
-
-    <!-- ═══ Cart Summary Sidebar ═══ -->
-    <div class="cart-summary">
-        <div class="cart-summary-card">
-            <h3 class="cart-summary__title">Order Summary</h3>
-
-            <div class="cart-summary__rows">
-                {% for item in cart_items %}
-                <div class="cart-summary__row">
-                    <span>{{ item.product.name }} × {{ item.quantity }}</span>
-                    <span>₱{{ "%.2f"|format(item.subtotal) }}</span>
+                  </form>
                 </div>
-                {% endfor %}
+              </div>
+
+              <!-- Bottom line: Stepper controls & Subtotal -->
+              <div class="cart-row__bottom">
+                <!-- Quantity Stepper Controls -->
+                <div class="cart-row__controls">
+                  <form method="post" action="{{ url_for('marketplace.cart_update') }}" class="cart-qty-form">
+                    <input type="hidden" name="product_id" value="{{ item.product.id }}">
+                    <div class="cart-stepper">
+                      <button type="submit" name="quantity" value="{{ item.quantity - 1 }}" class="cart-stepper__btn" aria-label="Decrease quantity" title="{{ 'Remove item' if item.quantity <= 1 else 'Decrease quantity' }}">
+                        {% if item.quantity <= 1 %}
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6"/></svg>
+                        {% else %}
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                        {% endif %}
+                      </button>
+                      <span class="cart-stepper__val">{{ item.quantity }}</span>
+                      <button type="submit" name="quantity" value="{{ item.quantity + 1 }}" class="cart-stepper__btn" aria-label="Increase quantity" {{ 'disabled' if item.quantity >= item.product.stock }} title="{{ 'Max stock reached' if item.quantity >= item.product.stock else 'Increase quantity' }}">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                      </button>
+                    </div>
+                  </form>
+                </div>
+
+                <!-- Calculated Subtotal -->
+                <div class="cart-row__subtotal-col">
+                  <span class="cart-row__subtotal-label">Subtotal:</span>
+                  <span class="cart-row__subtotal-val">₱{{ "%.2f"|format(item.subtotal) }}</span>
+                </div>
+              </div>
             </div>
 
-            <div class="cart-summary__divider"></div>
-
-            <div class="cart-summary__total-row">
-                <span>Total</span>
-                <span class="cart-summary__total">₱{{ "%.2f"|format(cart_total) }}</span>
-            </div>
-
-            <div class="cart-summary__payment">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
-                Cash on Delivery
-            </div>
-
-            <a href="{{ url_for('marketplace.checkout') }}" class="btn btn-primary btn-lg cart-checkout-btn">
-                Proceed to Checkout →
-            </a>
+          </div>
+          {% endfor %}
         </div>
+      </div>
     </div>
-</div>
 
-{% else %}
-<!-- ═══ Empty Cart ═══ -->
-<div class="mp-empty">
-    <div class="mp-empty__icon">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 002 1.61h9.72a2 2 0 002-1.61L23 6H6"/></svg>
+    <!-- ═══ Order Summary Sticky Sidebar ═══ -->
+    <div class="cart-summary">
+      <div class="cart-summary-card">
+        <h3 class="cart-summary__title">Order Summary</h3>
+
+        <div class="cart-summary__rows">
+          {% for item in cart_items %}
+          <div class="cart-summary__row">
+            <span class="cart-summary__row-name" title="{{ item.product.name }}">
+              {{ item.product.name }} <strong style="color: var(--primary);">× {{ item.quantity }}</strong>
+            </span>
+            <span class="cart-summary__row-val">₱{{ "%.2f"|format(item.subtotal) }}</span>
+          </div>
+          {% endfor %}
+        </div>
+
+        <div class="cart-summary__divider"></div>
+
+        <!-- Total Calculation -->
+        <div class="cart-summary__total-card">
+          <div class="cart-summary__total-label">
+            <span>Estimated Total</span>
+            <span class="cart-summary__total-sub">Includes all items</span>
+          </div>
+          <div class="cart-summary__total-amount">
+            ₱{{ "%.2f"|format(cart_total) }}
+          </div>
+        </div>
+
+        <!-- Payment Info -->
+        <div class="cart-summary__payment-box">
+          <div class="cart-summary__payment-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+          </div>
+          <div class="cart-summary__payment-info">
+            <span class="cart-summary__payment-title">Cash on Delivery (COD)</span>
+            <span class="cart-summary__payment-desc">Pay directly when your order arrives</span>
+          </div>
+        </div>
+
+        <!-- Proceed to Checkout -->
+        <a href="{{ url_for('marketplace.checkout') }}" class="cart-checkout-btn" id="proceedCheckoutBtn">
+          <span>Proceed to Checkout</span>
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+        </a>
+
+        <!-- Guarantees -->
+        <div class="cart-guarantees">
+          <div class="guarantee-item">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+            <span>Fresh poultry direct from verified farms</span>
+          </div>
+          <div class="guarantee-item">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
+            <span>Direct seller dispatch and coordination</span>
+          </div>
+          <div class="guarantee-item">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            <span>Safe and verified buyer guarantee</span>
+          </div>
+        </div>
+
+      </div>
     </div>
-    <h3>Your cart is empty</h3>
-    <p>Browse the marketplace and add products to get started.</p>
-    <a href="{{ url_for('marketplace.index') }}" class="btn btn-primary">Browse Marketplace</a>
-</div>
-{% endif %}
-</div>
 
+  </div>
+
+  {% else %}
+  <!-- ═══ Empty Cart State ═══ -->
+  <div class="cart-empty-state">
+    <div class="cart-empty__icon-wrap">
+      <svg xmlns="http://www.w3.org/2000/svg" width="46" height="46" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 002 1.61h9.72a2 2 0 002-1.61L23 6H6"/></svg>
+    </div>
+    <h2 class="cart-empty__title">Your shopping cart is empty</h2>
+    <p class="cart-empty__desc">You haven't added any products to your cart yet. Explore our verified local farms and choose fresh poultry products today!</p>
+    <a href="{{ url_for('marketplace.index') }}" class="cart-empty__cta">
+      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
+      <span>Browse Marketplace Farms</span>
+    </a>
+  </div>
+  {% endif %}
+
+</div>
 {% endblock %}

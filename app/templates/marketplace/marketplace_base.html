@@ -828,6 +828,429 @@
       }
     }
 
+    /* ═════════ Quantity Selection Card Modal ═════════ */
+    .atc-modal {
+      position: fixed !important;
+      top: 0 !important;
+      left: 0 !important;
+      right: 0 !important;
+      bottom: 0 !important;
+      width: 100vw !important;
+      height: 100vh !important;
+      z-index: 99999 !important;
+      display: none;
+      align-items: center !important;
+      justify-content: center !important;
+      padding: 1.25rem !important;
+      box-sizing: border-box !important;
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 0.25s ease, visibility 0.25s ease;
+    }
+    .atc-modal.is-open {
+      display: flex !important;
+      opacity: 1 !important;
+      visibility: visible !important;
+    }
+    .atc-modal__backdrop {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(15, 23, 42, 0.6);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      z-index: 1;
+    }
+    .atc-modal__card {
+      position: relative;
+      background: #ffffff;
+      width: 100%;
+      max-width: 440px;
+      border-radius: 20px;
+      box-shadow: 0 25px 60px rgba(0, 31, 42, 0.28), 0 0 0 1px rgba(13, 99, 27, 0.15);
+      overflow: hidden;
+      transform: scale(0.92) translateY(18px);
+      transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      z-index: 2;
+      display: flex;
+      flex-direction: column;
+      margin: auto;
+    }
+    .atc-modal.is-open .atc-modal__card {
+      transform: scale(1) translateY(0);
+    }
+    .atc-modal__close {
+      position: absolute;
+      top: 1rem;
+      right: 1rem;
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      border: none;
+      background: rgba(0, 31, 42, 0.05);
+      color: var(--on-surface-variant, #3f5059);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.2s, transform 0.2s, color 0.2s;
+      z-index: 5;
+    }
+    .atc-modal__close:hover {
+      background: rgba(186, 26, 26, 0.1);
+      color: var(--error, #ba1a1a);
+      transform: rotate(90deg);
+    }
+    .atc-modal__header {
+      padding: 1.5rem 1.5rem 1rem;
+      background: linear-gradient(180deg, #f0fdf4 0%, #ffffff 100%);
+      border-bottom: 1px solid rgba(0, 31, 42, 0.06);
+    }
+    .atc-modal__farm-tag {
+      font-size: 0.72rem;
+      font-weight: 700;
+      color: var(--primary, #0d631b);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 0.35rem;
+      display: flex;
+      align-items: center;
+      gap: 0.35rem;
+    }
+    .atc-modal__title {
+      font-family: var(--font-display, 'Manrope', sans-serif);
+      font-size: 1.28rem;
+      font-weight: 800;
+      color: var(--on-surface, #001f2a);
+      line-height: 1.25;
+      margin-bottom: 0.65rem;
+      padding-right: 2rem;
+    }
+    .atc-modal__badges {
+      display: flex;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+    }
+    .atc-pill {
+      font-size: 0.72rem;
+      font-weight: 600;
+      padding: 0.25rem 0.65rem;
+      border-radius: 99px;
+    }
+    .atc-pill--spec {
+      background: var(--surface-container, #daedf7);
+      color: var(--on-surface-variant, #001f2a);
+    }
+    .atc-pill--stock {
+      background: #dcfce7;
+      color: #15803d;
+    }
+    .atc-modal__body {
+      padding: 1.25rem 1.5rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1.25rem;
+    }
+    .atc-modal__preview-wrap {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      background: var(--surface-container-low, #e6f6ff);
+      border-radius: 14px;
+      padding: 0.85rem 1.15rem;
+      border: 1px solid rgba(0, 31, 42, 0.05);
+    }
+    .atc-modal__preview-art {
+      width: 48px;
+      height: 48px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .atc-modal__unit-pricing {
+      display: flex;
+      flex-direction: column;
+    }
+    .atc-modal__price-label {
+      font-size: 0.68rem;
+      text-transform: uppercase;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      color: var(--on-surface-variant, #3f5059);
+    }
+    .atc-modal__unit-price {
+      font-family: var(--font-display, sans-serif);
+      font-size: 1.2rem;
+      font-weight: 800;
+      color: var(--primary, #0d631b);
+      line-height: 1.1;
+    }
+    .atc-modal__unit-name {
+      font-size: 0.75rem;
+      color: var(--on-surface-variant, #3f5059);
+    }
+    .atc-modal__qty-section {
+      display: flex;
+      flex-direction: column;
+      gap: 0.6rem;
+    }
+    .atc-modal__qty-label {
+      font-size: 0.82rem;
+      font-weight: 700;
+      color: var(--on-surface, #001f2a);
+    }
+    .atc-stepper {
+      display: flex;
+      align-items: center;
+      border: 2px solid rgba(13, 99, 27, 0.2);
+      border-radius: 12px;
+      overflow: hidden;
+      background: #ffffff;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    .atc-stepper:focus-within {
+      border-color: var(--primary, #0d631b);
+      box-shadow: 0 0 0 3px rgba(13, 99, 27, 0.15);
+    }
+    .atc-stepper__btn {
+      width: 48px;
+      height: 46px;
+      border: none;
+      background: rgba(13, 99, 27, 0.06);
+      color: var(--primary, #0d631b);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.25rem;
+      font-weight: 700;
+      transition: background 0.15s, transform 0.1s;
+      user-select: none;
+    }
+    .atc-stepper__btn:hover {
+      background: rgba(13, 99, 27, 0.15);
+    }
+    .atc-stepper__btn:active {
+      transform: scale(0.92);
+    }
+    .atc-stepper__input {
+      flex: 1;
+      height: 46px;
+      border: none;
+      outline: none;
+      text-align: center;
+      font-family: var(--font-display, sans-serif);
+      font-size: 1.2rem;
+      font-weight: 800;
+      color: var(--on-surface, #001f2a);
+      background: transparent;
+      -moz-appearance: textfield;
+    }
+    .atc-stepper__input::-webkit-outer-spin-button,
+    .atc-stepper__input::-webkit-inner-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
+    }
+    .atc-quick-chips {
+      display: flex;
+      gap: 0.4rem;
+      flex-wrap: wrap;
+    }
+    .atc-chip {
+      padding: 0.35rem 0.75rem;
+      border-radius: 8px;
+      border: 1px solid var(--outline, #d9e5ec);
+      background: #ffffff;
+      font-size: 0.78rem;
+      font-weight: 700;
+      color: var(--on-surface-variant, #3f5059);
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .atc-chip:hover {
+      border-color: var(--primary, #0d631b);
+      color: var(--primary, #0d631b);
+      background: #f0fdf4;
+    }
+    .atc-chip.is-active {
+      border-color: var(--primary, #0d631b);
+      background: var(--primary, #0d631b);
+      color: #ffffff;
+    }
+    .atc-subtotal-card {
+      background: linear-gradient(135deg, #f0fdf4 0%, #ecfdf5 100%);
+      border: 1px solid #bbf7d0;
+      border-radius: 12px;
+      padding: 0.85rem 1rem;
+    }
+    .atc-subtotal-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--on-surface-variant, #3f5059);
+    }
+    .atc-subtotal-amount {
+      font-family: var(--font-display, sans-serif);
+      font-size: 1.35rem;
+      font-weight: 800;
+      color: var(--primary, #0d631b);
+      transition: transform 0.15s ease;
+    }
+    .atc-subtotal-hint {
+      font-size: 0.7rem;
+      color: #166534;
+      margin-top: 0.25rem;
+      opacity: 0.85;
+    }
+    .atc-modal__footer {
+      padding: 1rem 1.5rem 1.5rem;
+      display: flex;
+      gap: 0.75rem;
+      border-top: 1px solid rgba(0, 31, 42, 0.06);
+      background: #ffffff;
+    }
+    .atc-btn {
+      padding: 0.85rem 1.25rem;
+      border-radius: 12px;
+      font-size: 0.92rem;
+      font-weight: 700;
+      border: none;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      transition: all 0.2s;
+    }
+    .atc-btn--cancel {
+      background: var(--surface-container-high, #cde4ef);
+      color: var(--on-surface, #001f2a);
+      flex: 1;
+    }
+    .atc-btn--cancel:hover {
+      background: var(--surface-container-highest, #c0dbe7);
+    }
+    .atc-btn--confirm {
+      background: var(--grad-primary, linear-gradient(135deg, #0d631b 0%, #2e7d32 100%));
+      color: #ffffff;
+      flex: 2;
+      box-shadow: 0 4px 14px rgba(13, 99, 27, 0.35);
+    }
+    .atc-btn--confirm:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(13, 99, 27, 0.45);
+    }
+    .atc-btn--confirm:active {
+      transform: translateY(0);
+    }
+
+    /* ═════════ Flying Particle & Cart Animation ═════════ */
+    .flying-cart-particle {
+      position: fixed;
+      z-index: 100000;
+      pointer-events: none;
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #2e7d32 0%, #0d631b 100%);
+      color: #ffffff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 8px 24px rgba(13, 99, 27, 0.5), 0 0 15px rgba(46, 125, 50, 0.45);
+      border: 2px solid #ffffff;
+      will-change: transform, opacity;
+    }
+    .flying-cart-particle span {
+      position: absolute;
+      top: -4px;
+      right: -4px;
+      background: var(--error, #ba1a1a);
+      color: #fff;
+      font-size: 0.65rem;
+      font-weight: 800;
+      border-radius: 99px;
+      padding: 0 5px;
+      min-width: 16px;
+      height: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.25);
+    }
+
+    @keyframes cartBump {
+      0% { transform: scale(1); }
+      30% { transform: scale(1.4) rotate(-14deg); }
+      60% { transform: scale(0.9) rotate(8deg); }
+      80% { transform: scale(1.15) rotate(-3deg); }
+      100% { transform: scale(1) rotate(0); }
+    }
+    .cart-bump {
+      animation: cartBump 0.55s cubic-bezier(0.175, 0.885, 0.32, 1.275) !important;
+    }
+
+    @keyframes badgePop {
+      0% { transform: scale(0.6); }
+      50% { transform: scale(1.6); }
+      100% { transform: scale(1); }
+    }
+    .badge-pop {
+      animation: badgePop 0.45s cubic-bezier(0.175, 0.885, 0.32, 1.275) !important;
+    }
+
+    /* ═════════ Toast Notification ═════════ */
+    .atc-toast {
+      position: fixed;
+      bottom: 2rem;
+      right: 2rem;
+      z-index: 100001;
+      background: rgba(0, 31, 42, 0.95);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      color: #ffffff;
+      padding: 0.85rem 1.25rem;
+      border-radius: 14px;
+      box-shadow: 0 10px 30px rgba(0, 31, 42, 0.35), 0 0 0 1px rgba(255,255,255,0.1);
+      display: flex;
+      align-items: center;
+      gap: 0.85rem;
+      font-size: 0.88rem;
+      transform: translateY(30px) scale(0.95);
+      opacity: 0;
+      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      pointer-events: none;
+    }
+    .atc-toast.show {
+      transform: translateY(0) scale(1);
+      opacity: 1;
+      pointer-events: auto;
+    }
+    .atc-toast__icon {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: #15803d;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .atc-toast__link {
+      color: #86efac;
+      font-weight: 700;
+      text-decoration: underline;
+      margin-left: 0.5rem;
+    }
+    .atc-toast__link:hover {
+      color: #bbf7d0;
+    }
+
     /* Extra styles from child templates */
     {% block extra_style %}{% endblock %}
   
@@ -847,27 +1270,32 @@
   {% endif %}
 
   {% if current_user.is_authenticated and current_user.role.value == 'buyer' %}
-  <a href="{{ url_for('marketplace.cart') }}" class="mp-nav__cart" title="View Shopping Cart" style="position: relative; display: flex; align-items: center; color: var(--on-surface-variant); padding: 0.5rem; border-radius: 50%;">
+  <a href="{{ url_for('marketplace.cart') }}" class="mp-nav__cart" id="topbarCartBtn" title="View Shopping Cart" style="position: relative; display: flex; align-items: center; color: var(--on-surface-variant); padding: 0.5rem; border-radius: 50%;">
     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 002 1.61h9.72a2 2 0 002-1.61L23 6H6"/></svg>
-    {% if cart_count is defined and cart_count > 0 %}
-    <span class="mp-nav__cart-badge" style="position: absolute; top: 0; right: 0; background: var(--error); color: white; font-size: 0.65rem; font-weight: 700; width: 16px; height: 16px; border-radius: 50%; display: flex; align-items: center; justify-content: center;">{{ cart_count }}</span>
-    {% endif %}
+    <span class="mp-nav__cart-badge" id="topbarCartBadge" style="position: absolute; top: 0; right: 0; background: var(--error); color: white; font-size: 0.65rem; font-weight: 700; width: 16px; height: 16px; border-radius: 50%; display: {% if cart_count is defined and cart_count > 0 %}flex{% else %}none{% endif %}; align-items: center; justify-content: center;">{{ cart_count if cart_count is defined and cart_count > 0 else 0 }}</span>
   </a>
   {% endif %}
 {% endblock %}
 
-
-
 {% block extra_js %}
+<!-- Global SVG Defs for Marketplace Eggs -->
 <svg style="width: 0; height: 0; position: absolute;" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
   <defs>
     <radialGradient id="eggGradWhite" cx="30%" cy="30%" r="70%">
       <stop offset="0%" stop-color="#ffffff" />
       <stop offset="100%" stop-color="#f0f0f0" />
     </radialGradient>
+    <radialGradient id="eggHighlightWhite" cx="25%" cy="25%" r="40%">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.8" />
+      <stop offset="100%" stop-color="#ffffff" stop-opacity="0" />
+    </radialGradient>
     <radialGradient id="eggGradBrown" cx="30%" cy="30%" r="70%">
       <stop offset="0%" stop-color="#f4a460" />
       <stop offset="100%" stop-color="#d2691e" />
+    </radialGradient>
+    <radialGradient id="eggHighlightBrown" cx="25%" cy="25%" r="40%">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.4" />
+      <stop offset="100%" stop-color="#ffffff" stop-opacity="0" />
     </radialGradient>
     <radialGradient id="eggGradPremium" cx="30%" cy="30%" r="70%">
       <stop offset="0%" stop-color="#ffe4b5" />
@@ -875,4 +1303,463 @@
     </radialGradient>
   </defs>
 </svg>
+
+<!-- ═════════ Quantity Selection Card Modal ═════════ -->
+<div id="addToCartModal" class="atc-modal" role="dialog" aria-modal="true" aria-labelledby="atcModalTitle">
+  <div class="atc-modal__backdrop" id="atcModalBackdrop"></div>
+  <div class="atc-modal__card">
+    <button type="button" class="atc-modal__close" id="atcModalClose" aria-label="Close modal">
+      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
+    
+    <div class="atc-modal__header">
+      <div class="atc-modal__farm-tag" id="atcModalFarm">
+        <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
+        <span id="atcModalFarmName">Fresh Poultry Farm</span>
+      </div>
+      <h3 class="atc-modal__title" id="atcModalTitle">Product Name</h3>
+      <div class="atc-modal__badges">
+        <span class="atc-pill atc-pill--spec" id="atcModalSpec">Large • Brown</span>
+        <span class="atc-pill atc-pill--stock" id="atcModalStock">In Stock</span>
+      </div>
+    </div>
+
+    <div class="atc-modal__body">
+      <!-- Product Visual Preview -->
+      <div class="atc-modal__preview-wrap">
+        <div class="atc-modal__preview-art" id="atcModalArt">
+          <svg viewBox="0 0 100 130" xmlns="http://www.w3.org/2000/svg" style="width: 38px; height: 48px; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.15));">
+            <path id="atcModalEggPath" d="M50 0 C15 0 0 50 0 90 C0 115 15 130 50 130 C85 130 100 115 100 90 C100 50 85 0 50 0 Z" fill="url(#eggGradBrown)"/>
+          </svg>
+        </div>
+        <div class="atc-modal__unit-pricing">
+          <span class="atc-modal__price-label">Unit Price</span>
+          <div class="atc-modal__unit-price" id="atcModalUnitPrice">₱0.00</div>
+          <span class="atc-modal__unit-name" id="atcModalUnitName">per piece</span>
+        </div>
+      </div>
+
+      <!-- Quantity Stepper Controls -->
+      <div class="atc-modal__qty-section">
+        <label class="atc-modal__qty-label" for="atcModalQtyInput">Adjust Order Quantity:</label>
+        <div class="atc-stepper">
+          <button type="button" class="atc-stepper__btn" id="atcQtyMinus" aria-label="Decrease quantity">
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          </button>
+          <input type="number" id="atcModalQtyInput" class="atc-stepper__input" value="1" min="1" max="999" aria-label="Quantity" />
+          <button type="button" class="atc-stepper__btn" id="atcQtyPlus" aria-label="Increase quantity">
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          </button>
+        </div>
+
+        <!-- Quick selection chips -->
+        <div class="atc-quick-chips" id="atcQuickChips">
+          <button type="button" class="atc-chip is-active" data-qty="1">1</button>
+          <button type="button" class="atc-chip" data-qty="2">2</button>
+          <button type="button" class="atc-chip" data-qty="5">5</button>
+          <button type="button" class="atc-chip" data-qty="10">10</button>
+          <button type="button" class="atc-chip" id="atcChipMax">Max</button>
+        </div>
+      </div>
+
+      <!-- Order Subtotal Calculation Card -->
+      <div class="atc-subtotal-card">
+        <div class="atc-subtotal-row">
+          <span>Subtotal (<span id="atcSummaryQty">1</span> <span id="atcSummaryUnit">unit</span>)</span>
+          <span class="atc-subtotal-amount" id="atcSubtotalAmount">₱0.00</span>
+        </div>
+        <div class="atc-subtotal-hint">✓ Fresh farm direct guarantee & fast dispatch</div>
+      </div>
+    </div>
+
+    <!-- Actions -->
+    <div class="atc-modal__footer">
+      <button type="button" class="atc-btn atc-btn--cancel" id="atcModalCancel">Cancel</button>
+      <button type="button" class="atc-btn atc-btn--confirm" id="atcModalConfirm">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 002 1.61h9.72a2 2 0 002-1.61L23 6H6"/></svg>
+        <span id="atcConfirmText">Add to Cart</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Floating Success Toast -->
+<div id="atcToast" class="atc-toast" role="status" aria-live="polite">
+  <div class="atc-toast__icon">
+    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+  </div>
+  <div class="atc-toast__msg" id="atcToastMsg">Added to cart!</div>
+  <a href="{{ url_for('marketplace.cart') }}" class="atc-toast__link">View Cart →</a>
+</div>
+
+<script>
+(function() {
+  'use strict';
+
+  // State
+  let currentProduct = null;
+  let activeOriginBtn = null;
+  let isSubmitting = false;
+
+  // DOM Elements
+  const modal          = document.getElementById('addToCartModal');
+  const backdrop       = document.getElementById('atcModalBackdrop');
+  const closeBtn       = document.getElementById('atcModalClose');
+  const cancelBtn      = document.getElementById('atcModalCancel');
+  const confirmBtn     = document.getElementById('atcModalConfirm');
+  const confirmText    = document.getElementById('atcConfirmText');
+  const titleEl        = document.getElementById('atcModalTitle');
+  const farmEl         = document.getElementById('atcModalFarmName');
+  const specEl         = document.getElementById('atcModalSpec');
+  const stockEl        = document.getElementById('atcModalStock');
+  const unitPriceEl    = document.getElementById('atcModalUnitPrice');
+  const unitNameEl     = document.getElementById('atcModalUnitName');
+  const qtyInput       = document.getElementById('atcModalQtyInput');
+  const qtyMinus       = document.getElementById('atcQtyMinus');
+  const qtyPlus        = document.getElementById('atcQtyPlus');
+  const quickChipsWrap = document.getElementById('atcQuickChips');
+  const chipMax        = document.getElementById('atcChipMax');
+  const summaryQtyEl   = document.getElementById('atcSummaryQty');
+  const summaryUnitEl  = document.getElementById('atcSummaryUnit');
+  const subtotalEl     = document.getElementById('atcSubtotalAmount');
+  const eggPathEl      = document.getElementById('atcModalEggPath');
+  const toast          = document.getElementById('atcToast');
+  const toastMsg       = document.getElementById('atcToastMsg');
+  let toastTimer       = null;
+
+  function formatCurrency(amount) {
+    return '₱' + Number(amount).toLocaleString('en-US', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    });
+  }
+
+  function updateCalculations() {
+    if (!currentProduct) return;
+    let qty = parseInt(qtyInput.value, 10);
+    if (isNaN(qty) || qty < 1) qty = 1;
+    if (qty > currentProduct.stock) qty = currentProduct.stock;
+    qtyInput.value = qty;
+
+    const subtotal = currentProduct.price * qty;
+    summaryQtyEl.textContent = qty;
+    summaryUnitEl.textContent = currentProduct.unit;
+    subtotalEl.textContent = formatCurrency(subtotal);
+    confirmText.textContent = `Add to Cart • ${formatCurrency(subtotal)}`;
+
+    // Update quick chip active states
+    document.querySelectorAll('.atc-chip').forEach(chip => {
+      const chipQty = parseInt(chip.dataset.qty, 10);
+      if (chip === chipMax) {
+        chip.classList.toggle('is-active', qty === currentProduct.stock);
+      } else {
+        chip.classList.toggle('is-active', chipQty === qty);
+      }
+    });
+
+    qtyMinus.disabled = qty <= 1;
+    qtyPlus.disabled = qty >= currentProduct.stock;
+  }
+
+  function openModal(data, triggerBtn) {
+    currentProduct = {
+      id: parseInt(data.productId, 10),
+      name: data.productName || 'Egg Product',
+      price: parseFloat(data.productPrice || 0),
+      unit: data.productUnit || 'Piece',
+      stock: parseInt(data.productStock || 1, 10),
+      size: data.productSize || '',
+      variety: (data.productVariety || '').toLowerCase(),
+      farm: data.farmName || 'Local Farm'
+    };
+    activeOriginBtn = triggerBtn;
+
+    titleEl.textContent = currentProduct.name;
+    farmEl.textContent = currentProduct.farm;
+    specEl.textContent = `${currentProduct.size} • ${currentProduct.variety.toUpperCase()}`;
+    stockEl.textContent = `${currentProduct.stock} in stock`;
+    unitPriceEl.textContent = formatCurrency(currentProduct.price);
+    unitNameEl.textContent = `per ${currentProduct.unit}`;
+    
+    // Variety egg visual
+    if (currentProduct.variety.includes('white')) {
+      eggPathEl.setAttribute('fill', 'url(#eggGradWhite)');
+    } else {
+      eggPathEl.setAttribute('fill', 'url(#eggGradBrown)');
+    }
+
+    // Configure chips based on stock
+    if (chipMax) {
+      chipMax.style.display = currentProduct.stock > 10 ? 'inline-block' : 'none';
+    }
+    document.querySelectorAll('.atc-chip[data-qty]').forEach(chip => {
+      const q = parseInt(chip.dataset.qty, 10);
+      chip.style.display = q <= currentProduct.stock ? 'inline-block' : 'none';
+    });
+
+    qtyInput.value = 1;
+    qtyInput.max = currentProduct.stock;
+    updateCalculations();
+
+    modal.style.display = 'flex';
+    // Trigger transition
+    requestAnimationFrame(() => {
+      modal.classList.add('is-open');
+    });
+  }
+
+  function closeModal() {
+    modal.classList.remove('is-open');
+    setTimeout(() => {
+      modal.style.display = 'none';
+      currentProduct = null;
+      activeOriginBtn = null;
+    }, 250);
+  }
+
+  // Stepper events
+  if (qtyMinus) {
+    qtyMinus.addEventListener('click', () => {
+      qtyInput.value = Math.max(1, (parseInt(qtyInput.value, 10) || 1) - 1);
+      updateCalculations();
+    });
+  }
+  if (qtyPlus) {
+    qtyPlus.addEventListener('click', () => {
+      if (!currentProduct) return;
+      qtyInput.value = Math.min(currentProduct.stock, (parseInt(qtyInput.value, 10) || 1) + 1);
+      updateCalculations();
+    });
+  }
+  if (qtyInput) {
+    qtyInput.addEventListener('input', updateCalculations);
+    qtyInput.addEventListener('change', updateCalculations);
+  }
+
+  // Quick chips
+  if (quickChipsWrap) {
+    quickChipsWrap.addEventListener('click', e => {
+      const chip = e.target.closest('.atc-chip');
+      if (!chip || !currentProduct) return;
+      if (chip === chipMax) {
+        qtyInput.value = currentProduct.stock;
+      } else if (chip.dataset.qty) {
+        qtyInput.value = parseInt(chip.dataset.qty, 10);
+      }
+      updateCalculations();
+    });
+  }
+
+  if (closeBtn) closeBtn.addEventListener('click', closeModal);
+  if (cancelBtn) cancelBtn.addEventListener('click', closeModal);
+  if (backdrop) backdrop.addEventListener('click', closeModal);
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape' && modal.classList.contains('is-open')) {
+      closeModal();
+    }
+  });
+
+  // Find target destination cart button (topbar or sidebar)
+  function getCartDestination() {
+    const topbarCart = document.getElementById('topbarCartBtn');
+    if (topbarCart && topbarCart.offsetParent !== null) {
+      return topbarCart;
+    }
+    const sidebarCart = document.getElementById('sidebarCartLink') || document.querySelector('.sidebar-cart-link');
+    if (sidebarCart && sidebarCart.offsetParent !== null) {
+      return sidebarCart;
+    }
+    return topbarCart || sidebarCart;
+  }
+
+  // Fly-to-Cart Animation Engine
+  function playFlyToCartAnimation(startEl, qty, onComplete) {
+    const cartDest = getCartDestination();
+    if (!cartDest) {
+      if (onComplete) onComplete();
+      return;
+    }
+
+    const startRect = startEl ? startEl.getBoundingClientRect() : { left: window.innerWidth / 2, top: window.innerHeight / 2, width: 40, height: 40 };
+    const destRect = cartDest.getBoundingClientRect();
+
+    const startX = startRect.left + startRect.width / 2;
+    const startY = startRect.top + startRect.height / 2;
+    const endX = destRect.left + destRect.width / 2;
+    const endY = destRect.top + destRect.height / 2;
+
+    // Control point for quadratic curve (arcs upwards)
+    const midX = (startX + endX) / 2;
+    const midY = Math.min(startY, endY) - 120;
+
+    // Create particle
+    const particle = document.createElement('div');
+    particle.className = 'flying-cart-particle';
+    particle.innerHTML = `
+      <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 002 1.61h9.72a2 2 0 002-1.61L23 6H6"/></svg>
+      ${qty > 1 ? `<span>+${qty}</span>` : ''}
+    `;
+    document.body.appendChild(particle);
+
+    const duration = 650; // ms
+    const startTime = performance.now();
+
+    function animate(currentTime) {
+      const elapsed = currentTime - startTime;
+      const t = Math.min(elapsed / duration, 1);
+      // Ease in-out quad
+      const easeT = t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t;
+
+      // Quadratic bezier
+      const curX = (1 - easeT) * (1 - easeT) * startX + 2 * (1 - easeT) * easeT * midX + easeT * easeT * endX;
+      const curY = (1 - easeT) * (1 - easeT) * startY + 2 * (1 - easeT) * easeT * midY + easeT * easeT * endY;
+
+      const scale = 1 - 0.65 * easeT;
+      const rot = easeT * 360;
+      const opacity = t > 0.85 ? (1 - (t - 0.85) / 0.15) : 1;
+
+      particle.style.transform = `translate3d(${curX - 22}px, ${curY - 22}px, 0) scale(${scale}) rotate(${rot}deg)`;
+      particle.style.opacity = opacity;
+
+      if (t < 1) {
+        requestAnimationFrame(animate);
+      } else {
+        particle.remove();
+        // Bump cart icon
+        cartDest.classList.remove('cart-bump');
+        void cartDest.offsetWidth; // trigger reflow
+        cartDest.classList.add('cart-bump');
+        setTimeout(() => cartDest.classList.remove('cart-bump'), 600);
+
+        if (onComplete) onComplete();
+      }
+    }
+    requestAnimationFrame(animate);
+  }
+
+  // Update Cart Badges across topbar and sidebar
+  function updateCartBadges(count) {
+    const badges = document.querySelectorAll('.mp-nav__cart-badge, #topbarCartBadge, .sidebar-cart-badge, #sidebarCartBadge');
+    badges.forEach(badge => {
+      if (count > 0) {
+        badge.textContent = count > 99 ? '99+' : count;
+        badge.style.display = 'flex';
+        badge.classList.remove('badge-pop');
+        void badge.offsetWidth;
+        badge.classList.add('badge-pop');
+        setTimeout(() => badge.classList.remove('badge-pop'), 500);
+      } else {
+        badge.style.display = 'none';
+      }
+    });
+  }
+
+  // Show Toast
+  function showToast(msg) {
+    if (!toast) return;
+    if (toastTimer) clearTimeout(toastTimer);
+    toastMsg.textContent = msg;
+    toast.classList.add('show');
+    toastTimer = setTimeout(() => {
+      toast.classList.remove('show');
+    }, 3800);
+  }
+
+  // Confirm and Add to Cart via AJAX
+  if (confirmBtn) {
+    confirmBtn.addEventListener('click', () => {
+      if (!currentProduct || isSubmitting) return;
+      const qty = parseInt(qtyInput.value, 10) || 1;
+      const product = currentProduct;
+      const origin = activeOriginBtn || document.getElementById('atcModalArt');
+
+      isSubmitting = true;
+      confirmBtn.disabled = true;
+      confirmText.textContent = 'Adding...';
+
+      // Play animation and close modal simultaneously
+      closeModal();
+      playFlyToCartAnimation(origin, qty, () => {
+        // Run impact sound/pulse
+      });
+
+      // Send to server
+      const formData = new FormData();
+      formData.append('product_id', product.id);
+      formData.append('quantity', qty);
+
+      fetch('{{ url_for("marketplace.cart_add") }}', {
+        method: 'POST',
+        headers: { 'X-Requested-With': 'XMLHttpRequest' },
+        body: formData,
+        credentials: 'same-origin'
+      })
+      .then(res => res.json())
+      .then(data => {
+        if (data.status === 'success') {
+          updateCartBadges(data.cart_count);
+          showToast(`✓ Added ${qty} ${product.unit} of "${product.name}" to cart!`);
+        } else {
+          showToast(`Notice: ${data.message || 'Could not add to cart'}`);
+        }
+      })
+      .catch(err => {
+        console.error('Cart add error:', err);
+        showToast(`Added ${qty} items to cart.`);
+      })
+      .finally(() => {
+        isSubmitting = false;
+        confirmBtn.disabled = false;
+      });
+    });
+  }
+
+  // Delegate clicks on Add to Cart buttons
+  document.addEventListener('click', e => {
+    const btn = e.target.closest('.btn-open-atc-modal');
+    if (btn) {
+      e.preventDefault();
+      openModal(btn.dataset, btn);
+    }
+  });
+
+  // Handle product detail page form with fly-to-cart animation
+  const pdForm = document.querySelector('.pd-cart-form.add-to-cart-form');
+  if (pdForm) {
+    pdForm.addEventListener('submit', function(e) {
+      e.preventDefault();
+      const submitBtn = this.querySelector('button[type="submit"]');
+      const qty = parseInt(this.querySelector('input[name="quantity"]').value, 10) || 1;
+      const formData = new FormData(this);
+
+      if (submitBtn) submitBtn.disabled = true;
+      playFlyToCartAnimation(submitBtn, qty);
+
+      fetch(this.action, {
+        method: 'POST',
+        headers: { 'X-Requested-With': 'XMLHttpRequest' },
+        body: formData,
+        credentials: 'same-origin'
+      })
+      .then(r => r.json())
+      .then(data => {
+        if (data.status === 'success') {
+          updateCartBadges(data.cart_count);
+          showToast(data.message || 'Added to cart!');
+        } else {
+          showToast(data.message || 'Error adding to cart');
+        }
+      })
+      .catch(() => {
+        // Fallback to normal submit if fetch fails
+        pdForm.submit();
+      })
+      .finally(() => {
+        if (submitBtn) submitBtn.disabled = false;
+      });
+    });
+  }
+
+})();
+</script>
 {% endblock %}

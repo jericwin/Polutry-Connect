@@ -349,7 +349,6 @@ def get_messages(conv_id):
 def send_message(conv_id):
     try:
         if current_user.role == UserRole.FARMER and not current_user.is_premium:
-            from flask import jsonify
             return jsonify({'error': 'Premium required to send messages.'}), 403
         conv = _get_conv_or_404(conv_id)
         uid = current_user.id
@@ -414,6 +413,18 @@ def _mark_seen(conv, viewer_id):
         m.seen_at = now
         senders.add(m.sender_id)
 
+    # Mark notifications relating to this conversation as read for viewer
+    notifs = Notification.query.filter(
+        Notification.user_id == viewer_id,
+        Notification.is_read == False
+    ).all()
+    import re
+    notif_updated = False
+    for n in notifs:
+        if n.link_url and re.search(rf'[?&]open={conv.id}(?:[&#]|$)', n.link_url):
+            n.is_read = True
+            notif_updated = True
+
     if updated:
         db.session.flush()
         for sender_id in senders:
@@ -428,6 +439,7 @@ def _mark_seen(conv, viewer_id):
                     link_url=url_for('messaging.index', open=conv.id, _external=False),
                     notif_type='seen'
                 )
+    if updated or notif_updated:
         db.session.commit()
 
 
@@ -479,6 +491,25 @@ def delete_conversation(conv_id):
 @messaging_bp.route('/notifications')
 @login_required
 def notifications():
+    # Count unread messages for current user
+    unread_messages = Message.query.filter_by(
+        receiver_id=current_user.id, is_seen=False).count()
+
+    # If user has no unread messages, sync any lingering message/seen notifications
+    if unread_messages == 0:
+        has_unread_msg_notifs = Notification.query.filter(
+            Notification.user_id == current_user.id,
+            Notification.is_read == False,
+            Notification.notif_type.in_(['message', 'seen'])
+        ).count()
+        if has_unread_msg_notifs > 0:
+            Notification.query.filter(
+                Notification.user_id == current_user.id,
+                Notification.is_read == False,
+                Notification.notif_type.in_(['message', 'seen'])
+            ).update({'is_read': True}, synchronize_session=False)
+            db.session.commit()
+
     notifs = (Notification.query
               .filter_by(user_id=current_user.id)
               .order_by(Notification.created_at.desc())
@@ -487,6 +518,7 @@ def notifications():
         user_id=current_user.id, is_read=False).count()
     return jsonify({
         'unread_count': unread_count,
+        'unread_messages': unread_messages,
         'notifications': [n.to_dict() for n in notifs],
     })
 

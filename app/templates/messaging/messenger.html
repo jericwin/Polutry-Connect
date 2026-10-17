@@ -429,14 +429,22 @@
 
     sendBtn.disabled = true;
     postForm(`/messaging/conversation/${CONV_ID}/send`, { body })
-      .then(response => {
-        return response.ok
-          ? response.json()
-          : response.json().then(err => Promise.reject(err || { error: 'Send failed' }));
+      .then(async response => {
+        let data = null;
+        try {
+          data = await response.json();
+        } catch (_) {
+          // In case response is not JSON
+        }
+        if (!response.ok) {
+          const errText = (data && data.error) ? data.error : 'Failed to send message';
+          return Promise.reject(new Error(errText));
+        }
+        return data || {};
       })
       .then(msg => {
-        if (msg.error) {
-          return Promise.reject(msg);
+        if (!msg || msg.error) {
+          return Promise.reject(msg || new Error('Failed to send message'));
         }
         msgInput.value = '';
         msgInput.style.height = '';
@@ -447,10 +455,6 @@
       })
       .catch(err => {
         console.error('Message send failed', err);
-        let errorMsg = 'Unable to send message. Please try again.';
-        if (err && err.message) errorMsg = err.message;
-        else if (err && err.error) errorMsg = err.error;
-        alert("Debug Error: " + errorMsg + "\nStack: " + (err && err.stack ? err.stack : ""));
       })
       .finally(() => {
         if (sendBtn) sendBtn.disabled = false;
@@ -510,6 +514,16 @@
               </div>
             </a>`;
         }).join('');
+
+        const totalUnread = items.reduce((sum, item) => sum + (item.unread_count || 0), 0);
+        document.querySelectorAll('#sidebarMsgBadge, .sidebar-msg-badge').forEach(b => {
+          if (totalUnread > 0) {
+            b.textContent = totalUnread > 99 ? '99+' : totalUnread;
+            b.style.display = 'inline-flex';
+          } else {
+            b.style.display = 'none';
+          }
+        });
       })
       .catch(() => {});
   }
