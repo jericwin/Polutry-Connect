@@ -6,8 +6,12 @@ venv/
 env/
 .env
 
-# Database
+# Database & instance
 app.db
+instance/
+*.sqlite*
+*.db
+.vercel/
 migrations/
 
 # IDEs
@@ -20,3 +24,5 @@ build/
 *.egg-info/
 PRD.md
 design-config.md
+.vercel
+.env*

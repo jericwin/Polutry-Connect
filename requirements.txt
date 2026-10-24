@@ -19,6 +19,7 @@ python-dotenv==1.0.0
 email-validator==2.3.0
 dnspython==2.8.0
 PyMySQL==1.1.1
+cryptography>=42.0.0
 gunicorn==23.0.0
 pandas==2.2.3
 numpy==2.2.0

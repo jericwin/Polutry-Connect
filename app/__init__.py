@@ -52,11 +52,16 @@ def create_app(config_class=Config):
         from flask import render_template
         from app.models import Farm
         # Fetch latest active farms for landing preview
-        preview_farms = Farm.query.filter_by(
-            is_active=True
-        ).order_by(
-            Farm.created_at.desc()
-        ).limit(6).all()
+        try:
+            preview_farms = Farm.query.filter_by(
+                is_active=True
+            ).order_by(
+                Farm.created_at.desc()
+            ).limit(6).all()
+        except Exception as e:
+            app.logger.warning(f"Error loading preview farms: {e}")
+            preview_farms = []
+
         return render_template(
             'landing.html',
             title='PoultryConnect — Smart Farming, Better Living',
