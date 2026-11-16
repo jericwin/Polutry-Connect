@@ -54,15 +54,15 @@ def _engine_options(database_uri):
     if database_uri.startswith('sqlite'):
         return {}
     
-    # Check if local XAMPP / local MySQL (127.0.0.1 or localhost) - Do NOT require SSL for XAMPP!
+    # If local XAMPP / local MySQL (127.0.0.1 or localhost): Do NOT use SSL
     is_local = any(h in database_uri for h in ['127.0.0.1', 'localhost'])
-    if is_local or os.environ.get('MYSQL_SSL', 'false').lower() in ['false', '0', 'no']:
+    if is_local or os.environ.get('DB_SSL', '').lower() in ['false', '0', 'no']:
         return {
             'pool_recycle': 280,
             'pool_pre_ping': True,
         }
 
-    # Secure SSL context for TiDB Serverless and cloud MySQL
+    # For TiDB Cloud, Vercel, and remote MySQL, SSL is strictly required by serverless tiers
     ssl_ctx = ssl.create_default_context()
     ssl_ctx.check_hostname = False
     ssl_ctx.verify_mode = ssl.CERT_NONE
