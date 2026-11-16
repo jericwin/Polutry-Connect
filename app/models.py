@@ -27,6 +27,7 @@ from itsdangerous import URLSafeTimedSerializer as Serializer
 class UserRole(str, enum.Enum):
     ADMIN          = 'admin'
     FARMER         = 'farmer'
+    OWNER          = 'farmer'
     BUYER          = 'buyer'
     FEED_SUPPLIER  = 'feed_supplier'
     VETERINARIAN   = 'veterinarian'
@@ -153,6 +154,12 @@ class User(UserMixin, db.Model):
         if self.first_name and self.last_name:
             return f'{self.first_name} {self.last_name}'
         return self.username
+
+    @property
+    def role_display(self) -> str:
+        if self.role == UserRole.FARMER or (hasattr(self.role, 'value') and self.role.value == 'farmer'):
+            return 'Owner'
+        return self.role.value.replace('_', ' ').title() if hasattr(self.role, 'value') else str(self.role).title()
 
     @property
     def is_premium(self) -> bool:
@@ -353,8 +360,46 @@ class SalesRecord(db.Model):
     created_at     = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
     updated_at     = db.Column(db.DateTime, nullable=False, default=datetime.utcnow, onupdate=datetime.utcnow)
 
+    @property
+    def sale_type(self):
+        if self.notes and '(Order #' in self.notes:
+            return 'Online'
+        return 'On-site'
+
+    @property
+    def size_display(self):
+        if not self.notes:
+            return 'Medium'
+        text = self.notes.lower()
+        if 'extra large' in text or 'extra-large' in text or 'xl' in text:
+            return 'Extra Large'
+        elif 'jumbo' in text:
+            return 'Jumbo'
+        elif 'large' in text:
+            return 'Large'
+        elif 'small' in text:
+            return 'Small'
+        elif 'medium' in text:
+            return 'Medium'
+        return 'Medium'
+
+    @property
+    def unit_display(self):
+        if not self.notes:
+            return 'Tray' if self.quantity_sold >= 30 else 'Piece'
+        text = self.notes.lower()
+        if 'tray' in text:
+            return 'Tray'
+        elif 'piece' in text or 'pc' in text or 'pcs' in text:
+            return 'Piece'
+        elif 'kg' in text or 'kilogram' in text:
+            return 'Kilogram'
+        elif 'head' in text:
+            return 'Head'
+        return 'Tray' if self.quantity_sold >= 30 else 'Piece'
+
     def __repr__(self):
-        return f'<SalesRecord farm={self.farm_id} sold={self.quantity_sold} for â‚±{self.total_revenue}>'
+        return f'<SalesRecord farm={self.farm_id} sold={self.quantity_sold} for ₱{self.total_revenue}>'
 
 
 # â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
@@ -429,6 +474,14 @@ class Product(db.Model):
     @property
     def unit_label(self):
         return self.unit.value.replace('_', ' ')
+
+    @property
+    def display_image_url(self):
+        if self.image_url:
+            return self.image_url
+        if self.variety and self.variety.value == 'white':
+            return 'https://images.unsplash.com/photo-1587486913049-53fc88980cfc?w=500&auto=format&fit=crop&q=80'
+        return 'https://images.unsplash.com/photo-1516467508483-a7212febe31a?w=500&auto=format&fit=crop&q=80'
 
     def __repr__(self):
         return f'<Product {self.name} â‚±{self.price}/{self.unit.value} (farmer={self.farmer_id})>'

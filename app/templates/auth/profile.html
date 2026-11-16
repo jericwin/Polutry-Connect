@@ -106,7 +106,7 @@
             type="text"
             id="role"
             name="role"
-            value="{{ current_user.role.value|replace('_',' ')|title }}"
+            value="{{ current_user.role_display }}"
             readonly
             disabled
         >

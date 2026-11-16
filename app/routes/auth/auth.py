@@ -166,6 +166,7 @@ def register():
     # Roles available for self-registration (admin is not self-registered)
     ALLOWED_ROLES = {
         'farmer': UserRole.FARMER,
+        'owner': UserRole.FARMER,
         'buyer': UserRole.BUYER,
         'feed_supplier': UserRole.FEED_SUPPLIER,
         'veterinarian': UserRole.VETERINARIAN,

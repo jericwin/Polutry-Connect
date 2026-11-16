@@ -40,7 +40,7 @@
     </div>
     <div>
       <div class="role-stat-val">{{ total_convos }}</div>
-      <div class="role-stat-label">Farmer Consultations</div>
+      <div class="role-stat-label">Owner Consultations</div>
     </div>
   </div>
 
@@ -103,7 +103,7 @@
     {% endfor %}
   {% else %}
     <p style="color:#9cbc9f; font-size:0.875rem; text-align:center; padding:2rem 0;">
-      No consultations yet. Farmers will reach out to you here.
+      No consultations yet. Owners will reach out to you here.
     </p>
   {% endif %}
 </div>
@@ -112,7 +112,7 @@
 <div class="role-cta-section vet" style="margin-top:1.5rem;">
   <div>
     <div class="role-cta-title">🩺 Open Messenger</div>
-    <div class="role-cta-sub">View all farmer consultations and respond in real-time.</div>
+    <div class="role-cta-sub">View all owner consultations and respond in real-time.</div>
   </div>
   <a href="{{ url_for('messaging.index') }}" class="role-cta-btn">
     <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none"

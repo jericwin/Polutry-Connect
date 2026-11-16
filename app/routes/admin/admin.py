@@ -258,7 +258,7 @@ def approve_farmer(farmer_id):
     db.session.add(notif)
     db.session.commit()
 
-    flash(f'Farmer {farmer.full_name} has been approved and notified.', 'success')
+    flash(f'Owner {farmer.full_name} has been approved and notified.', 'success')
     return redirect(url_for('admin.farmer_verification', status='pending'))
 
 
@@ -458,7 +458,7 @@ def end_trial(user_id):
     _require_admin()
     farmer = User.query.get_or_404(user_id)
     if farmer.role != UserRole.FARMER:
-        flash('Can only end trials for farmers.', 'error')
+        flash('Can only end trials for owners.', 'error')
         return redirect(url_for('admin.subscribers'))
         
     farmer.trial_end = datetime.utcnow()
@@ -472,7 +472,7 @@ def end_subscription(user_id):
     _require_admin()
     farmer = User.query.get_or_404(user_id)
     if farmer.role != UserRole.FARMER:
-        flash('Can only end subscriptions for farmers.', 'error')
+        flash('Can only end subscriptions for owners.', 'error')
         return redirect(url_for('admin.subscribers'))
         
     farmer.subscription_plan = SubscriptionPlan.FREE

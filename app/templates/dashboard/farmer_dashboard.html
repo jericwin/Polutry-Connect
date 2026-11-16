@@ -1,8 +1,8 @@
 {% extends "dashboard_base.html" %}
 
-{% block title %}Farmer Dashboard — PoultryConnect{% endblock %}
-{% block page_title %}Farmer Dashboard{% endblock %}
-{% block breadcrumb %}PoultryConnect / Farmer / Overview{% endblock %}
+{% block title %}Owner Dashboard — PoultryConnect{% endblock %}
+{% block page_title %}Owner Dashboard{% endblock %}
+{% block breadcrumb %}PoultryConnect / Owner / Overview{% endblock %}
 
 {% block topbar_actions %}
     <a href="{{ url_for('production.onsite_sales_add') }}" class="btn btn-secondary">
@@ -442,13 +442,17 @@
             </div>
             <div style="display:flex; gap:1rem;">
                 <div class="form-group" style="flex:1;">
-                    <label>Quantity Sold (Eggs)</label>
-                    <input type="number" name="quantity_sold" min="1" required placeholder="e.g. 300">
+                    <label>Quantity Sold (Pcs / Trays)</label>
+                    <input type="number" id="quick_quantity_sold" name="quantity_sold" min="1" required placeholder="e.g. 10" oninput="updateQuickTotal()">
                 </div>
                 <div class="form-group" style="flex:1;">
-                    <label>Price per Egg (₱)</label>
-                    <input type="number" name="price_per_egg" min="0.01" step="0.01" required placeholder="e.g. 7.50">
+                    <label>Amount per Pcs / Tray (₱)</label>
+                    <input type="number" id="quick_price_per_egg" name="price_per_egg" min="0.01" step="0.01" required placeholder="e.g. 7.50" oninput="updateQuickTotal()">
                 </div>
+            </div>
+            <div class="form-group">
+                <label>Total Sales (₱)</label>
+                <input type="text" id="quick_total_sales" readonly value="₱0.00" style="background:#f0fdf4; border:1.5px solid #86efac; color:#15803d; font-weight:800; font-size:1.1rem;">
             </div>
             <div class="form-group">
                 <label>Buyer Name (Optional)</label>
@@ -471,6 +475,15 @@
 
 {% block extra_js %}
 <script>
+function updateQuickTotal() {
+    const qty = parseFloat(document.getElementById('quick_quantity_sold')?.value) || 0;
+    const price = parseFloat(document.getElementById('quick_price_per_egg')?.value) || 0;
+    const total = qty * price;
+    const target = document.getElementById('quick_total_sales');
+    if (target) {
+        target.value = '₱' + total.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    }
+}
 // ── 7-Day Production Line Chart ───────────────────────
 const prodCtx = document.getElementById('productionChart').getContext('2d');
 

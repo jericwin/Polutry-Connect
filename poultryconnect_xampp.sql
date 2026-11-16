@@ -2,7 +2,7 @@
 -- PoultryConnect Database Dump for XAMPP (MySQL / MariaDB)
 -- Compatible with phpMyAdmin, MariaDB 10.4+, MySQL 5.7/8.0
 -- Database: `poultryconnect`
--- Generated with latest SQLite data & proper UTF8MB4
+-- Automatically updated with all latest features & records
 -- ========================================================
 
 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT;
@@ -67,35 +67,35 @@ CREATE TABLE `users` (
 LOCK TABLES `users` WRITE;
 INSERT INTO `users` (`id`, `username`, `email`, `password_hash`, `role`, `first_name`, `last_name`, `phone`, `address`, `landmark`, `is_active`, `online_status`, `last_seen`, `created_at`, `updated_at`, `subscription_plan`, `subscription_end`, `trial_end`) VALUES
   (1, 'admin', 'admin@poultryconnect.com', 'scrypt:32768:8:1$IIdRogA4aPBSh6fU$d00ed1353e97632bb89fd164260901fb01407b18126a10e6b03c42172ec79434a89170890f2690c9cdc7afaf4bc0acb6c11f534bf28dbbac0b518b554d7f4b79', 'admin', 'System', 'Admin', '09170000000', NULL, NULL, 1, 1, '2026-10-14 11:22:42.702347', '2026-09-29 07:50:21.481210', '2026-10-14 11:22:42.703238', 'free', NULL, '2026-10-06 07:50:21.481210'),
-  (2, 'jdelacruz', 'farmer@poultryconnect.com', 'scrypt:32768:8:1$DBi3fZQVyoESCyM0$48b1c21a6fcb323b27f53c50c9e06d8bd6471751639a85de8a558c8957a0f3bda96be80a809ba1ccbf5b76731b86bce24df722fb8b84ae5e303acb68cc685f74', 'farmer', 'Juan', 'Dela Cruz', '09171234567', NULL, NULL, 1, 0, '2026-10-17 12:19:05.018732', '2026-09-29 07:50:21.481242', '2026-10-17 12:19:05.020923', 'monthly', '2026-11-06 10:14:54.138117', '2026-09-30 05:59:41.155600'),
-  (3, 'mreyes', 'buyer@poultryconnect.com', 'scrypt:32768:8:1$IUXbvijcdlRuBdx7$9b898f6d89bb20593c9392da04a896985bd0bbc38316cd070450930843489e5bae80cd379dfc47cef55954f5f4651d969f2dc9982fa9be5bc725e937d9d3d62f', 'buyer', 'Maria', 'Reyes', '09189876543', NULL, NULL, 1, 1, '2026-10-17 12:54:06.311473', '2026-09-29 07:50:21.481253', '2026-10-17 12:54:06.315204', 'free', NULL, '2026-10-06 07:50:21.481253'),
+  (2, 'jdelacruz', 'farmer@poultryconnect.com', 'scrypt:32768:8:1$DBi3fZQVyoESCyM0$48b1c21a6fcb323b27f53c50c9e06d8bd6471751639a85de8a558c8957a0f3bda96be80a809ba1ccbf5b76731b86bce24df722fb8b84ae5e303acb68cc685f74', 'farmer', 'Juan', 'Dela Cruz', '09171234567', NULL, NULL, 1, 1, '2026-11-16 02:42:00.572545', '2026-09-29 07:50:21.481242', '2026-11-16 02:42:00.573950', 'yearly', '2027-11-16 02:30:29.436606', '2026-09-30 05:59:41.155600'),
+  (3, 'mreyes', 'buyer@poultryconnect.com', 'scrypt:32768:8:1$IUXbvijcdlRuBdx7$9b898f6d89bb20593c9392da04a896985bd0bbc38316cd070450930843489e5bae80cd379dfc47cef55954f5f4651d969f2dc9982fa9be5bc725e937d9d3d62f', 'buyer', 'Maria', 'Reyes', '09189876543', NULL, NULL, 1, 0, '2026-11-16 02:41:51.381046', '2026-09-29 07:50:21.481253', '2026-11-16 02:41:51.385023', 'free', NULL, '2026-10-06 07:50:21.481253'),
   (4, 'jusko', 'jusko@gmail.com', 'scrypt:32768:8:1$RSBJnTwF3NyC2f5z$85c253751941559f4a72b0701eaeb94e7f33339caed7c35a121dae0dc287d43bd92061d0612b04623f62c67ea02a3fb0415206fb0c555004ba90130c2f3d25b4', 'farmer', 'Jusko', 'Po', NULL, NULL, NULL, 1, 0, '2026-10-14 11:53:57.905618', '2026-10-14 11:21:09.667383', '2026-10-14 11:53:57.908568', 'free', NULL, '2026-10-21 11:21:09.667398');
 UNLOCK TABLES;
 
 -- --------------------------------------------------------
--- Table structure for table `conversations`
+-- Table structure for table `farms`
 -- --------------------------------------------------------
-DROP TABLE IF EXISTS `conversations`;
-CREATE TABLE `conversations` (
+DROP TABLE IF EXISTS `farms`;
+CREATE TABLE `farms` (
   `id` INT(11) NOT NULL AUTO_INCREMENT,
   `farmer_id` INT(11) NOT NULL,
-  `participant_id` INT(11) NOT NULL,
-  `participant_role` VARCHAR(32) NOT NULL,
-  `deleted_by_farmer` TINYINT(1) DEFAULT 0,
-  `deleted_by_participant` TINYINT(1) DEFAULT 0,
+  `name` VARCHAR(120) NOT NULL,
+  `location` VARCHAR(255) DEFAULT NULL,
+  `description` TEXT DEFAULT NULL,
+  `flock_size` INT(11) DEFAULT 0,
+  `is_active` TINYINT(1) NOT NULL DEFAULT 1,
   `created_at` DATETIME NOT NULL,
+  `updated_at` DATETIME NOT NULL,
   PRIMARY KEY (`id`),
-  UNIQUE KEY `uq_convo_pair` (`farmer_id`, `participant_id`),
-  KEY `ix_conversations_participant_id` (`participant_id`),
-  KEY `ix_conversations_farmer_id` (`farmer_id`),
-  CONSTRAINT `fk_conversations_participant_id` FOREIGN KEY (`participant_id`) REFERENCES `users` (`id`),
-  CONSTRAINT `fk_conversations_farmer_id` FOREIGN KEY (`farmer_id`) REFERENCES `users` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+  KEY `ix_farms_farmer_id` (`farmer_id`),
+  CONSTRAINT `fk_farms_farmer_id` FOREIGN KEY (`farmer_id`) REFERENCES `users` (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- Dumping data for table `conversations`
-LOCK TABLES `conversations` WRITE;
-INSERT INTO `conversations` (`id`, `farmer_id`, `participant_id`, `participant_role`, `deleted_by_farmer`, `deleted_by_participant`, `created_at`) VALUES
-  (1, 2, 3, 'buyer', 0, 0, '2026-10-07 10:06:13.833557');
+-- Dumping data for table `farms`
+LOCK TABLES `farms` WRITE;
+INSERT INTO `farms` (`id`, `farmer_id`, `name`, `location`, `description`, `flock_size`, `is_active`, `created_at`, `updated_at`) VALUES
+  (1, 2, 'Sunshine Poultry Farm', 'San Jose, Batangas', 'Family-owned layer farm specializing in fresh eggs.', 4817, 1, '2026-09-29 07:50:21.509133', '2026-09-29 07:50:21.683897'),
+  (2, 4, 'Batangas Highland Poultry Farm', 'Brgy. Mataasnakahoy, Lipa City, Batangas', NULL, 850, 1, '2026-10-14 11:30:18.624102', '2026-10-14 11:30:18.624109');
 UNLOCK TABLES;
 
 -- --------------------------------------------------------
@@ -134,309 +134,6 @@ INSERT INTO `farmer_verifications` (`id`, `farmer_id`, `status`, `rejection_reas
   (1, 1, 'approved', NULL, 4, '2026-08-21 15:35:01.881085', NULL, '2026-08-21 15:35:01.882925', '2026-08-21 15:35:01.882932', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
   (2, 2, 'approved', NULL, 1, '2026-09-30 05:08:02.395597', NULL, '2026-09-30 05:08:02.398555', '2026-09-30 05:08:02.398565', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
   (3, 4, 'pending', NULL, NULL, NULL, NULL, '2026-10-14 11:30:18.616553', '2026-10-14 11:30:18.613527', 'Batangas Highland Poultry Farm', 'Brgy. Mataasnakahoy, Lipa City, Batangas', 850, 'PhilSys National ID', '7429-8812-4091', 'uploads/verifications/sample_philsys_id.png', 'Barangay Clearance for Poultry / Business', 'uploads/verifications/sample_barangay_permit.png', 'uploads/verifications/sample_poultry_farm.png');
-UNLOCK TABLES;
-
--- --------------------------------------------------------
--- Table structure for table `farms`
--- --------------------------------------------------------
-DROP TABLE IF EXISTS `farms`;
-CREATE TABLE `farms` (
-  `id` INT(11) NOT NULL AUTO_INCREMENT,
-  `farmer_id` INT(11) NOT NULL,
-  `name` VARCHAR(120) NOT NULL,
-  `location` VARCHAR(255) DEFAULT NULL,
-  `description` TEXT DEFAULT NULL,
-  `flock_size` INT(11) DEFAULT 0,
-  `is_active` TINYINT(1) NOT NULL DEFAULT 1,
-  `created_at` DATETIME NOT NULL,
-  `updated_at` DATETIME NOT NULL,
-  PRIMARY KEY (`id`),
-  KEY `ix_farms_farmer_id` (`farmer_id`),
-  CONSTRAINT `fk_farms_farmer_id` FOREIGN KEY (`farmer_id`) REFERENCES `users` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
--- Dumping data for table `farms`
-LOCK TABLES `farms` WRITE;
-INSERT INTO `farms` (`id`, `farmer_id`, `name`, `location`, `description`, `flock_size`, `is_active`, `created_at`, `updated_at`) VALUES
-  (1, 2, 'Sunshine Poultry Farm', 'San Jose, Batangas', 'Family-owned layer farm specializing in fresh eggs.', 4817, 1, '2026-09-29 07:50:21.509133', '2026-09-29 07:50:21.683897'),
-  (2, 4, 'Batangas Highland Poultry Farm', 'Brgy. Mataasnakahoy, Lipa City, Batangas', NULL, 850, 1, '2026-10-14 11:30:18.624102', '2026-10-14 11:30:18.624109');
-UNLOCK TABLES;
-
--- --------------------------------------------------------
--- Table structure for table `notifications`
--- --------------------------------------------------------
-DROP TABLE IF EXISTS `notifications`;
-CREATE TABLE `notifications` (
-  `id` INT(11) NOT NULL AUTO_INCREMENT,
-  `user_id` INT(11) NOT NULL,
-  `title` VARCHAR(120) NOT NULL,
-  `body` VARCHAR(255) NOT NULL,
-  `notif_type` VARCHAR(32) NOT NULL DEFAULT 'message',
-  `is_read` TINYINT(1) NOT NULL DEFAULT 0,
-  `link_url` VARCHAR(255) DEFAULT NULL,
-  `created_at` DATETIME NOT NULL,
-  PRIMARY KEY (`id`),
-  KEY `ix_notifications_user_id` (`user_id`),
-  KEY `ix_notifications_is_read` (`is_read`),
-  CONSTRAINT `fk_notifications_user_id` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=28 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
--- Dumping data for table `notifications`
-LOCK TABLES `notifications` WRITE;
-INSERT INTO `notifications` (`id`, `user_id`, `title`, `body`, `notif_type`, `is_read`, `link_url`, `created_at`) VALUES
-  (1, 3, 'New Conversation', 'Maria Reyes started a conversation with you.', 'message', 1, '/messaging/?open=1', '2026-10-07 10:06:13.865833'),
-  (2, 2, 'New message from Maria Reyes', 'hello', 'message', 1, '/messaging/?open=1', '2026-10-07 10:09:26.980200'),
-  (3, 2, 'New message from Maria Reyes', 'hello again', 'message', 1, '/messaging/?open=1', '2026-10-07 10:13:49.313094'),
-  (4, 2, 'New message from Maria Reyes', 'hi', 'message', 1, '/messaging/?open=1', '2026-10-07 10:13:56.871501'),
-  (5, 3, 'Message read by Juan Dela Cruz', 'Juan Dela Cruz has seen your latest message.', 'seen', 1, '/messaging/?open=1', '2026-10-07 10:14:47.905472'),
-  (6, 3, 'New message from Juan Dela Cruz', 'hello why', 'message', 1, '/messaging/?open=1', '2026-10-07 10:15:06.423656'),
-  (7, 3, 'New message from Juan Dela Cruz', 'hey', 'message', 1, '/messaging/?open=1', '2026-10-07 10:16:59.762209'),
-  (8, 3, 'New message from Juan Dela Cruz', 'hi', 'message', 1, '/messaging/?open=1', '2026-10-07 10:23:08.041379'),
-  (9, 3, 'New message from Juan Dela Cruz', 'Testing message sending from browser agent', 'message', 1, '/messaging/?open=1', '2026-10-07 10:28:34.505509'),
-  (10, 3, 'New message from Juan Dela Cruz', 'Testing via JavaScript trigger', 'message', 1, '/messaging/?open=1', '2026-10-07 10:30:08.689239'),
-  (11, 3, 'New message from Juan Dela Cruz', 'Testing via JavaScript trigger', 'message', 1, '/messaging/?open=1', '2026-10-07 10:32:02.363701'),
-  (12, 3, 'New message from Juan Dela Cruz', 'hello', 'message', 1, '/messaging/?open=1', '2026-10-07 10:36:23.049416'),
-  (13, 3, 'New message from Juan Dela Cruz', 'hello', 'message', 1, '/messaging/?open=1', '2026-10-17 11:50:41.860261'),
-  (14, 3, 'New message from Juan Dela Cruz', 'test message', 'message', 1, '/messaging/?open=1', '2026-10-17 11:53:19.558873'),
-  (15, 2, 'New message from Maria Reyes', 'test from buyer', 'message', 1, '/messaging/?open=1', '2026-10-17 11:54:12.071052'),
-  (16, 3, 'New message from Juan Dela Cruz', 'Hello from farmer!', 'message', 1, '/messaging/?open=1', '2026-10-17 11:55:49.547581'),
-  (17, 3, 'New message from Juan Dela Cruz', 'Hello from buyer!', 'message', 1, '/messaging/?open=1', '2026-10-17 11:55:49.569202'),
-  (18, 2, 'New message from Maria Reyes', 'Hello from buyer!', 'message', 1, '/messaging/?open=1', '2026-10-17 11:55:59.801660'),
-  (19, 3, 'New message from Juan Dela Cruz', 'Kumusta po?', 'message', 1, '/messaging/?open=1', '2026-10-17 11:57:00.657510'),
-  (20, 3, 'Message read by Juan Dela Cruz', 'Juan Dela Cruz has seen your latest message.', 'seen', 1, '/messaging/?open=1', '2026-10-17 11:57:00.695563'),
-  (21, 3, 'New message from Juan Dela Cruz', 'Maayos naman po, available ba ang poultry?', 'message', 1, '/messaging/?open=1', '2026-10-17 11:57:00.719523'),
-  (22, 3, 'New message from Juan Dela Cruz', 'hi', 'message', 1, '/messaging/?open=1', '2026-10-17 11:57:54.656906'),
-  (23, 2, 'Message read by Maria Reyes', 'Maria Reyes has seen your latest message.', 'seen', 1, '/messaging/?open=1', '2026-10-17 11:58:24.657790'),
-  (24, 2, 'New message from Maria Reyes', 'hello', 'message', 1, '/messaging/?open=1', '2026-10-17 11:58:31.887067'),
-  (25, 2, 'New message from Maria Reyes', 'Bago pong mensahe!', 'message', 1, '/messaging/?open=1', '2026-10-17 12:06:06.693581'),
-  (26, 3, 'Message read by Juan Dela Cruz', 'Juan Dela Cruz has seen your latest message.', 'seen', 1, '/messaging/?open=1', '2026-10-17 12:06:37.234402'),
-  (27, 2, 'New message from Maria Reyes', 'hi', 'message', 0, '/messaging/?open=1', '2026-10-17 12:07:24.206321');
-UNLOCK TABLES;
-
--- --------------------------------------------------------
--- Table structure for table `orders`
--- --------------------------------------------------------
-DROP TABLE IF EXISTS `orders`;
-CREATE TABLE `orders` (
-  `id` INT(11) NOT NULL AUTO_INCREMENT,
-  `buyer_id` INT(11) NOT NULL,
-  `total_amount` DECIMAL(12, 2) NOT NULL DEFAULT 0.00,
-  `status` VARCHAR(9) NOT NULL DEFAULT 'pending',
-  `delivery_address` VARCHAR(500) NOT NULL,
-  `contact_phone` VARCHAR(30) NOT NULL,
-  `payment_method` VARCHAR(50) NOT NULL DEFAULT 'COD',
-  `payment_date` DATETIME DEFAULT NULL,
-  `notes` TEXT DEFAULT NULL,
-  `rating` INT(11) DEFAULT NULL,
-  `feedback_text` TEXT DEFAULT NULL,
-  `feedback_category` VARCHAR(100) DEFAULT NULL,
-  `feedback_issue` VARCHAR(100) DEFAULT NULL,
-  `feedback_sentiment` VARCHAR(20) DEFAULT NULL,
-  `feedback_keywords` VARCHAR(500) DEFAULT NULL,
-  `created_at` DATETIME NOT NULL,
-  `updated_at` DATETIME NOT NULL,
-  PRIMARY KEY (`id`),
-  KEY `ix_orders_status` (`status`),
-  KEY `ix_orders_buyer_id` (`buyer_id`),
-  CONSTRAINT `fk_orders_buyer_id` FOREIGN KEY (`buyer_id`) REFERENCES `users` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=79 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
--- Dumping data for table `orders`
-LOCK TABLES `orders` WRITE;
-INSERT INTO `orders` (`id`, `buyer_id`, `total_amount`, `status`, `delivery_address`, `contact_phone`, `notes`, `created_at`, `updated_at`, `payment_method`, `payment_date`, `rating`, `feedback_text`, `feedback_category`, `feedback_issue`, `feedback_sentiment`, `feedback_keywords`) VALUES
-  (1, 3, 3400, 'delivered', '123 Buyer St, Manila', '09189876543', NULL, '2026-07-12 15:00:00.000000', '2026-07-12 15:00:00.000000', 'COD', NULL, NULL, NULL, NULL, NULL, NULL, NULL),
-  (2, 3, 4750, 'delivered', '123 Buyer St, Manila', '09189876543', NULL, '2026-07-08 13:00:00.000000', '2026-07-08 13:00:00.000000', 'COD', NULL, NULL, NULL, NULL, NULL, NULL, NULL),
-  (3, 3, 5940, 'delivered', '123 Buyer St, Manila', '09189876543', NULL, '2026-08-09 09:00:00.000000', '2026-08-09 09:00:00.000000', 'COD', NULL, NULL, NULL, NULL, NULL, NULL, NULL),
-  (4, 3, 2050, 'delivered', '123 Buyer St, Manila', '09189876543', NULL, '2026-08-08 09:00:00.000000', '2026-08-08 09:00:00.000000', 'COD', NULL, NULL, NULL, NULL, NULL, NULL, NULL),
-  (5, 3, 7140, 'delivered', '123 Buyer St, Manila', '09189876543', NULL, '2026-07-18 17:00:00.000000', '2026-07-18 17:00:00.000000', 'COD', NULL, NULL, NULL, NULL, NULL, NULL, NULL),
-  (6, 3, 5940, 'delivered', '123 Buyer St, Manila', '09189876543', NULL, '2026-07-18 08:00:00.000000', '2026-07-18 08:00:00.000000', 'COD', NULL, NULL, NULL, NULL, NULL, NULL, NULL),
-  (7, 3, 7175, 'delivered', '123 Buyer St, Manila', '09189876543', NULL, '2026-07-05 16:00:00.000000', '2026-07-05 16:00:00.000000', 'COD', NULL, NULL, NULL, NULL, NULL, NULL, NULL),
-  (8, 3, 2210, 'delivered', '123 Buyer St, Manila', '09189876543', NULL, '2026-07-04 10:00:00.000000', '2026-07-04 10:00:00.000000', 'COD', NULL, NULL, NULL, NULL, NULL, NULL, NULL),
-  (9, 3, 7955, 'delivered', '123 Buyer St, Manila', '09189876543', NULL, '2026-08-01 12:00:00.000000', '2026-08-01 12:00:00.000000', 'COD', NULL, NULL, NULL, NULL, NULL, NULL, NULL),
-  (10, 3, 3400, 'delivered', '123 Buyer St, Manila', '09189876543', NULL, '2026-07-23 18:00:00.000000', '2026-07-23 18:00:00.000000', 'COD', NULL, NULL, NULL, NULL, NULL, NULL, NULL),
-  (11, 3, 5130, 'delivered', '123 Buyer St, Manila', '09189876543', NULL, '2026-08-13 09:00:00.000000', '2026-08-13 09:00:00.000000', 'COD', NULL, NULL, NULL, NULL, NULL, NULL, NULL),
-  (12, 3, 4940, 'completed', '123 Buyer St, Manila', '09189876543', NULL, '2026-09-22 17:00:00.000000', '2026-09-30 06:14:14.678242', 'COD', NULL, 1, NULL, NULL, NULL, NULL, NULL),
-  (13, 3, 825, 'delivered', '123 Buyer St, Manila', '09189876543', NULL, '2026-07-31 13:00:00.000000', '2026-07-31 13:00:00.000000', 'COD', NULL, NULL, NULL, NULL, NULL, NULL, NULL),
-  (14, 3, 850, 'delivered', '123 Buyer St, Manila', '09189876543', NULL, '2026-07-20 15:00:00.000000', '2026-07-20 15:00:00.000000', 'COD', NULL, NULL, NULL, NULL, NULL, NULL, NULL),
-  (15, 3, 3075, 'delivered', '123 Buyer St, Manila', '09189876543', NULL, '2026-07-02 09:00:00.000000', '2026-07-02 09:00:00.000000', 'COD', NULL, NULL, NULL, NULL, NULL, NULL, NULL),
-  (16, 3, 6105, 'delivered', '123 Buyer St, Manila', '09189876543', NULL, '2026-07-25 14:00:00.000000', '2026-07-25 14:00:00.000000', 'COD', NULL, NULL, NULL, NULL, NULL, NULL, NULL),
-  (17, 3, 2940, 'delivered', '123 Buyer St, Manila', '09189876543', NULL, '2026-09-16 08:00:00.000000', '2026-09-16 08:00:00.000000', 'COD', NULL, NULL, NULL, NULL, NULL, NULL, NULL),
-  (18, 3, 4810, 'delivered', '123 Buyer St, Manila', '09189876543', NULL, '2026-07-16 17:00:00.000000', '2026-07-16 17:00:00.000000', 'COD', NULL, NULL, NULL, NULL, NULL, NULL, NULL),
-  (19, 3, 6600, 'delivered', '123 Buyer St, Manila', '09189876543', NULL, '2026-09-17 17:00:00.000000', '2026-09-17 17:00:00.000000', 'COD', NULL, NULL, NULL, NULL, NULL, NULL, NULL),
-  (20, 3, 4760, 'delivered', '123 Buyer St, Manila', '09189876543', NULL, '2026-09-13 11:00:00.000000', '2026-09-13 11:00:00.000000', 'COD', NULL, NULL, NULL, NULL, NULL, NULL, NULL),
-  (21, 3, 3885, 'delivered', '123 Buyer St, Manila', '09189876543', NULL, '2026-07-31 09:00:00.000000', '2026-07-31 09:00:00.000000', 'COD', NULL, NULL, NULL, NULL, NULL, NULL, NULL),
-  (22, 3, 4455, 'delivered', '123 Buyer St, Manila', '09189876543', NULL, '2026-07-12 08:00:00.000000', '2026-07-12 08:00:00.000000', 'COD', NULL, NULL, NULL, NULL, NULL, NULL, NULL),
-  (23, 3, 1870, 'delivered', '123 Buyer St, Manila', '09189876543', NULL, '2026-07-10 13:00:00.000000', '2026-07-10 13:00:00.000000', 'COD', NULL, NULL, NULL, NULL, NULL, NULL, NULL),
-  (24, 3, 8610, 'delivered', '123 Buyer St, Manila', '09189876543', NULL, '2026-09-06 11:00:00.000000', '2026-09-06 11:00:00.000000', 'COD', NULL, NULL, NULL, NULL, NULL, NULL, NULL),
-  (25, 3, 1680, 'delivered', '123 Buyer St, Manila', '09189876543', NULL, '2026-07-11 18:00:00.000000', '2026-07-11 18:00:00.000000', 'COD', NULL, NULL, NULL, NULL, NULL, NULL, NULL),
-  (26, 3, 4440, 'delivered', '123 Buyer St, Manila', '09189876543', NULL, '2026-09-09 15:00:00.000000', '2026-09-09 15:00:00.000000', 'COD', NULL, NULL, NULL, NULL, NULL, NULL, NULL),
-  (27, 3, 8360, 'delivered', '123 Buyer St, Manila', '09189876543', NULL, '2026-07-22 10:00:00.000000', '2026-07-22 10:00:00.000000', 'COD', NULL, NULL, NULL, NULL, NULL, NULL, NULL),
-  (28, 3, 4440, 'delivered', '123 Buyer St, Manila', '09189876543', NULL, '2026-08-15 15:00:00.000000', '2026-08-15 15:00:00.000000', 'COD', NULL, NULL, NULL, NULL, NULL, NULL, NULL),
-  (29, 3, 5670, 'pending', '123 Buyer St, Manila', '09189876543', NULL, '2026-09-29 12:00:00.000000', '2026-09-29 12:00:00.000000', 'COD', NULL, NULL, NULL, NULL, NULL, NULL, NULL),
-  (30, 3, 3740, 'delivered', '123 Buyer St, Manila', '09189876543', NULL, '2026-07-01 16:00:00.000000', '2026-07-01 16:00:00.000000', 'COD', NULL, NULL, NULL, NULL, NULL, NULL, NULL),
-  (31, 3, 2850, 'delivered', '123 Buyer St, Manila', '09189876543', NULL, '2026-09-07 14:00:00.000000', '2026-09-07 14:00:00.000000', 'COD', NULL, NULL, NULL, NULL, NULL, NULL, NULL),
-  (32, 3, 8085, 'delivered', '123 Buyer St, Manila', '09189876543', NULL, '2026-08-10 17:00:00.000000', '2026-08-10 17:00:00.000000', 'COD', NULL, NULL, NULL, NULL, NULL, NULL, NULL),
-  (33, 3, 2475, 'delivered', '123 Buyer St, Manila', '09189876543', NULL, '2026-09-18 15:00:00.000000', '2026-09-18 15:00:00.000000', 'COD', NULL, NULL, NULL, NULL, NULL, NULL, NULL),
-  (34, 3, 5365, 'delivered', '123 Buyer St, Manila', '09189876543', NULL, '2026-07-05 13:00:00.000000', '2026-07-05 13:00:00.000000', 'COD', NULL, NULL, NULL, NULL, NULL, NULL, NULL),
-  (35, 3, 3610, 'delivered', '123 Buyer St, Manila', '09189876543', NULL, '2026-09-05 15:00:00.000000', '2026-09-05 15:00:00.000000', 'COD', NULL, NULL, NULL, NULL, NULL, NULL, NULL),
-  (36, 3, 8330, 'delivered', '123 Buyer St, Manila', '09189876543', NULL, '2026-09-16 08:00:00.000000', '2026-09-16 08:00:00.000000', 'COD', NULL, NULL, NULL, NULL, NULL, NULL, NULL),
-  (37, 3, 3230, 'delivered', '123 Buyer St, Manila', '09189876543', NULL, '2026-07-17 16:00:00.000000', '2026-07-17 16:00:00.000000', 'COD', NULL, NULL, NULL, NULL, NULL, NULL, NULL),
-  (38, 3, 6150, 'delivered', '123 Buyer St, Manila', '09189876543', NULL, '2026-08-13 16:00:00.000000', '2026-08-13 16:00:00.000000', 'COD', NULL, NULL, NULL, NULL, NULL, NULL, NULL),
-  (39, 3, 5610, 'delivered', '123 Buyer St, Manila', '09189876543', NULL, '2026-07-07 18:00:00.000000', '2026-07-07 18:00:00.000000', 'COD', NULL, NULL, NULL, NULL, NULL, NULL, NULL),
-  (40, 3, 2310, 'completed', '123 Buyer St, Manila', '09189876543', NULL, '2026-09-22 11:00:00.000000', '2026-09-30 06:17:23.961838', 'COD', NULL, 1, NULL, NULL, NULL, NULL, NULL),
-  (41, 3, 2890, 'delivered', '123 Buyer St, Manila', '09189876543', NULL, '2026-09-09 11:00:00.000000', '2026-09-09 11:00:00.000000', 'COD', NULL, NULL, NULL, NULL, NULL, NULL, NULL),
-  (42, 3, 4100, 'delivered', '123 Buyer St, Manila', '09189876543', NULL, '2026-08-13 11:00:00.000000', '2026-08-13 11:00:00.000000', 'COD', NULL, NULL, NULL, NULL, NULL, NULL, NULL),
-  (43, 3, 7990, 'delivered', '123 Buyer St, Manila', '09189876543', NULL, '2026-08-12 14:00:00.000000', '2026-08-12 14:00:00.000000', 'COD', NULL, NULL, NULL, NULL, NULL, NULL, NULL),
-  (44, 3, 5125, 'delivered', '123 Buyer St, Manila', '09189876543', NULL, '2026-09-05 12:00:00.000000', '2026-09-05 12:00:00.000000', 'COD', NULL, NULL, NULL, NULL, NULL, NULL, NULL),
-  (45, 3, 850, 'delivered', '123 Buyer St, Manila', '09189876543', NULL, '2026-07-11 15:00:00.000000', '2026-07-11 15:00:00.000000', 'COD', NULL, NULL, NULL, NULL, NULL, NULL, NULL),
-  (46, 3, 6290, 'delivered', '123 Buyer St, Manila', '09189876543', NULL, '2026-07-06 08:00:00.000000', '2026-07-06 08:00:00.000000', 'COD', NULL, NULL, NULL, NULL, NULL, NULL, NULL),
-  (47, 3, 6435, 'delivered', '123 Buyer St, Manila', '09189876543', NULL, '2026-08-25 12:00:00.000000', '2026-08-25 12:00:00.000000', 'COD', NULL, NULL, NULL, NULL, NULL, NULL, NULL),
-  (48, 3, 4715, 'delivered', '123 Buyer St, Manila', '09189876543', NULL, '2026-07-07 17:00:00.000000', '2026-07-07 17:00:00.000000', 'COD', NULL, NULL, NULL, NULL, NULL, NULL, NULL),
-  (49, 3, 2720, 'delivered', '123 Buyer St, Manila', '09189876543', NULL, '2026-09-17 18:00:00.000000', '2026-09-17 18:00:00.000000', 'COD', NULL, NULL, NULL, NULL, NULL, NULL, NULL),
-  (50, 3, 4750, 'delivered', '123 Buyer St, Manila', '09189876543', NULL, '2026-09-21 16:00:00.000000', '2026-09-21 16:00:00.000000', 'COD', NULL, NULL, NULL, NULL, NULL, NULL, NULL),
-  (51, 3, 1900, 'delivered', '123 Buyer St, Manila', '09189876543', NULL, '2026-08-07 13:00:00.000000', '2026-08-07 13:00:00.000000', 'COD', NULL, NULL, NULL, NULL, NULL, NULL, NULL),
-  (52, 3, 8610, 'delivered', '123 Buyer St, Manila', '09189876543', NULL, '2026-08-15 18:00:00.000000', '2026-08-15 18:00:00.000000', 'COD', NULL, NULL, NULL, NULL, NULL, NULL, NULL),
-  (53, 3, 2100, 'delivered', '123 Buyer St, Manila', '09189876543', NULL, '2026-07-05 13:00:00.000000', '2026-07-05 13:00:00.000000', 'COD', NULL, NULL, NULL, NULL, NULL, NULL, NULL),
-  (54, 3, 9660, 'delivered', '123 Buyer St, Manila', '09189876543', NULL, '2026-08-27 13:00:00.000000', '2026-08-27 13:00:00.000000', 'COD', NULL, NULL, NULL, NULL, NULL, NULL, NULL),
-  (55, 3, 3885, 'delivered', '123 Buyer St, Manila', '09189876543', NULL, '2026-08-28 08:00:00.000000', '2026-08-28 08:00:00.000000', 'COD', NULL, NULL, NULL, NULL, NULL, NULL, NULL),
-  (56, 3, 8360, 'delivered', '123 Buyer St, Manila', '09189876543', NULL, '2026-07-31 17:00:00.000000', '2026-07-31 17:00:00.000000', 'COD', NULL, NULL, NULL, NULL, NULL, NULL, NULL),
-  (57, 3, 9225, 'delivered', '123 Buyer St, Manila', '09189876543', NULL, '2026-08-06 18:00:00.000000', '2026-08-06 18:00:00.000000', 'COD', NULL, NULL, NULL, NULL, NULL, NULL, NULL),
-  (58, 3, 3150, 'delivered', '123 Buyer St, Manila', '09189876543', NULL, '2026-07-25 11:00:00.000000', '2026-07-25 11:00:00.000000', 'COD', NULL, NULL, NULL, NULL, NULL, NULL, NULL),
-  (59, 3, 3990, 'delivered', '123 Buyer St, Manila', '09189876543', NULL, '2026-07-24 09:00:00.000000', '2026-07-24 09:00:00.000000', 'COD', NULL, NULL, NULL, NULL, NULL, NULL, NULL),
-  (60, 3, 4560, 'delivered', '123 Buyer St, Manila', '09189876543', NULL, '2026-08-03 15:00:00.000000', '2026-08-03 15:00:00.000000', 'COD', NULL, NULL, NULL, NULL, NULL, NULL, NULL),
-  (61, 3, 7410, 'delivered', '123 Buyer St, Manila', '09189876543', NULL, '2026-09-13 08:00:00.000000', '2026-09-13 08:00:00.000000', 'COD', NULL, NULL, NULL, NULL, NULL, NULL, NULL),
-  (62, 3, 1320, 'delivered', '123 Buyer St, Manila', '09189876543', NULL, '2026-07-17 08:00:00.000000', '2026-07-17 08:00:00.000000', 'COD', NULL, NULL, NULL, NULL, NULL, NULL, NULL),
-  (63, 3, 1870, 'delivered', '123 Buyer St, Manila', '09189876543', NULL, '2026-09-14 11:00:00.000000', '2026-09-14 11:00:00.000000', 'COD', NULL, NULL, NULL, NULL, NULL, NULL, NULL),
-  (64, 3, 6475, 'delivered', '123 Buyer St, Manila', '09189876543', NULL, '2026-08-17 09:00:00.000000', '2026-08-17 09:00:00.000000', 'COD', NULL, NULL, NULL, NULL, NULL, NULL, NULL),
-  (65, 3, 5130, 'delivered', '123 Buyer St, Manila', '09189876543', NULL, '2026-07-30 17:00:00.000000', '2026-07-30 17:00:00.000000', 'COD', NULL, NULL, NULL, NULL, NULL, NULL, NULL),
-  (66, 3, 4440, 'delivered', '123 Buyer St, Manila', '09189876543', NULL, '2026-08-09 10:00:00.000000', '2026-08-09 10:00:00.000000', 'COD', NULL, NULL, NULL, NULL, NULL, NULL, NULL),
-  (67, 3, 4920, 'delivered', '123 Buyer St, Manila', '09189876543', NULL, '2026-08-31 16:00:00.000000', '2026-08-31 16:00:00.000000', 'COD', NULL, NULL, NULL, NULL, NULL, NULL, NULL),
-  (68, 3, 3570, 'delivered', '123 Buyer St, Manila', '09189876543', NULL, '2026-07-23 08:00:00.000000', '2026-07-23 08:00:00.000000', 'COD', NULL, NULL, NULL, NULL, NULL, NULL, NULL),
-  (69, 3, 5445, 'delivered', '123 Buyer St, Manila', '09189876543', NULL, '2026-07-03 15:00:00.000000', '2026-07-03 15:00:00.000000', 'COD', NULL, NULL, NULL, NULL, NULL, NULL, NULL),
-  (70, 3, 6355, 'delivered', '123 Buyer St, Manila', '09189876543', NULL, '2026-09-18 17:00:00.000000', '2026-09-18 17:00:00.000000', 'COD', NULL, NULL, NULL, NULL, NULL, NULL, NULL),
-  (71, 3, 5100, 'delivered', 'Batangas City Central Delivery Hub', '09189876543', NULL, '2026-10-02 10:30:00.000000', '2026-10-14 12:58:14.598886', 'COD', '2026-10-02 10:30:00.000000', NULL, NULL, NULL, NULL, NULL, NULL),
-  (72, 3, 11400, 'delivered', 'Batangas City Central Delivery Hub', '09189876543', NULL, '2026-10-04 10:30:00.000000', '2026-10-14 12:58:14.609779', 'COD', '2026-10-04 10:30:00.000000', NULL, NULL, NULL, NULL, NULL, NULL),
-  (73, 3, 10500, 'delivered', 'Batangas City Central Delivery Hub', '09189876543', NULL, '2026-10-06 10:30:00.000000', '2026-10-14 12:58:14.612338', 'COD', '2026-10-06 10:30:00.000000', NULL, NULL, NULL, NULL, NULL, NULL),
-  (74, 3, 5750, 'delivered', 'Batangas City Central Delivery Hub', '09189876543', NULL, '2026-10-08 10:30:00.000000', '2026-10-14 12:58:14.613465', 'COD', '2026-10-08 10:30:00.000000', NULL, NULL, NULL, NULL, NULL, NULL),
-  (75, 3, 5000, 'delivered', 'Batangas City Central Delivery Hub', '09189876543', NULL, '2026-10-10 10:30:00.000000', '2026-10-14 12:58:14.614566', 'COD', '2026-10-10 10:30:00.000000', NULL, NULL, NULL, NULL, NULL, NULL),
-  (76, 3, 8550, 'delivered', 'Batangas City Central Delivery Hub', '09189876543', NULL, '2026-10-12 10:30:00.000000', '2026-10-14 12:58:14.615648', 'COD', '2026-10-12 10:30:00.000000', NULL, NULL, NULL, NULL, NULL, NULL),
-  (77, 3, 7350, 'delivered', 'Batangas City Central Delivery Hub', '09189876543', NULL, '2026-10-13 10:30:00.000000', '2026-10-14 12:58:14.616703', 'COD', '2026-10-13 10:30:00.000000', NULL, NULL, NULL, NULL, NULL, NULL),
-  (78, 3, 3400, 'delivered', 'Batangas City Central Delivery Hub', '09189876543', NULL, '2026-10-14 10:30:00.000000', '2026-10-14 12:58:14.617773', 'COD', '2026-10-14 10:30:00.000000', NULL, NULL, NULL, NULL, NULL, NULL);
-UNLOCK TABLES;
-
--- --------------------------------------------------------
--- Table structure for table `expenses`
--- --------------------------------------------------------
-DROP TABLE IF EXISTS `expenses`;
-CREATE TABLE `expenses` (
-  `id` INT(11) NOT NULL AUTO_INCREMENT,
-  `farm_id` INT(11) NOT NULL,
-  `user_id` INT(11) NOT NULL,
-  `expense_date` DATE NOT NULL,
-  `category` VARCHAR(9) NOT NULL DEFAULT 'other',
-  `frequency` VARCHAR(8) NOT NULL DEFAULT 'one_time',
-  `end_date` DATE DEFAULT NULL,
-  `amount` DECIMAL(10, 2) NOT NULL,
-  `description` VARCHAR(255) DEFAULT NULL,
-  `created_at` DATETIME NOT NULL,
-  `updated_at` DATETIME NOT NULL,
-  PRIMARY KEY (`id`),
-  KEY `ix_expenses_user_id` (`user_id`),
-  KEY `ix_expenses_expense_date` (`expense_date`),
-  KEY `ix_expenses_farm_id` (`farm_id`),
-  KEY `ix_expenses_category` (`category`),
-  CONSTRAINT `fk_expenses_user_id` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`),
-  CONSTRAINT `fk_expenses_farm_id` FOREIGN KEY (`farm_id`) REFERENCES `farms` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=30 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
--- Dumping data for table `expenses`
-LOCK TABLES `expenses` WRITE;
-INSERT INTO `expenses` (`id`, `farm_id`, `user_id`, `expense_date`, `category`, `frequency`, `end_date`, `amount`, `description`, `created_at`, `updated_at`) VALUES
-  (1, 1, 2, '2026-07-01', 'feed', 'one_time', NULL, 16337.504421520965, 'Weekly feed supply', '2026-09-29 07:50:21.594096', '2026-09-29 07:50:21.594110'),
-  (2, 1, 2, '2026-07-01', 'labor', 'one_time', NULL, 10877.585389543567, 'Farm hand wages', '2026-09-29 07:50:21.594121', '2026-09-29 07:50:21.594128'),
-  (3, 1, 2, '2026-07-01', 'utilities', 'one_time', NULL, 5876.594949638184, 'Electricity and water bill', '2026-09-29 07:50:21.594137', '2026-09-29 07:50:21.594144'),
-  (4, 1, 2, '2026-07-08', 'feed', 'one_time', NULL, 16253.563709277383, 'Weekly feed supply', '2026-09-29 07:50:21.646968', '2026-09-29 07:50:21.646977'),
-  (5, 1, 2, '2026-07-15', 'feed', 'one_time', NULL, 16552.100164118474, 'Weekly feed supply', '2026-09-29 07:50:21.686418', '2026-09-29 07:50:21.686433'),
-  (6, 1, 2, '2026-07-16', 'labor', 'one_time', NULL, 10458.238658073295, 'Farm hand wages', '2026-09-29 07:50:21.686443', '2026-09-29 07:50:21.686450'),
-  (7, 1, 2, '2026-07-22', 'feed', 'one_time', NULL, 15039.246954144133, 'Weekly feed supply', '2026-09-29 07:50:21.686458', '2026-09-29 07:50:21.686467'),
-  (8, 1, 2, '2026-07-29', 'feed', 'one_time', NULL, 18875.153233524718, 'Weekly feed supply', '2026-09-29 07:50:21.686475', '2026-09-29 07:50:21.686482'),
-  (9, 1, 2, '2026-07-31', 'labor', 'one_time', NULL, 11549.942363877117, 'Farm hand wages', '2026-09-29 07:50:21.686490', '2026-09-29 07:50:21.686498'),
-  (10, 1, 2, '2026-08-01', 'utilities', 'one_time', NULL, 5365.251259029294, 'Electricity and water bill', '2026-09-29 07:50:21.686508', '2026-09-29 07:50:21.686516'),
-  (11, 1, 2, '2026-08-05', 'feed', 'one_time', NULL, 15633.591757496286, 'Weekly feed supply', '2026-09-29 07:50:21.686525', '2026-09-29 07:50:21.686532'),
-  (12, 1, 2, '2026-08-12', 'feed', 'one_time', NULL, 17772.748952157734, 'Weekly feed supply', '2026-09-29 07:50:21.686540', '2026-09-29 07:50:21.686548'),
-  (13, 1, 2, '2026-08-15', 'labor', 'one_time', NULL, 11674.342221613786, 'Farm hand wages', '2026-09-29 07:50:21.686556', '2026-09-29 07:50:21.686562'),
-  (14, 1, 2, '2026-08-19', 'feed', 'one_time', NULL, 18883.06229911661, 'Weekly feed supply', '2026-09-29 07:50:21.686571', '2026-09-29 07:50:21.686578'),
-  (15, 1, 2, '2026-08-26', 'feed', 'one_time', NULL, 17408.346409771406, 'Weekly feed supply', '2026-09-29 07:50:21.686586', '2026-09-29 07:50:21.686593'),
-  (16, 1, 2, '2026-08-30', 'labor', 'one_time', NULL, 10701.56653781765, 'Farm hand wages', '2026-09-29 07:50:21.686602', '2026-09-29 07:50:21.686609'),
-  (17, 1, 2, '2026-09-01', 'utilities', 'one_time', NULL, 5099.01600500672, 'Electricity and water bill', '2026-09-29 07:50:21.686618', '2026-09-29 07:50:21.686626'),
-  (18, 1, 2, '2026-09-02', 'feed', 'one_time', NULL, 16168.613845378028, 'Weekly feed supply', '2026-09-29 07:50:21.686635', '2026-09-29 07:50:21.686643'),
-  (19, 1, 2, '2026-09-09', 'feed', 'one_time', NULL, 16570.668691318206, 'Weekly feed supply', '2026-09-29 07:50:21.686708', '2026-09-29 07:50:21.686730'),
-  (20, 1, 2, '2026-09-14', 'labor', 'one_time', NULL, 10535.671828947465, 'Farm hand wages', '2026-09-29 07:50:21.686744', '2026-09-29 07:50:21.686752'),
-  (21, 1, 2, '2026-09-16', 'feed', 'one_time', NULL, 16667.56389238407, 'Weekly feed supply', '2026-09-29 07:50:21.686761', '2026-09-29 07:50:21.686769'),
-  (22, 1, 2, '2026-09-23', 'feed', 'one_time', NULL, 18514.555967340635, 'Weekly feed supply', '2026-09-29 07:50:21.686778', '2026-09-29 07:50:21.686786'),
-  (23, 1, 2, '2026-10-02', 'feed', 'one_time', NULL, 18500, 'Bulk Purchase: 25 sacks Premium Layer Feed (B-Meg)', '2026-10-14 12:58:14.585918', '2026-10-14 12:58:14.585932'),
-  (24, 1, 2, '2026-10-05', 'utilities', 'monthly', NULL, 4800, 'Meralco Electricity Bill & Water Pumping', '2026-10-14 12:58:14.585936', '2026-10-14 12:58:14.585940'),
-  (25, 1, 2, '2026-10-08', 'labor', 'weekly', NULL, 6500, 'Caretaker and Egg Harvester Wages (Week 1-2)', '2026-10-14 12:58:14.585943', '2026-10-14 12:58:14.585946'),
-  (26, 1, 2, '2026-10-10', 'medicine', 'one_time', NULL, 2750, 'Electrolytes, Antibiotics & Disinfectant Solution', '2026-10-14 12:58:14.585949', '2026-10-14 12:58:14.585952'),
-  (27, 1, 2, '2026-10-12', 'other', 'one_time', NULL, 1200, 'Cardboard Egg Trays & Shrinkwrap Rolls', '2026-10-14 12:58:14.585955', '2026-10-14 12:58:14.585958'),
-  (28, 2, 4, '2026-10-03', 'feed', 'one_time', NULL, 14000, 'Layer Pellets Batch 1', '2026-10-14 12:58:14.585961', '2026-10-14 12:58:14.585964'),
-  (29, 2, 4, '2026-10-07', 'labor', 'weekly', NULL, 5000, 'Farm hand weekly wage', '2026-10-14 12:58:14.585967', '2026-10-14 12:58:14.585970');
-UNLOCK TABLES;
-
--- --------------------------------------------------------
--- Table structure for table `feed_records`
--- --------------------------------------------------------
-DROP TABLE IF EXISTS `feed_records`;
-CREATE TABLE `feed_records` (
-  `id` INT(11) NOT NULL AUTO_INCREMENT,
-  `farm_id` INT(11) NOT NULL,
-  `user_id` INT(11) NOT NULL,
-  `record_date` DATE NOT NULL,
-  `feed_type` VARCHAR(100) NOT NULL,
-  `feed_consumed_kg` DECIMAL(8, 2) DEFAULT 0.00,
-  `feed_cost` DECIMAL(10, 2) DEFAULT 0.00,
-  `notes` TEXT DEFAULT NULL,
-  `created_at` DATETIME NOT NULL,
-  `updated_at` DATETIME NOT NULL,
-  PRIMARY KEY (`id`),
-  KEY `ix_feed_records_farm_id` (`farm_id`),
-  KEY `ix_feed_records_record_date` (`record_date`),
-  KEY `ix_feed_records_user_id` (`user_id`),
-  CONSTRAINT `fk_feed_records_farm_id` FOREIGN KEY (`farm_id`) REFERENCES `farms` (`id`),
-  CONSTRAINT `fk_feed_records_user_id` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=29 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
--- Dumping data for table `feed_records`
-LOCK TABLES `feed_records` WRITE;
-INSERT INTO `feed_records` (`id`, `farm_id`, `user_id`, `record_date`, `feed_type`, `feed_consumed_kg`, `feed_cost`, `notes`, `created_at`, `updated_at`) VALUES
-  (1, 1, 2, '2026-10-01', 'Layer Mash Boost Premium', 98.5, 2955, 'Regular feeding schedule', '2026-10-14 12:58:14.593116', '2026-10-14 12:58:14.593123'),
-  (2, 2, 4, '2026-10-01', 'Commercial Layer Pellet', 75, 2250, 'Morning ration', '2026-10-14 12:58:14.593127', '2026-10-14 12:58:14.593130'),
-  (3, 1, 2, '2026-10-02', 'Layer Mash Boost Premium', 98.5, 2955, 'Regular feeding schedule', '2026-10-14 12:58:14.593133', '2026-10-14 12:58:14.593136'),
-  (4, 2, 4, '2026-10-02', 'Commercial Layer Pellet', 75, 2250, 'Morning ration', '2026-10-14 12:58:14.593139', '2026-10-14 12:58:14.593142'),
-  (5, 1, 2, '2026-10-03', 'Layer Mash Boost Premium', 98.5, 2955, 'Regular feeding schedule', '2026-10-14 12:58:14.593145', '2026-10-14 12:58:14.593148'),
-  (6, 2, 4, '2026-10-03', 'Commercial Layer Pellet', 75, 2250, 'Morning ration', '2026-10-14 12:58:14.593151', '2026-10-14 12:58:14.593154'),
-  (7, 1, 2, '2026-10-04', 'Layer Mash Boost Premium', 98.5, 2955, 'Regular feeding schedule', '2026-10-14 12:58:14.593157', '2026-10-14 12:58:14.593160'),
-  (8, 2, 4, '2026-10-04', 'Commercial Layer Pellet', 75, 2250, 'Morning ration', '2026-10-14 12:58:14.593163', '2026-10-14 12:58:14.593166'),
-  (9, 1, 2, '2026-10-05', 'Layer Mash Boost Premium', 98.5, 2955, 'Regular feeding schedule', '2026-10-14 12:58:14.593169', '2026-10-14 12:58:14.593172'),
-  (10, 2, 4, '2026-10-05', 'Commercial Layer Pellet', 75, 2250, 'Morning ration', '2026-10-14 12:58:14.593175', '2026-10-14 12:58:14.593178'),
-  (11, 1, 2, '2026-10-06', 'Layer Mash Boost Premium', 98.5, 2955, 'Regular feeding schedule', '2026-10-14 12:58:14.593181', '2026-10-14 12:58:14.593184'),
-  (12, 2, 4, '2026-10-06', 'Commercial Layer Pellet', 75, 2250, 'Morning ration', '2026-10-14 12:58:14.593187', '2026-10-14 12:58:14.593190'),
-  (13, 1, 2, '2026-10-07', 'Layer Mash Boost Premium', 98.5, 2955, 'Regular feeding schedule', '2026-10-14 12:58:14.593193', '2026-10-14 12:58:14.593195'),
-  (14, 2, 4, '2026-10-07', 'Commercial Layer Pellet', 75, 2250, 'Morning ration', '2026-10-14 12:58:14.593198', '2026-10-14 12:58:14.593201'),
-  (15, 1, 2, '2026-10-08', 'Layer Mash Boost Premium', 98.5, 2955, 'Regular feeding schedule', '2026-10-14 12:58:14.593205', '2026-10-14 12:58:14.593207'),
-  (16, 2, 4, '2026-10-08', 'Commercial Layer Pellet', 75, 2250, 'Morning ration', '2026-10-14 12:58:14.593211', '2026-10-14 12:58:14.593213'),
-  (17, 1, 2, '2026-10-09', 'Layer Mash Boost Premium', 98.5, 2955, 'Regular feeding schedule', '2026-10-14 12:58:14.593216', '2026-10-14 12:58:14.593219'),
-  (18, 2, 4, '2026-10-09', 'Commercial Layer Pellet', 75, 2250, 'Morning ration', '2026-10-14 12:58:14.593222', '2026-10-14 12:58:14.593225'),
-  (19, 1, 2, '2026-10-10', 'Layer Mash Boost Premium', 98.5, 2955, 'Regular feeding schedule', '2026-10-14 12:58:14.593228', '2026-10-14 12:58:14.593231'),
-  (20, 2, 4, '2026-10-10', 'Commercial Layer Pellet', 75, 2250, 'Morning ration', '2026-10-14 12:58:14.593234', '2026-10-14 12:58:14.593237'),
-  (21, 1, 2, '2026-10-11', 'Layer Mash Boost Premium', 98.5, 2955, 'Regular feeding schedule', '2026-10-14 12:58:14.593240', '2026-10-14 12:58:14.593243'),
-  (22, 2, 4, '2026-10-11', 'Commercial Layer Pellet', 75, 2250, 'Morning ration', '2026-10-14 12:58:14.593246', '2026-10-14 12:58:14.593249'),
-  (23, 1, 2, '2026-10-12', 'Layer Mash Boost Premium', 98.5, 2955, 'Regular feeding schedule', '2026-10-14 12:58:14.593252', '2026-10-14 12:58:14.593255'),
-  (24, 2, 4, '2026-10-12', 'Commercial Layer Pellet', 75, 2250, 'Morning ration', '2026-10-14 12:58:14.593258', '2026-10-14 12:58:14.593261'),
-  (25, 1, 2, '2026-10-13', 'Layer Mash Boost Premium', 98.5, 2955, 'Regular feeding schedule', '2026-10-14 12:58:14.593264', '2026-10-14 12:58:14.593267'),
-  (26, 2, 4, '2026-10-13', 'Commercial Layer Pellet', 75, 2250, 'Morning ration', '2026-10-14 12:58:14.593270', '2026-10-14 12:58:14.593273'),
-  (27, 1, 2, '2026-10-14', 'Layer Mash Boost Premium', 98.5, 2955, 'Regular feeding schedule', '2026-10-14 12:58:14.593276', '2026-10-14 12:58:14.593278'),
-  (28, 2, 4, '2026-10-14', 'Commercial Layer Pellet', 75, 2250, 'Morning ration', '2026-10-14 12:58:14.593281', '2026-10-14 12:58:14.593284');
 UNLOCK TABLES;
 
 -- --------------------------------------------------------
@@ -585,89 +282,470 @@ INSERT INTO `flock_history` (`id`, `farm_id`, `user_id`, `date`, `change_type`, 
 UNLOCK TABLES;
 
 -- --------------------------------------------------------
--- Table structure for table `messages`
+-- Table structure for table `products`
 -- --------------------------------------------------------
-DROP TABLE IF EXISTS `messages`;
-CREATE TABLE `messages` (
+DROP TABLE IF EXISTS `products`;
+CREATE TABLE `products` (
   `id` INT(11) NOT NULL AUTO_INCREMENT,
-  `conversation_id` INT(11) NOT NULL,
-  `sender_id` INT(11) NOT NULL,
-  `receiver_id` INT(11) NOT NULL,
-  `body` TEXT NOT NULL,
-  `sent_at` DATETIME NOT NULL,
-  `delivered_at` DATETIME DEFAULT NULL,
-  `seen_at` DATETIME DEFAULT NULL,
-  `is_seen` TINYINT(1) NOT NULL DEFAULT 0,
+  `farmer_id` INT(11) NOT NULL,
+  `farm_id` INT(11) NOT NULL,
+  `name` VARCHAR(150) NOT NULL,
+  `description` TEXT DEFAULT NULL,
+  `size` VARCHAR(11) NOT NULL DEFAULT 'medium',
+  `variety` VARCHAR(5) NOT NULL DEFAULT 'brown',
+  `unit` VARCHAR(8) NOT NULL DEFAULT 'piece',
+  `price` DECIMAL(10, 2) NOT NULL,
+  `stock` INT(11) NOT NULL DEFAULT 0,
+  `location` VARCHAR(255) DEFAULT NULL,
+  `is_available` TINYINT(1) NOT NULL DEFAULT 1,
+  `image_url` VARCHAR(500) DEFAULT NULL,
+  `moderation_status` VARCHAR(8) NOT NULL DEFAULT 'pending',
+  `created_at` DATETIME NOT NULL,
+  `updated_at` DATETIME NOT NULL,
   PRIMARY KEY (`id`),
-  KEY `ix_messages_conversation_id` (`conversation_id`),
-  KEY `ix_messages_is_seen` (`is_seen`),
-  KEY `ix_messages_sender_id` (`sender_id`),
-  KEY `ix_messages_sent_at` (`sent_at`),
-  KEY `ix_messages_receiver_id` (`receiver_id`),
-  CONSTRAINT `fk_messages_receiver_id` FOREIGN KEY (`receiver_id`) REFERENCES `users` (`id`),
-  CONSTRAINT `fk_messages_sender_id` FOREIGN KEY (`sender_id`) REFERENCES `users` (`id`),
-  CONSTRAINT `fk_messages_conversation_id` FOREIGN KEY (`conversation_id`) REFERENCES `conversations` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=23 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+  KEY `ix_products_farmer_id` (`farmer_id`),
+  KEY `ix_products_farm_id` (`farm_id`),
+  KEY `ix_products_variety` (`variety`),
+  KEY `ix_products_is_available` (`is_available`),
+  KEY `ix_products_size` (`size`),
+  CONSTRAINT `fk_products_farmer_id` FOREIGN KEY (`farmer_id`) REFERENCES `users` (`id`),
+  CONSTRAINT `fk_products_farm_id` FOREIGN KEY (`farm_id`) REFERENCES `farms` (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=9 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- Dumping data for table `messages`
-LOCK TABLES `messages` WRITE;
-INSERT INTO `messages` (`id`, `conversation_id`, `sender_id`, `receiver_id`, `body`, `sent_at`, `delivered_at`, `seen_at`, `is_seen`) VALUES
-  (1, 1, 3, 2, 'hello', '2026-10-07 10:09:26.977061', '2026-10-07 10:09:26.966902', '2026-10-07 10:14:47.896611', 1),
-  (2, 1, 3, 2, 'hello again', '2026-10-07 10:13:49.309479', '2026-10-07 10:13:49.303756', '2026-10-07 10:14:47.896611', 1),
-  (3, 1, 3, 2, 'hi', '2026-10-07 10:13:56.868165', '2026-10-07 10:13:56.863656', '2026-10-07 10:14:47.896611', 1),
-  (4, 1, 2, 3, 'hello why', '2026-10-07 10:15:06.421250', '2026-10-07 10:15:06.415494', '2026-10-17 11:58:24.649109', 1),
-  (5, 1, 2, 3, 'hey', '2026-10-07 10:16:59.759580', '2026-10-07 10:16:59.754105', '2026-10-17 11:58:24.649109', 1),
-  (6, 1, 2, 3, 'hi', '2026-10-07 10:23:08.038045', '2026-10-07 10:23:08.032546', '2026-10-17 11:58:24.649109', 1),
-  (7, 1, 2, 3, 'Testing message sending from browser agent', '2026-10-07 10:28:34.488873', '2026-10-07 10:28:34.419820', '2026-10-17 11:58:24.649109', 1),
-  (8, 1, 2, 3, 'Testing via JavaScript trigger', '2026-10-07 10:30:08.678672', '2026-10-07 10:30:08.662098', '2026-10-17 11:58:24.649109', 1),
-  (9, 1, 2, 3, 'Testing via JavaScript trigger', '2026-10-07 10:32:02.360922', '2026-10-07 10:32:02.356996', '2026-10-17 11:58:24.649109', 1),
-  (10, 1, 2, 3, 'hello', '2026-10-07 10:36:23.046624', '2026-10-07 10:36:23.042112', '2026-10-17 11:58:24.649109', 1),
-  (11, 1, 2, 3, 'hello', '2026-10-17 11:50:41.857052', '2026-10-17 11:50:41.846353', '2026-10-17 11:58:24.649109', 1),
-  (12, 1, 2, 3, 'test message', '2026-10-17 11:53:19.556098', '2026-10-17 11:53:19.548136', '2026-10-17 11:58:24.649109', 1),
-  (13, 1, 3, 2, 'test from buyer', '2026-10-17 11:54:12.068360', '2026-10-17 11:54:12.060760', '2026-10-17 11:57:00.684288', 1),
-  (14, 1, 2, 3, 'Hello from farmer!', '2026-10-17 11:55:49.544781', '2026-10-17 11:55:49.536194', '2026-10-17 11:58:24.649109', 1),
-  (15, 1, 2, 3, 'Hello from buyer!', '2026-10-17 11:55:49.567588', '2026-10-17 11:55:49.564340', '2026-10-17 11:58:24.649109', 1),
-  (16, 1, 3, 2, 'Hello from buyer!', '2026-10-17 11:55:59.798870', '2026-10-17 11:55:59.790356', '2026-10-17 11:57:00.684288', 1),
-  (17, 1, 2, 3, 'Kumusta po?', '2026-10-17 11:57:00.652285', '2026-10-17 11:57:00.637477', '2026-10-17 11:58:24.649109', 1),
-  (18, 1, 2, 3, 'Maayos naman po, available ba ang poultry?', '2026-10-17 11:57:00.717318', '2026-10-17 11:57:00.712467', '2026-10-17 11:58:24.649109', 1),
-  (19, 1, 2, 3, 'hi', '2026-10-17 11:57:54.653212', '2026-10-17 11:57:54.645892', '2026-10-17 11:58:24.649109', 1),
-  (20, 1, 3, 2, 'hello', '2026-10-17 11:58:31.885143', '2026-10-17 11:58:31.879725', '2026-10-17 12:06:37.217440', 1),
-  (21, 1, 3, 2, 'Bago pong mensahe!', '2026-10-17 12:06:06.690852', '2026-10-17 12:06:05.995412', '2026-10-17 12:06:37.217440', 1),
-  (22, 1, 3, 2, 'hi', '2026-10-17 12:07:24.202879', '2026-10-17 12:07:24.196299', NULL, 0);
+-- Dumping data for table `products`
+LOCK TABLES `products` WRITE;
+INSERT INTO `products` (`id`, `farmer_id`, `farm_id`, `name`, `description`, `size`, `variety`, `unit`, `price`, `stock`, `location`, `is_available`, `created_at`, `updated_at`, `image_url`, `moderation_status`) VALUES
+  (1, 2, 1, 'Fresh Brown Eggs (Small)', 'Freshly harvested small brown eggs.', 'small', 'brown', 'tray', 170, 100, NULL, 1, '2026-09-29 07:50:21.565475', '2026-11-16 02:24:07.907758', 'https://images.unsplash.com/photo-1516467508483-a7212febe31a?w=500&auto=format&fit=crop&q=80', 'pending'),
+  (2, 2, 1, 'Fresh Brown Eggs (Medium)', 'Freshly harvested medium brown eggs.', 'medium', 'brown', 'tray', 190, 300, NULL, 1, '2026-09-29 07:50:21.565492', '2026-11-16 02:24:07.907774', 'https://images.unsplash.com/photo-1516467508483-a7212febe31a?w=500&auto=format&fit=crop&q=80', 'pending'),
+  (3, 2, 1, 'Fresh Brown Eggs (Large)', 'Freshly harvested large brown eggs.', 'large', 'brown', 'tray', 210, 200, NULL, 1, '2026-09-29 07:50:21.565501', '2026-11-16 02:24:07.907779', 'https://images.unsplash.com/photo-1516467508483-a7212febe31a?w=500&auto=format&fit=crop&q=80', 'pending'),
+  (4, 2, 1, 'Fresh White Eggs (Small)', 'Freshly harvested small white eggs.', 'small', 'white', 'tray', 165, 120, NULL, 1, '2026-09-29 07:50:21.565511', '2026-11-16 02:24:07.907782', 'https://images.unsplash.com/photo-1587486913049-53fc88980cfc?w=500&auto=format&fit=crop&q=80', 'pending'),
+  (5, 2, 1, 'Fresh White Eggs (Medium)', 'Freshly harvested medium white eggs.', 'medium', 'white', 'tray', 185, 250, NULL, 1, '2026-09-29 07:50:21.565520', '2026-11-16 02:24:07.907786', 'https://images.unsplash.com/photo-1587486913049-53fc88980cfc?w=500&auto=format&fit=crop&q=80', 'pending'),
+  (6, 2, 1, 'Fresh White Eggs (Large)', 'Freshly harvested large white eggs.', 'large', 'white', 'tray', 205, 180, NULL, 1, '2026-09-29 07:50:21.565531', '2026-11-16 02:24:07.907789', 'https://images.unsplash.com/photo-1587486913049-53fc88980cfc?w=500&auto=format&fit=crop&q=80', 'pending'),
+  (7, 2, 1, 'Fresh Brown Eggs (Extra Large)', NULL, 'extra_large', 'brown', 'tray', 230, 80, 'Sunshine Farm', 1, '2026-10-14 12:56:47.913152', '2026-11-16 02:24:07.907792', 'https://images.unsplash.com/photo-1516467508483-a7212febe31a?w=500&auto=format&fit=crop&q=80', 'pending'),
+  (8, 2, 1, 'Fresh Brown Eggs (Jumbo)', NULL, 'jumbo', 'brown', 'tray', 250, 50, 'Sunshine Farm', 1, '2026-10-14 12:56:47.913174', '2026-11-16 02:24:07.907795', 'https://images.unsplash.com/photo-1516467508483-a7212febe31a?w=500&auto=format&fit=crop&q=80', 'pending');
 UNLOCK TABLES;
 
 -- --------------------------------------------------------
--- Table structure for table `mortality_records`
+-- Table structure for table `orders`
 -- --------------------------------------------------------
-DROP TABLE IF EXISTS `mortality_records`;
-CREATE TABLE `mortality_records` (
+DROP TABLE IF EXISTS `orders`;
+CREATE TABLE `orders` (
+  `id` INT(11) NOT NULL AUTO_INCREMENT,
+  `buyer_id` INT(11) NOT NULL,
+  `total_amount` DECIMAL(12, 2) NOT NULL DEFAULT 0.00,
+  `status` VARCHAR(9) NOT NULL DEFAULT 'pending',
+  `delivery_address` VARCHAR(500) NOT NULL,
+  `contact_phone` VARCHAR(30) NOT NULL,
+  `payment_method` VARCHAR(50) NOT NULL DEFAULT 'COD',
+  `payment_date` DATETIME DEFAULT NULL,
+  `notes` TEXT DEFAULT NULL,
+  `rating` INT(11) DEFAULT NULL,
+  `feedback_text` TEXT DEFAULT NULL,
+  `feedback_category` VARCHAR(100) DEFAULT NULL,
+  `feedback_issue` VARCHAR(100) DEFAULT NULL,
+  `feedback_sentiment` VARCHAR(20) DEFAULT NULL,
+  `feedback_keywords` VARCHAR(500) DEFAULT NULL,
+  `created_at` DATETIME NOT NULL,
+  `updated_at` DATETIME NOT NULL,
+  PRIMARY KEY (`id`),
+  KEY `ix_orders_status` (`status`),
+  KEY `ix_orders_buyer_id` (`buyer_id`),
+  CONSTRAINT `fk_orders_buyer_id` FOREIGN KEY (`buyer_id`) REFERENCES `users` (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=79 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Dumping data for table `orders`
+LOCK TABLES `orders` WRITE;
+INSERT INTO `orders` (`id`, `buyer_id`, `total_amount`, `status`, `delivery_address`, `contact_phone`, `notes`, `created_at`, `updated_at`, `payment_method`, `payment_date`, `rating`, `feedback_text`, `feedback_category`, `feedback_issue`, `feedback_sentiment`, `feedback_keywords`) VALUES
+  (1, 3, 3400, 'delivered', '123 Buyer St, Manila', '09189876543', NULL, '2026-07-12 15:00:00.000000', '2026-07-12 15:00:00.000000', 'COD', NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+  (2, 3, 4750, 'delivered', '123 Buyer St, Manila', '09189876543', NULL, '2026-07-08 13:00:00.000000', '2026-07-08 13:00:00.000000', 'COD', NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+  (3, 3, 5940, 'delivered', '123 Buyer St, Manila', '09189876543', NULL, '2026-08-09 09:00:00.000000', '2026-08-09 09:00:00.000000', 'COD', NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+  (4, 3, 2050, 'delivered', '123 Buyer St, Manila', '09189876543', NULL, '2026-08-08 09:00:00.000000', '2026-08-08 09:00:00.000000', 'COD', NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+  (5, 3, 7140, 'delivered', '123 Buyer St, Manila', '09189876543', NULL, '2026-07-18 17:00:00.000000', '2026-07-18 17:00:00.000000', 'COD', NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+  (6, 3, 5940, 'delivered', '123 Buyer St, Manila', '09189876543', NULL, '2026-07-18 08:00:00.000000', '2026-07-18 08:00:00.000000', 'COD', NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+  (7, 3, 7175, 'delivered', '123 Buyer St, Manila', '09189876543', NULL, '2026-07-05 16:00:00.000000', '2026-07-05 16:00:00.000000', 'COD', NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+  (8, 3, 2210, 'delivered', '123 Buyer St, Manila', '09189876543', NULL, '2026-07-04 10:00:00.000000', '2026-07-04 10:00:00.000000', 'COD', NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+  (9, 3, 7955, 'delivered', '123 Buyer St, Manila', '09189876543', NULL, '2026-08-01 12:00:00.000000', '2026-08-01 12:00:00.000000', 'COD', NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+  (10, 3, 3400, 'delivered', '123 Buyer St, Manila', '09189876543', NULL, '2026-07-23 18:00:00.000000', '2026-07-23 18:00:00.000000', 'COD', NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+  (11, 3, 5130, 'delivered', '123 Buyer St, Manila', '09189876543', NULL, '2026-08-13 09:00:00.000000', '2026-08-13 09:00:00.000000', 'COD', NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+  (12, 3, 4940, 'completed', '123 Buyer St, Manila', '09189876543', NULL, '2026-09-22 17:00:00.000000', '2026-09-30 06:14:14.678242', 'COD', NULL, 1, NULL, NULL, NULL, NULL, NULL),
+  (13, 3, 825, 'delivered', '123 Buyer St, Manila', '09189876543', NULL, '2026-07-31 13:00:00.000000', '2026-07-31 13:00:00.000000', 'COD', NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+  (14, 3, 850, 'delivered', '123 Buyer St, Manila', '09189876543', NULL, '2026-07-20 15:00:00.000000', '2026-07-20 15:00:00.000000', 'COD', NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+  (15, 3, 3075, 'delivered', '123 Buyer St, Manila', '09189876543', NULL, '2026-07-02 09:00:00.000000', '2026-07-02 09:00:00.000000', 'COD', NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+  (16, 3, 6105, 'delivered', '123 Buyer St, Manila', '09189876543', NULL, '2026-07-25 14:00:00.000000', '2026-07-25 14:00:00.000000', 'COD', NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+  (17, 3, 2940, 'delivered', '123 Buyer St, Manila', '09189876543', NULL, '2026-09-16 08:00:00.000000', '2026-09-16 08:00:00.000000', 'COD', NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+  (18, 3, 4810, 'delivered', '123 Buyer St, Manila', '09189876543', NULL, '2026-07-16 17:00:00.000000', '2026-07-16 17:00:00.000000', 'COD', NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+  (19, 3, 6600, 'delivered', '123 Buyer St, Manila', '09189876543', NULL, '2026-09-17 17:00:00.000000', '2026-09-17 17:00:00.000000', 'COD', NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+  (20, 3, 4760, 'delivered', '123 Buyer St, Manila', '09189876543', NULL, '2026-09-13 11:00:00.000000', '2026-09-13 11:00:00.000000', 'COD', NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+  (21, 3, 3885, 'delivered', '123 Buyer St, Manila', '09189876543', NULL, '2026-07-31 09:00:00.000000', '2026-07-31 09:00:00.000000', 'COD', NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+  (22, 3, 4455, 'delivered', '123 Buyer St, Manila', '09189876543', NULL, '2026-07-12 08:00:00.000000', '2026-07-12 08:00:00.000000', 'COD', NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+  (23, 3, 1870, 'delivered', '123 Buyer St, Manila', '09189876543', NULL, '2026-07-10 13:00:00.000000', '2026-07-10 13:00:00.000000', 'COD', NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+  (24, 3, 8610, 'delivered', '123 Buyer St, Manila', '09189876543', NULL, '2026-09-06 11:00:00.000000', '2026-09-06 11:00:00.000000', 'COD', NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+  (25, 3, 1680, 'delivered', '123 Buyer St, Manila', '09189876543', NULL, '2026-07-11 18:00:00.000000', '2026-07-11 18:00:00.000000', 'COD', NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+  (26, 3, 4440, 'delivered', '123 Buyer St, Manila', '09189876543', NULL, '2026-09-09 15:00:00.000000', '2026-09-09 15:00:00.000000', 'COD', NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+  (27, 3, 8360, 'delivered', '123 Buyer St, Manila', '09189876543', NULL, '2026-07-22 10:00:00.000000', '2026-07-22 10:00:00.000000', 'COD', NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+  (28, 3, 4440, 'delivered', '123 Buyer St, Manila', '09189876543', NULL, '2026-08-15 15:00:00.000000', '2026-08-15 15:00:00.000000', 'COD', NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+  (29, 3, 5670, 'pending', '123 Buyer St, Manila', '09189876543', NULL, '2026-09-29 12:00:00.000000', '2026-09-29 12:00:00.000000', 'COD', NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+  (30, 3, 3740, 'delivered', '123 Buyer St, Manila', '09189876543', NULL, '2026-07-01 16:00:00.000000', '2026-07-01 16:00:00.000000', 'COD', NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+  (31, 3, 2850, 'delivered', '123 Buyer St, Manila', '09189876543', NULL, '2026-09-07 14:00:00.000000', '2026-09-07 14:00:00.000000', 'COD', NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+  (32, 3, 8085, 'delivered', '123 Buyer St, Manila', '09189876543', NULL, '2026-08-10 17:00:00.000000', '2026-08-10 17:00:00.000000', 'COD', NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+  (33, 3, 2475, 'delivered', '123 Buyer St, Manila', '09189876543', NULL, '2026-09-18 15:00:00.000000', '2026-09-18 15:00:00.000000', 'COD', NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+  (34, 3, 5365, 'delivered', '123 Buyer St, Manila', '09189876543', NULL, '2026-07-05 13:00:00.000000', '2026-07-05 13:00:00.000000', 'COD', NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+  (35, 3, 3610, 'delivered', '123 Buyer St, Manila', '09189876543', NULL, '2026-09-05 15:00:00.000000', '2026-09-05 15:00:00.000000', 'COD', NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+  (36, 3, 8330, 'delivered', '123 Buyer St, Manila', '09189876543', NULL, '2026-09-16 08:00:00.000000', '2026-09-16 08:00:00.000000', 'COD', NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+  (37, 3, 3230, 'delivered', '123 Buyer St, Manila', '09189876543', NULL, '2026-07-17 16:00:00.000000', '2026-07-17 16:00:00.000000', 'COD', NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+  (38, 3, 6150, 'delivered', '123 Buyer St, Manila', '09189876543', NULL, '2026-08-13 16:00:00.000000', '2026-08-13 16:00:00.000000', 'COD', NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+  (39, 3, 5610, 'delivered', '123 Buyer St, Manila', '09189876543', NULL, '2026-07-07 18:00:00.000000', '2026-07-07 18:00:00.000000', 'COD', NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+  (40, 3, 2310, 'completed', '123 Buyer St, Manila', '09189876543', NULL, '2026-09-22 11:00:00.000000', '2026-09-30 06:17:23.961838', 'COD', NULL, 1, NULL, NULL, NULL, NULL, NULL),
+  (41, 3, 2890, 'delivered', '123 Buyer St, Manila', '09189876543', NULL, '2026-09-09 11:00:00.000000', '2026-09-09 11:00:00.000000', 'COD', NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+  (42, 3, 4100, 'delivered', '123 Buyer St, Manila', '09189876543', NULL, '2026-08-13 11:00:00.000000', '2026-08-13 11:00:00.000000', 'COD', NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+  (43, 3, 7990, 'delivered', '123 Buyer St, Manila', '09189876543', NULL, '2026-08-12 14:00:00.000000', '2026-08-12 14:00:00.000000', 'COD', NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+  (44, 3, 5125, 'delivered', '123 Buyer St, Manila', '09189876543', NULL, '2026-09-05 12:00:00.000000', '2026-09-05 12:00:00.000000', 'COD', NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+  (45, 3, 850, 'delivered', '123 Buyer St, Manila', '09189876543', NULL, '2026-07-11 15:00:00.000000', '2026-07-11 15:00:00.000000', 'COD', NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+  (46, 3, 6290, 'delivered', '123 Buyer St, Manila', '09189876543', NULL, '2026-07-06 08:00:00.000000', '2026-07-06 08:00:00.000000', 'COD', NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+  (47, 3, 6435, 'delivered', '123 Buyer St, Manila', '09189876543', NULL, '2026-08-25 12:00:00.000000', '2026-08-25 12:00:00.000000', 'COD', NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+  (48, 3, 4715, 'delivered', '123 Buyer St, Manila', '09189876543', NULL, '2026-07-07 17:00:00.000000', '2026-07-07 17:00:00.000000', 'COD', NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+  (49, 3, 2720, 'delivered', '123 Buyer St, Manila', '09189876543', NULL, '2026-09-17 18:00:00.000000', '2026-09-17 18:00:00.000000', 'COD', NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+  (50, 3, 4750, 'delivered', '123 Buyer St, Manila', '09189876543', NULL, '2026-09-21 16:00:00.000000', '2026-09-21 16:00:00.000000', 'COD', NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+  (51, 3, 1900, 'delivered', '123 Buyer St, Manila', '09189876543', NULL, '2026-08-07 13:00:00.000000', '2026-08-07 13:00:00.000000', 'COD', NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+  (52, 3, 8610, 'delivered', '123 Buyer St, Manila', '09189876543', NULL, '2026-08-15 18:00:00.000000', '2026-08-15 18:00:00.000000', 'COD', NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+  (53, 3, 2100, 'delivered', '123 Buyer St, Manila', '09189876543', NULL, '2026-07-05 13:00:00.000000', '2026-07-05 13:00:00.000000', 'COD', NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+  (54, 3, 9660, 'delivered', '123 Buyer St, Manila', '09189876543', NULL, '2026-08-27 13:00:00.000000', '2026-08-27 13:00:00.000000', 'COD', NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+  (55, 3, 3885, 'delivered', '123 Buyer St, Manila', '09189876543', NULL, '2026-08-28 08:00:00.000000', '2026-08-28 08:00:00.000000', 'COD', NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+  (56, 3, 8360, 'delivered', '123 Buyer St, Manila', '09189876543', NULL, '2026-07-31 17:00:00.000000', '2026-07-31 17:00:00.000000', 'COD', NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+  (57, 3, 9225, 'delivered', '123 Buyer St, Manila', '09189876543', NULL, '2026-08-06 18:00:00.000000', '2026-08-06 18:00:00.000000', 'COD', NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+  (58, 3, 3150, 'delivered', '123 Buyer St, Manila', '09189876543', NULL, '2026-07-25 11:00:00.000000', '2026-07-25 11:00:00.000000', 'COD', NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+  (59, 3, 3990, 'delivered', '123 Buyer St, Manila', '09189876543', NULL, '2026-07-24 09:00:00.000000', '2026-07-24 09:00:00.000000', 'COD', NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+  (60, 3, 4560, 'delivered', '123 Buyer St, Manila', '09189876543', NULL, '2026-08-03 15:00:00.000000', '2026-08-03 15:00:00.000000', 'COD', NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+  (61, 3, 7410, 'delivered', '123 Buyer St, Manila', '09189876543', NULL, '2026-09-13 08:00:00.000000', '2026-09-13 08:00:00.000000', 'COD', NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+  (62, 3, 1320, 'delivered', '123 Buyer St, Manila', '09189876543', NULL, '2026-07-17 08:00:00.000000', '2026-07-17 08:00:00.000000', 'COD', NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+  (63, 3, 1870, 'delivered', '123 Buyer St, Manila', '09189876543', NULL, '2026-09-14 11:00:00.000000', '2026-09-14 11:00:00.000000', 'COD', NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+  (64, 3, 6475, 'delivered', '123 Buyer St, Manila', '09189876543', NULL, '2026-08-17 09:00:00.000000', '2026-08-17 09:00:00.000000', 'COD', NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+  (65, 3, 5130, 'delivered', '123 Buyer St, Manila', '09189876543', NULL, '2026-07-30 17:00:00.000000', '2026-07-30 17:00:00.000000', 'COD', NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+  (66, 3, 4440, 'delivered', '123 Buyer St, Manila', '09189876543', NULL, '2026-08-09 10:00:00.000000', '2026-08-09 10:00:00.000000', 'COD', NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+  (67, 3, 4920, 'delivered', '123 Buyer St, Manila', '09189876543', NULL, '2026-08-31 16:00:00.000000', '2026-08-31 16:00:00.000000', 'COD', NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+  (68, 3, 3570, 'delivered', '123 Buyer St, Manila', '09189876543', NULL, '2026-07-23 08:00:00.000000', '2026-07-23 08:00:00.000000', 'COD', NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+  (69, 3, 5445, 'delivered', '123 Buyer St, Manila', '09189876543', NULL, '2026-07-03 15:00:00.000000', '2026-07-03 15:00:00.000000', 'COD', NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+  (70, 3, 6355, 'delivered', '123 Buyer St, Manila', '09189876543', NULL, '2026-09-18 17:00:00.000000', '2026-09-18 17:00:00.000000', 'COD', NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+  (71, 3, 5100, 'delivered', 'Batangas City Central Delivery Hub', '09189876543', NULL, '2026-10-02 10:30:00.000000', '2026-10-14 12:58:14.598886', 'COD', '2026-10-02 10:30:00.000000', NULL, NULL, NULL, NULL, NULL, NULL),
+  (72, 3, 11400, 'delivered', 'Batangas City Central Delivery Hub', '09189876543', NULL, '2026-10-04 10:30:00.000000', '2026-10-14 12:58:14.609779', 'COD', '2026-10-04 10:30:00.000000', NULL, NULL, NULL, NULL, NULL, NULL),
+  (73, 3, 10500, 'delivered', 'Batangas City Central Delivery Hub', '09189876543', NULL, '2026-10-06 10:30:00.000000', '2026-10-14 12:58:14.612338', 'COD', '2026-10-06 10:30:00.000000', NULL, NULL, NULL, NULL, NULL, NULL),
+  (74, 3, 5750, 'delivered', 'Batangas City Central Delivery Hub', '09189876543', NULL, '2026-10-08 10:30:00.000000', '2026-10-14 12:58:14.613465', 'COD', '2026-10-08 10:30:00.000000', NULL, NULL, NULL, NULL, NULL, NULL),
+  (75, 3, 5000, 'delivered', 'Batangas City Central Delivery Hub', '09189876543', NULL, '2026-10-10 10:30:00.000000', '2026-10-14 12:58:14.614566', 'COD', '2026-10-10 10:30:00.000000', NULL, NULL, NULL, NULL, NULL, NULL),
+  (76, 3, 8550, 'delivered', 'Batangas City Central Delivery Hub', '09189876543', NULL, '2026-10-12 10:30:00.000000', '2026-10-14 12:58:14.615648', 'COD', '2026-10-12 10:30:00.000000', NULL, NULL, NULL, NULL, NULL, NULL),
+  (77, 3, 7350, 'delivered', 'Batangas City Central Delivery Hub', '09189876543', NULL, '2026-10-13 10:30:00.000000', '2026-10-14 12:58:14.616703', 'COD', '2026-10-13 10:30:00.000000', NULL, NULL, NULL, NULL, NULL, NULL),
+  (78, 3, 3400, 'delivered', 'Batangas City Central Delivery Hub', '09189876543', NULL, '2026-10-14 10:30:00.000000', '2026-10-14 12:58:14.617773', 'COD', '2026-10-14 10:30:00.000000', NULL, NULL, NULL, NULL, NULL, NULL),
+  (79, 3, 11275, 'delivered', 'Lipa City Commercial Center', '09189876543', 'Fresh harvest dispatch Nov 01', '2026-11-01 12:00:00.000000', '2026-11-01 12:00:00.000000', 'COD', NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+  (80, 3, 8880, 'delivered', 'Lipa City Commercial Center', '09189876543', 'Fresh harvest dispatch Nov 03', '2026-11-03 13:00:00.000000', '2026-11-03 13:00:00.000000', 'COD', NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+  (81, 3, 7585, 'delivered', 'Lipa City Commercial Center', '09189876543', 'Fresh harvest dispatch Nov 04', '2026-11-04 14:00:00.000000', '2026-11-04 14:00:00.000000', 'COD', NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+  (82, 3, 7585, 'delivered', 'Lipa City Commercial Center', '09189876543', 'Fresh harvest dispatch Nov 05', '2026-11-05 14:00:00.000000', '2026-11-05 14:00:00.000000', 'COD', NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+  (83, 3, 11070, 'delivered', 'Lipa City Commercial Center', '09189876543', 'Fresh harvest dispatch Nov 07', '2026-11-07 16:00:00.000000', '2026-11-07 16:00:00.000000', 'COD', NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+  (84, 3, 7380, 'delivered', 'Lipa City Commercial Center', '09189876543', 'Fresh harvest dispatch Nov 08', '2026-11-08 14:00:00.000000', '2026-11-08 14:00:00.000000', 'COD', NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+  (85, 3, 10120, 'delivered', 'Lipa City Commercial Center', '09189876543', 'Fresh harvest dispatch Nov 09', '2026-11-09 12:00:00.000000', '2026-11-09 12:00:00.000000', 'COD', NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+  (86, 3, 13325, 'delivered', 'Lipa City Commercial Center', '09189876543', 'Fresh harvest dispatch Nov 11', '2026-11-11 12:00:00.000000', '2026-11-11 12:00:00.000000', 'COD', NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+  (87, 3, 11590, 'delivered', 'Lipa City Commercial Center', '09189876543', 'Fresh harvest dispatch Nov 12', '2026-11-12 13:00:00.000000', '2026-11-12 13:00:00.000000', 'COD', NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+  (88, 3, 10360, 'delivered', 'Lipa City Commercial Center', '09189876543', 'Fresh harvest dispatch Nov 13', '2026-11-13 10:00:00.000000', '2026-11-13 10:00:00.000000', 'COD', NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+  (89, 3, 13110, 'delivered', 'Lipa City Commercial Center', '09189876543', 'Fresh harvest dispatch Nov 15', '2026-11-15 11:00:00.000000', '2026-11-15 11:00:00.000000', 'COD', NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+  (90, 3, 9500, 'delivered', 'Lipa City Commercial Center', '09189876543', 'Fresh harvest dispatch Nov 16', '2026-11-16 13:00:00.000000', '2026-11-16 13:00:00.000000', 'COD', NULL, NULL, NULL, NULL, NULL, NULL, NULL);
+UNLOCK TABLES;
+
+-- --------------------------------------------------------
+-- Table structure for table `order_items`
+-- --------------------------------------------------------
+DROP TABLE IF EXISTS `order_items`;
+CREATE TABLE `order_items` (
+  `id` INT(11) NOT NULL AUTO_INCREMENT,
+  `order_id` INT(11) NOT NULL,
+  `product_id` INT(11) NOT NULL,
+  `quantity` INT(11) NOT NULL DEFAULT 1,
+  `unit_price` DECIMAL(10, 2) NOT NULL,
+  PRIMARY KEY (`id`),
+  KEY `ix_order_items_order_id` (`order_id`),
+  KEY `ix_order_items_product_id` (`product_id`),
+  CONSTRAINT `fk_order_items_product_id` FOREIGN KEY (`product_id`) REFERENCES `products` (`id`),
+  CONSTRAINT `fk_order_items_order_id` FOREIGN KEY (`order_id`) REFERENCES `orders` (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=79 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Dumping data for table `order_items`
+LOCK TABLES `order_items` WRITE;
+INSERT INTO `order_items` (`id`, `order_id`, `product_id`, `quantity`, `unit_price`) VALUES
+  (1, 1, 1, 20, 170),
+  (2, 2, 2, 25, 190),
+  (3, 3, 4, 36, 165),
+  (4, 4, 6, 10, 205),
+  (5, 5, 1, 42, 170),
+  (6, 6, 4, 36, 165),
+  (7, 7, 6, 35, 205),
+  (8, 8, 1, 13, 170),
+  (9, 9, 5, 43, 185),
+  (10, 10, 1, 20, 170),
+  (11, 11, 2, 27, 190),
+  (12, 12, 2, 26, 190),
+  (13, 13, 4, 5, 165),
+  (14, 14, 1, 5, 170),
+  (15, 15, 6, 15, 205),
+  (16, 16, 5, 33, 185),
+  (17, 17, 3, 14, 210),
+  (18, 18, 5, 26, 185),
+  (19, 19, 4, 40, 165),
+  (20, 20, 1, 28, 170),
+  (21, 21, 5, 21, 185),
+  (22, 22, 4, 27, 165),
+  (23, 23, 1, 11, 170),
+  (24, 24, 6, 42, 205),
+  (25, 25, 3, 8, 210),
+  (26, 26, 5, 24, 185),
+  (27, 27, 2, 44, 190),
+  (28, 28, 5, 24, 185),
+  (29, 29, 3, 27, 210),
+  (30, 30, 1, 22, 170),
+  (31, 31, 2, 15, 190),
+  (32, 32, 4, 49, 165),
+  (33, 33, 4, 15, 165),
+  (34, 34, 5, 29, 185),
+  (35, 35, 2, 19, 190),
+  (36, 36, 1, 49, 170),
+  (37, 37, 2, 17, 190),
+  (38, 38, 6, 30, 205),
+  (39, 39, 1, 33, 170),
+  (40, 40, 3, 11, 210),
+  (41, 41, 1, 17, 170),
+  (42, 42, 6, 20, 205),
+  (43, 43, 1, 47, 170),
+  (44, 44, 6, 25, 205),
+  (45, 45, 1, 5, 170),
+  (46, 46, 5, 34, 185),
+  (47, 47, 4, 39, 165),
+  (48, 48, 6, 23, 205),
+  (49, 49, 1, 16, 170),
+  (50, 50, 2, 25, 190),
+  (51, 51, 2, 10, 190),
+  (52, 52, 6, 42, 205),
+  (53, 53, 3, 10, 210),
+  (54, 54, 3, 46, 210),
+  (55, 55, 5, 21, 185),
+  (56, 56, 2, 44, 190),
+  (57, 57, 6, 45, 205),
+  (58, 58, 3, 15, 210),
+  (59, 59, 3, 19, 210),
+  (60, 60, 2, 24, 190),
+  (61, 61, 2, 39, 190),
+  (62, 62, 4, 8, 165),
+  (63, 63, 1, 11, 170),
+  (64, 64, 5, 35, 185),
+  (65, 65, 2, 27, 190),
+  (66, 66, 5, 24, 185),
+  (67, 67, 6, 24, 205),
+  (68, 68, 1, 21, 170),
+  (69, 69, 4, 33, 165),
+  (70, 70, 6, 31, 205),
+  (71, 71, 1, 30, 170),
+  (72, 72, 2, 60, 190),
+  (73, 73, 3, 50, 210),
+  (74, 74, 7, 25, 230),
+  (75, 75, 8, 20, 250),
+  (76, 76, 2, 45, 190),
+  (77, 77, 3, 35, 210),
+  (78, 78, 1, 20, 170),
+  (79, 79, 6, 55, 205),
+  (80, 80, 5, 48, 185),
+  (81, 81, 5, 41, 185),
+  (82, 82, 6, 37, 205),
+  (83, 83, 6, 54, 205),
+  (84, 84, 6, 36, 205),
+  (85, 85, 7, 44, 230),
+  (86, 86, 6, 65, 205),
+  (87, 87, 2, 61, 190),
+  (88, 88, 5, 56, 185),
+  (89, 89, 7, 57, 230),
+  (90, 90, 8, 38, 250);
+UNLOCK TABLES;
+
+-- --------------------------------------------------------
+-- Table structure for table `sales_records`
+-- --------------------------------------------------------
+DROP TABLE IF EXISTS `sales_records`;
+CREATE TABLE `sales_records` (
   `id` INT(11) NOT NULL AUTO_INCREMENT,
   `farm_id` INT(11) NOT NULL,
   `user_id` INT(11) NOT NULL,
-  `record_date` DATE NOT NULL,
-  `quantity_died` INT(11) NOT NULL DEFAULT 0,
-  `reason` VARCHAR(255) NOT NULL,
+  `sale_date` DATE NOT NULL,
+  `quantity_sold` INT(11) NOT NULL,
+  `price_per_egg` DECIMAL(10, 2) NOT NULL,
+  `total_revenue` DECIMAL(12, 2) NOT NULL,
+  `buyer_name` VARCHAR(255) DEFAULT NULL,
   `notes` TEXT DEFAULT NULL,
   `created_at` DATETIME NOT NULL,
   `updated_at` DATETIME NOT NULL,
   PRIMARY KEY (`id`),
-  KEY `ix_mortality_records_record_date` (`record_date`),
-  KEY `ix_mortality_records_user_id` (`user_id`),
-  KEY `ix_mortality_records_farm_id` (`farm_id`),
-  CONSTRAINT `fk_mortality_records_user_id` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`),
-  CONSTRAINT `fk_mortality_records_farm_id` FOREIGN KEY (`farm_id`) REFERENCES `farms` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=8 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+  KEY `ix_sales_records_user_id` (`user_id`),
+  KEY `ix_sales_records_farm_id` (`farm_id`),
+  KEY `ix_sales_records_sale_date` (`sale_date`),
+  CONSTRAINT `fk_sales_records_farm_id` FOREIGN KEY (`farm_id`) REFERENCES `farms` (`id`),
+  CONSTRAINT `fk_sales_records_user_id` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=78 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- Dumping data for table `mortality_records`
-LOCK TABLES `mortality_records` WRITE;
-INSERT INTO `mortality_records` (`id`, `farm_id`, `user_id`, `record_date`, `quantity_died`, `reason`, `notes`, `created_at`, `updated_at`) VALUES
-  (1, 2, 3, '2026-08-18', 5, 'Heat stress', NULL, '2026-08-18 12:58:52.095133', '2026-08-18 12:58:52.095144'),
-  (2, 5, 1, '2026-08-18', 1, '1', NULL, '2026-08-18 15:34:37.035946', '2026-08-18 15:34:37.035953'),
-  (3, 4, 1, '2026-08-18', 1, '21', NULL, '2026-08-18 15:34:50.906191', '2026-08-18 15:34:50.906200'),
-  (4, 1, 2, '2026-10-03', 2, 'Heat stress during midday peak', 'Hydration vitamins administered', '2026-10-14 12:58:14.596633', '2026-10-14 12:58:14.596639'),
-  (5, 1, 2, '2026-10-08', 1, 'Natural age culling', 'Flock check normal', '2026-10-14 12:58:14.596642', '2026-10-14 12:58:14.596645'),
-  (6, 1, 2, '2026-10-12', 2, 'Respiratory isolation check', 'Coop sanitized', '2026-10-14 12:58:14.596649', '2026-10-14 12:58:14.596651'),
-  (7, 2, 4, '2026-10-05', 1, 'Injury from coop wire', 'Repaired mesh', '2026-10-14 12:58:14.596654', '2026-10-14 12:58:14.596657');
+-- Dumping data for table `sales_records`
+LOCK TABLES `sales_records` WRITE;
+INSERT INTO `sales_records` (`id`, `farm_id`, `user_id`, `sale_date`, `quantity_sold`, `price_per_egg`, `total_revenue`, `buyer_name`, `notes`, `created_at`, `updated_at`) VALUES
+  (1, 1, 2, '2026-07-12', 600, 5.666666666666667, 3400, 'Maria Reyes', NULL, '2026-07-12 15:00:00.000000', '2026-09-29 07:50:21.734197'),
+  (2, 1, 2, '2026-07-08', 750, 6.333333333333333, 4750, 'Maria Reyes', NULL, '2026-07-08 13:00:00.000000', '2026-09-29 07:50:21.740814'),
+  (3, 1, 2, '2026-08-09', 1080, 5.5, 5940, 'Maria Reyes', NULL, '2026-08-09 09:00:00.000000', '2026-09-29 07:50:21.744477'),
+  (4, 1, 2, '2026-08-08', 300, 6.833333333333333, 2050, 'Maria Reyes', NULL, '2026-08-08 09:00:00.000000', '2026-09-29 07:50:21.747973'),
+  (5, 1, 2, '2026-07-18', 1260, 5.666666666666667, 7140, 'Maria Reyes', NULL, '2026-07-18 17:00:00.000000', '2026-09-29 07:50:21.750868'),
+  (6, 1, 2, '2026-07-18', 1080, 5.5, 5940, 'Maria Reyes', NULL, '2026-07-18 08:00:00.000000', '2026-09-29 07:50:21.753251'),
+  (7, 1, 2, '2026-07-05', 1050, 6.833333333333333, 7175, 'Maria Reyes', NULL, '2026-07-05 16:00:00.000000', '2026-09-29 07:50:21.755487'),
+  (8, 1, 2, '2026-07-04', 390, 5.666666666666667, 2210, 'Maria Reyes', NULL, '2026-07-04 10:00:00.000000', '2026-09-29 07:50:21.757944'),
+  (9, 1, 2, '2026-08-01', 1290, 6.166666666666667, 7955, 'Maria Reyes', NULL, '2026-08-01 12:00:00.000000', '2026-09-29 07:50:21.761083'),
+  (10, 1, 2, '2026-07-23', 600, 5.666666666666667, 3400, 'Maria Reyes', NULL, '2026-07-23 18:00:00.000000', '2026-09-29 07:50:21.764390'),
+  (11, 1, 2, '2026-08-13', 810, 6.333333333333333, 5130, 'Maria Reyes', NULL, '2026-08-13 09:00:00.000000', '2026-09-29 07:50:21.767920'),
+  (12, 1, 2, '2026-09-22', 780, 6.333333333333333, 4940, 'Maria Reyes', NULL, '2026-09-22 17:00:00.000000', '2026-09-29 07:50:21.771238'),
+  (13, 1, 2, '2026-07-31', 150, 5.5, 825, 'Maria Reyes', NULL, '2026-07-31 13:00:00.000000', '2026-09-29 07:50:21.774272'),
+  (14, 1, 2, '2026-07-20', 150, 5.666666666666667, 850, 'Maria Reyes', NULL, '2026-07-20 15:00:00.000000', '2026-09-29 07:50:21.777730'),
+  (15, 1, 2, '2026-07-02', 450, 6.833333333333333, 3075, 'Maria Reyes', NULL, '2026-07-02 09:00:00.000000', '2026-09-29 07:50:21.780852'),
+  (16, 1, 2, '2026-07-25', 990, 6.166666666666667, 6105, 'Maria Reyes', NULL, '2026-07-25 14:00:00.000000', '2026-09-29 07:50:21.784180'),
+  (17, 1, 2, '2026-09-16', 420, 7, 2940, 'Maria Reyes', NULL, '2026-09-16 08:00:00.000000', '2026-09-29 07:50:21.787408'),
+  (18, 1, 2, '2026-07-16', 780, 6.166666666666667, 4810, 'Maria Reyes', NULL, '2026-07-16 17:00:00.000000', '2026-09-29 07:50:21.790667'),
+  (19, 1, 2, '2026-09-17', 1200, 5.5, 6600, 'Maria Reyes', NULL, '2026-09-17 17:00:00.000000', '2026-09-29 07:50:21.794639'),
+  (20, 1, 2, '2026-09-13', 840, 5.666666666666667, 4760, 'Maria Reyes', NULL, '2026-09-13 11:00:00.000000', '2026-09-29 07:50:21.797777'),
+  (21, 1, 2, '2026-07-31', 630, 6.166666666666667, 3885, 'Maria Reyes', NULL, '2026-07-31 09:00:00.000000', '2026-09-29 07:50:21.800997'),
+  (22, 1, 2, '2026-07-12', 810, 5.5, 4455, 'Maria Reyes', NULL, '2026-07-12 08:00:00.000000', '2026-09-29 07:50:21.804945'),
+  (23, 1, 2, '2026-07-10', 330, 5.666666666666667, 1870, 'Maria Reyes', NULL, '2026-07-10 13:00:00.000000', '2026-09-29 07:50:21.808373'),
+  (24, 1, 2, '2026-09-06', 1260, 6.833333333333333, 8610, 'Maria Reyes', NULL, '2026-09-06 11:00:00.000000', '2026-09-29 07:50:21.811076'),
+  (25, 1, 2, '2026-07-11', 240, 7, 1680, 'Maria Reyes', NULL, '2026-07-11 18:00:00.000000', '2026-09-29 07:50:21.814329'),
+  (26, 1, 2, '2026-09-09', 720, 6.166666666666667, 4440, 'Maria Reyes', NULL, '2026-09-09 15:00:00.000000', '2026-09-29 07:50:21.817570'),
+  (27, 1, 2, '2026-07-22', 1320, 6.333333333333333, 8360, 'Maria Reyes', NULL, '2026-07-22 10:00:00.000000', '2026-09-29 07:50:21.820567'),
+  (28, 1, 2, '2026-08-15', 720, 6.166666666666667, 4440, 'Maria Reyes', NULL, '2026-08-15 15:00:00.000000', '2026-09-29 07:50:21.823931'),
+  (29, 1, 2, '2026-07-01', 660, 5.666666666666667, 3740, 'Maria Reyes', NULL, '2026-07-01 16:00:00.000000', '2026-09-29 07:50:21.827908'),
+  (30, 1, 2, '2026-09-07', 450, 6.333333333333333, 2850, 'Maria Reyes', NULL, '2026-09-07 14:00:00.000000', '2026-09-29 07:50:21.830016'),
+  (31, 1, 2, '2026-08-10', 1470, 5.5, 8085, 'Maria Reyes', NULL, '2026-08-10 17:00:00.000000', '2026-09-29 07:50:21.833061'),
+  (32, 1, 2, '2026-09-18', 450, 5.5, 2475, 'Maria Reyes', NULL, '2026-09-18 15:00:00.000000', '2026-09-29 07:50:21.835470'),
+  (33, 1, 2, '2026-07-05', 870, 6.166666666666667, 5365, 'Maria Reyes', NULL, '2026-07-05 13:00:00.000000', '2026-09-29 07:50:21.837598'),
+  (34, 1, 2, '2026-09-05', 570, 6.333333333333333, 3610, 'Maria Reyes', NULL, '2026-09-05 15:00:00.000000', '2026-09-29 07:50:21.839717'),
+  (35, 1, 2, '2026-09-16', 1470, 5.666666666666667, 8330, 'Maria Reyes', NULL, '2026-09-16 08:00:00.000000', '2026-09-29 07:50:21.842087'),
+  (36, 1, 2, '2026-07-17', 510, 6.333333333333333, 3230, 'Maria Reyes', NULL, '2026-07-17 16:00:00.000000', '2026-09-29 07:50:21.845336'),
+  (37, 1, 2, '2026-08-13', 900, 6.833333333333333, 6150, 'Maria Reyes', NULL, '2026-08-13 16:00:00.000000', '2026-09-29 07:50:21.848521'),
+  (38, 1, 2, '2026-07-07', 990, 5.666666666666667, 5610, 'Maria Reyes', NULL, '2026-07-07 18:00:00.000000', '2026-09-29 07:50:21.851487'),
+  (39, 1, 2, '2026-09-22', 330, 7, 2310, 'Maria Reyes', NULL, '2026-09-22 11:00:00.000000', '2026-09-29 07:50:21.853778'),
+  (40, 1, 2, '2026-09-09', 510, 5.666666666666667, 2890, 'Maria Reyes', NULL, '2026-09-09 11:00:00.000000', '2026-09-29 07:50:21.856083'),
+  (41, 1, 2, '2026-08-13', 600, 6.833333333333333, 4100, 'Maria Reyes', NULL, '2026-08-13 11:00:00.000000', '2026-09-29 07:50:21.858355'),
+  (42, 1, 2, '2026-08-12', 1410, 5.666666666666667, 7990, 'Maria Reyes', NULL, '2026-08-12 14:00:00.000000', '2026-09-29 07:50:21.861643'),
+  (43, 1, 2, '2026-09-05', 750, 6.833333333333333, 5125, 'Maria Reyes', NULL, '2026-09-05 12:00:00.000000', '2026-09-29 07:50:21.864873'),
+  (44, 1, 2, '2026-07-11', 150, 5.666666666666667, 850, 'Maria Reyes', NULL, '2026-07-11 15:00:00.000000', '2026-09-29 07:50:21.867974'),
+  (45, 1, 2, '2026-07-06', 1020, 6.166666666666667, 6290, 'Maria Reyes', NULL, '2026-07-06 08:00:00.000000', '2026-09-29 07:50:21.870344'),
+  (46, 1, 2, '2026-08-25', 1170, 5.5, 6435, 'Maria Reyes', NULL, '2026-08-25 12:00:00.000000', '2026-09-29 07:50:21.872480'),
+  (47, 1, 2, '2026-07-07', 690, 6.833333333333333, 4715, 'Maria Reyes', NULL, '2026-07-07 17:00:00.000000', '2026-09-29 07:50:21.874576'),
+  (48, 1, 2, '2026-09-17', 480, 5.666666666666667, 2720, 'Maria Reyes', NULL, '2026-09-17 18:00:00.000000', '2026-09-29 07:50:21.877016'),
+  (49, 1, 2, '2026-09-21', 750, 6.333333333333333, 4750, 'Maria Reyes', NULL, '2026-09-21 16:00:00.000000', '2026-09-29 07:50:21.879215'),
+  (50, 1, 2, '2026-08-07', 300, 6.333333333333333, 1900, 'Maria Reyes', NULL, '2026-08-07 13:00:00.000000', '2026-09-29 07:50:21.881908'),
+  (51, 1, 2, '2026-08-15', 1260, 6.833333333333333, 8610, 'Maria Reyes', NULL, '2026-08-15 18:00:00.000000', '2026-09-29 07:50:21.884599'),
+  (52, 1, 2, '2026-07-05', 300, 7, 2100, 'Maria Reyes', NULL, '2026-07-05 13:00:00.000000', '2026-09-29 07:50:21.886769'),
+  (53, 1, 2, '2026-08-27', 1380, 7, 9660, 'Maria Reyes', NULL, '2026-08-27 13:00:00.000000', '2026-09-29 07:50:21.888870'),
+  (54, 1, 2, '2026-08-28', 630, 6.166666666666667, 3885, 'Maria Reyes', NULL, '2026-08-28 08:00:00.000000', '2026-09-29 07:50:21.890966'),
+  (55, 1, 2, '2026-07-31', 1320, 6.333333333333333, 8360, 'Maria Reyes', NULL, '2026-07-31 17:00:00.000000', '2026-09-29 07:50:21.893473'),
+  (56, 1, 2, '2026-08-06', 1350, 6.833333333333333, 9225, 'Maria Reyes', NULL, '2026-08-06 18:00:00.000000', '2026-09-29 07:50:21.895592'),
+  (57, 1, 2, '2026-07-25', 450, 7, 3150, 'Maria Reyes', NULL, '2026-07-25 11:00:00.000000', '2026-09-29 07:50:21.898247'),
+  (58, 1, 2, '2026-07-24', 570, 7, 3990, 'Maria Reyes', NULL, '2026-07-24 09:00:00.000000', '2026-09-29 07:50:21.900967'),
+  (59, 1, 2, '2026-08-03', 720, 6.333333333333333, 4560, 'Maria Reyes', NULL, '2026-08-03 15:00:00.000000', '2026-09-29 07:50:21.903100'),
+  (60, 1, 2, '2026-09-13', 1170, 6.333333333333333, 7410, 'Maria Reyes', NULL, '2026-09-13 08:00:00.000000', '2026-09-29 07:50:21.905203'),
+  (61, 1, 2, '2026-07-17', 240, 5.5, 1320, 'Maria Reyes', NULL, '2026-07-17 08:00:00.000000', '2026-09-29 07:50:21.907569'),
+  (62, 1, 2, '2026-09-14', 330, 5.666666666666667, 1870, 'Maria Reyes', NULL, '2026-09-14 11:00:00.000000', '2026-09-29 07:50:21.910525'),
+  (63, 1, 2, '2026-08-17', 1050, 6.166666666666667, 6475, 'Maria Reyes', NULL, '2026-08-17 09:00:00.000000', '2026-09-29 07:50:21.912696'),
+  (64, 1, 2, '2026-07-30', 810, 6.333333333333333, 5130, 'Maria Reyes', NULL, '2026-07-30 17:00:00.000000', '2026-09-29 07:50:21.915060'),
+  (65, 1, 2, '2026-08-09', 720, 6.166666666666667, 4440, 'Maria Reyes', NULL, '2026-08-09 10:00:00.000000', '2026-09-29 07:50:21.918013'),
+  (66, 1, 2, '2026-08-31', 720, 6.833333333333333, 4920, 'Maria Reyes', NULL, '2026-08-31 16:00:00.000000', '2026-09-29 07:50:21.920207'),
+  (67, 1, 2, '2026-07-23', 630, 5.666666666666667, 3570, 'Maria Reyes', NULL, '2026-07-23 08:00:00.000000', '2026-09-29 07:50:21.922322'),
+  (68, 1, 2, '2026-07-03', 990, 5.5, 5445, 'Maria Reyes', NULL, '2026-07-03 15:00:00.000000', '2026-09-29 07:50:21.924422'),
+  (69, 1, 2, '2026-09-18', 930, 6.833333333333333, 6355, 'Maria Reyes', NULL, '2026-09-18 17:00:00.000000', '2026-09-29 07:50:21.926448'),
+  (70, 1, 2, '2026-10-02', 3000, 6.8, 20400, 'Aling Nena Sari-sari Wholesale', '100 trays brown medium', '2026-10-14 12:58:14.606263', '2026-10-14 12:58:14.606271'),
+  (71, 1, 2, '2026-10-05', 4500, 7.1, 31950, 'Batangas Public Market Stall #14', '150 trays large brown', '2026-10-14 12:58:14.606278', '2026-10-14 12:58:14.606283'),
+  (72, 1, 2, '2026-10-07', 1800, 6.5, 11700, 'Golden Bakery & Pastries', '60 trays medium eggs', '2026-10-14 12:58:14.606289', '2026-10-14 12:58:14.606294'),
+  (73, 1, 2, '2026-10-09', 2400, 7.8, 18720, 'Lipa City Gourmet Diner', '80 trays XL & Jumbo brown', '2026-10-14 12:58:14.606299', '2026-10-14 12:58:14.606304'),
+  (74, 1, 2, '2026-10-11', 3600, 6.9, 24840, 'Community Egg Reseller Group', '120 trays mixed brown', '2026-10-14 12:58:14.606310', '2026-10-14 12:58:14.606315'),
+  (75, 1, 2, '2026-10-13', 2100, 7, 14700, 'Mang Juan Canteen', '70 trays brown medium', '2026-10-14 12:58:14.606320', '2026-10-14 12:58:14.606323'),
+  (76, 2, 4, '2026-10-04', 3000, 6.2, 18600, 'Tanauan Mini Mart', '100 trays white medium', '2026-10-14 12:58:14.606326', '2026-10-14 12:58:14.606329'),
+  (77, 2, 4, '2026-10-10', 2400, 6.3, 15120, 'San Juan Grocers', '80 trays white', '2026-10-14 12:58:14.606332', '2026-10-14 12:58:14.606335'),
+  (78, 1, 2, '2026-09-08', 2610, 5.67, 14790, 'Batangas Market Distributor 1', 'Bulk on-site sale (Fresh Brown Eggs (Small)) - Tray', '2026-09-08 10:00:00.000000', '2026-11-16 02:49:16.506417'),
+  (79, 1, 2, '2026-09-18', 2700, 6.33, 17100, 'Batangas Market Distributor 2', 'Bulk on-site sale (Fresh Brown Eggs (Medium)) - Tray', '2026-09-18 10:00:00.000000', '2026-11-16 02:49:16.506436'),
+  (80, 1, 2, '2026-09-28', 2220, 7, 15540, 'Batangas Market Distributor 3', 'Bulk on-site sale (Fresh Brown Eggs (Large)) - Tray', '2026-09-28 10:00:00.000000', '2026-11-16 02:49:16.506447'),
+  (81, 1, 2, '2026-06-05', 3060, 5.67, 17340, 'San Jose Commercial Buyer 1', 'Wholesale harvest sale (Fresh Brown Eggs (Small)) - Tray', '2026-06-05 09:00:00.000000', '2026-11-16 02:49:16.506458'),
+  (82, 1, 2, '2026-06-12', 2490, 6.33, 15770, 'San Jose Commercial Buyer 2', 'Wholesale harvest sale (Fresh Brown Eggs (Medium)) - Tray', '2026-06-12 09:00:00.000000', '2026-11-16 02:49:16.506469'),
+  (83, 1, 2, '2026-06-19', 3120, 7, 21840, 'San Jose Commercial Buyer 3', 'Wholesale harvest sale (Fresh Brown Eggs (Large)) - Tray', '2026-06-19 09:00:00.000000', '2026-11-16 02:49:16.506480'),
+  (84, 1, 2, '2026-06-26', 3120, 5.5, 17160, 'San Jose Commercial Buyer 4', 'Wholesale harvest sale (Fresh White Eggs (Small)) - Tray', '2026-06-26 09:00:00.000000', '2026-11-16 02:49:16.506491'),
+  (85, 1, 2, '2026-11-01', 1650, 6.83, 11275, 'Maria Reyes', 'Fresh White Eggs (Large) (Order #79) - Tray', '2026-11-01 12:00:00.000000', '2026-11-16 02:49:16.516259'),
+  (86, 1, 2, '2026-11-03', 1440, 6.17, 8880, 'Maria Reyes', 'Fresh White Eggs (Medium) (Order #80) - Tray', '2026-11-03 13:00:00.000000', '2026-11-16 02:49:16.526208'),
+  (87, 1, 2, '2026-11-04', 1230, 6.17, 7585, 'Maria Reyes', 'Fresh White Eggs (Medium) (Order #81) - Tray', '2026-11-04 14:00:00.000000', '2026-11-16 02:49:16.533619'),
+  (88, 1, 2, '2026-11-05', 1110, 6.83, 7585, 'Maria Reyes', 'Fresh White Eggs (Large) (Order #82) - Tray', '2026-11-05 14:00:00.000000', '2026-11-16 02:49:16.542197'),
+  (89, 1, 2, '2026-11-07', 1620, 6.83, 11070, 'Maria Reyes', 'Fresh White Eggs (Large) (Order #83) - Tray', '2026-11-07 16:00:00.000000', '2026-11-16 02:49:16.549378'),
+  (90, 1, 2, '2026-11-08', 1080, 6.83, 7380, 'Maria Reyes', 'Fresh White Eggs (Large) (Order #84) - Tray', '2026-11-08 14:00:00.000000', '2026-11-16 02:49:16.556847'),
+  (91, 1, 2, '2026-11-09', 1320, 7.67, 10120, 'Maria Reyes', 'Fresh Brown Eggs (Extra Large) (Order #85) - Tray', '2026-11-09 12:00:00.000000', '2026-11-16 02:49:16.564190'),
+  (92, 1, 2, '2026-11-11', 1950, 6.83, 13325, 'Maria Reyes', 'Fresh White Eggs (Large) (Order #86) - Tray', '2026-11-11 12:00:00.000000', '2026-11-16 02:49:16.572314'),
+  (93, 1, 2, '2026-11-12', 1830, 6.33, 11590, 'Maria Reyes', 'Fresh Brown Eggs (Medium) (Order #87) - Tray', '2026-11-12 13:00:00.000000', '2026-11-16 02:49:16.580748'),
+  (94, 1, 2, '2026-11-13', 1680, 6.17, 10360, 'Maria Reyes', 'Fresh White Eggs (Medium) (Order #88) - Tray', '2026-11-13 10:00:00.000000', '2026-11-16 02:49:16.588499'),
+  (95, 1, 2, '2026-11-15', 1710, 7.67, 13110, 'Maria Reyes', 'Fresh Brown Eggs (Extra Large) (Order #89) - Tray', '2026-11-15 11:00:00.000000', '2026-11-16 02:49:16.595331'),
+  (96, 1, 2, '2026-11-16', 1140, 8.33, 9500, 'Maria Reyes', 'Fresh Brown Eggs (Jumbo) (Order #90) - Tray', '2026-11-16 13:00:00.000000', '2026-11-16 02:49:16.598390'),
+  (97, 2, 4, '2026-11-03', 1740, 5.67, 9860, 'Highland Retail Partner 1', 'Farm wholesale direct sale (Fresh Brown Eggs (Small)) - Tray', '2026-11-03 11:00:00.000000', '2026-11-16 02:51:05.985635'),
+  (98, 2, 4, '2026-11-07', 2250, 6.33, 14250, 'Highland Retail Partner 2', 'Farm wholesale direct sale (Fresh Brown Eggs (Medium)) - Tray', '2026-11-07 11:00:00.000000', '2026-11-16 02:51:05.985665'),
+  (99, 2, 4, '2026-11-11', 2130, 7, 14910, 'Highland Retail Partner 3', 'Farm wholesale direct sale (Fresh Brown Eggs (Large)) - Tray', '2026-11-11 11:00:00.000000', '2026-11-16 02:51:05.985674'),
+  (100, 2, 4, '2026-11-15', 1740, 5.5, 9570, 'Highland Retail Partner 4', 'Farm wholesale direct sale (Fresh White Eggs (Small)) - Tray', '2026-11-15 11:00:00.000000', '2026-11-16 02:51:05.985680');
+UNLOCK TABLES;
+
+-- --------------------------------------------------------
+-- Table structure for table `expenses`
+-- --------------------------------------------------------
+DROP TABLE IF EXISTS `expenses`;
+CREATE TABLE `expenses` (
+  `id` INT(11) NOT NULL AUTO_INCREMENT,
+  `farm_id` INT(11) NOT NULL,
+  `user_id` INT(11) NOT NULL,
+  `expense_date` DATE NOT NULL,
+  `category` VARCHAR(9) NOT NULL DEFAULT 'other',
+  `frequency` VARCHAR(8) NOT NULL DEFAULT 'one_time',
+  `end_date` DATE DEFAULT NULL,
+  `amount` DECIMAL(10, 2) NOT NULL,
+  `description` VARCHAR(255) DEFAULT NULL,
+  `created_at` DATETIME NOT NULL,
+  `updated_at` DATETIME NOT NULL,
+  PRIMARY KEY (`id`),
+  KEY `ix_expenses_user_id` (`user_id`),
+  KEY `ix_expenses_expense_date` (`expense_date`),
+  KEY `ix_expenses_farm_id` (`farm_id`),
+  KEY `ix_expenses_category` (`category`),
+  CONSTRAINT `fk_expenses_user_id` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`),
+  CONSTRAINT `fk_expenses_farm_id` FOREIGN KEY (`farm_id`) REFERENCES `farms` (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=30 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Dumping data for table `expenses`
+LOCK TABLES `expenses` WRITE;
+INSERT INTO `expenses` (`id`, `farm_id`, `user_id`, `expense_date`, `category`, `frequency`, `end_date`, `amount`, `description`, `created_at`, `updated_at`) VALUES
+  (1, 1, 2, '2026-07-01', 'feed', 'one_time', NULL, 16337.504421520965, 'Weekly feed supply', '2026-09-29 07:50:21.594096', '2026-09-29 07:50:21.594110'),
+  (2, 1, 2, '2026-07-01', 'labor', 'one_time', NULL, 10877.585389543567, 'Farm hand wages', '2026-09-29 07:50:21.594121', '2026-09-29 07:50:21.594128'),
+  (3, 1, 2, '2026-07-01', 'utilities', 'one_time', NULL, 5876.594949638184, 'Electricity and water bill', '2026-09-29 07:50:21.594137', '2026-09-29 07:50:21.594144'),
+  (4, 1, 2, '2026-07-08', 'feed', 'one_time', NULL, 16253.563709277383, 'Weekly feed supply', '2026-09-29 07:50:21.646968', '2026-09-29 07:50:21.646977'),
+  (5, 1, 2, '2026-07-15', 'feed', 'one_time', NULL, 16552.100164118474, 'Weekly feed supply', '2026-09-29 07:50:21.686418', '2026-09-29 07:50:21.686433'),
+  (6, 1, 2, '2026-07-16', 'labor', 'one_time', NULL, 10458.238658073295, 'Farm hand wages', '2026-09-29 07:50:21.686443', '2026-09-29 07:50:21.686450'),
+  (7, 1, 2, '2026-07-22', 'feed', 'one_time', NULL, 15039.246954144133, 'Weekly feed supply', '2026-09-29 07:50:21.686458', '2026-09-29 07:50:21.686467'),
+  (8, 1, 2, '2026-07-29', 'feed', 'one_time', NULL, 18875.153233524718, 'Weekly feed supply', '2026-09-29 07:50:21.686475', '2026-09-29 07:50:21.686482'),
+  (9, 1, 2, '2026-07-31', 'labor', 'one_time', NULL, 11549.942363877117, 'Farm hand wages', '2026-09-29 07:50:21.686490', '2026-09-29 07:50:21.686498'),
+  (10, 1, 2, '2026-08-01', 'utilities', 'one_time', NULL, 5365.251259029294, 'Electricity and water bill', '2026-09-29 07:50:21.686508', '2026-09-29 07:50:21.686516'),
+  (11, 1, 2, '2026-08-05', 'feed', 'one_time', NULL, 15633.591757496286, 'Weekly feed supply', '2026-09-29 07:50:21.686525', '2026-09-29 07:50:21.686532'),
+  (12, 1, 2, '2026-08-12', 'feed', 'one_time', NULL, 17772.748952157734, 'Weekly feed supply', '2026-09-29 07:50:21.686540', '2026-09-29 07:50:21.686548'),
+  (13, 1, 2, '2026-08-15', 'labor', 'one_time', NULL, 11674.342221613786, 'Farm hand wages', '2026-09-29 07:50:21.686556', '2026-09-29 07:50:21.686562'),
+  (14, 1, 2, '2026-08-19', 'feed', 'one_time', NULL, 18883.06229911661, 'Weekly feed supply', '2026-09-29 07:50:21.686571', '2026-09-29 07:50:21.686578'),
+  (15, 1, 2, '2026-08-26', 'feed', 'one_time', NULL, 17408.346409771406, 'Weekly feed supply', '2026-09-29 07:50:21.686586', '2026-09-29 07:50:21.686593'),
+  (16, 1, 2, '2026-08-30', 'labor', 'one_time', NULL, 10701.56653781765, 'Farm hand wages', '2026-09-29 07:50:21.686602', '2026-09-29 07:50:21.686609'),
+  (17, 1, 2, '2026-09-01', 'utilities', 'one_time', NULL, 5099.01600500672, 'Electricity and water bill', '2026-09-29 07:50:21.686618', '2026-09-29 07:50:21.686626'),
+  (18, 1, 2, '2026-09-02', 'feed', 'one_time', NULL, 16168.613845378028, 'Weekly feed supply', '2026-09-29 07:50:21.686635', '2026-09-29 07:50:21.686643'),
+  (19, 1, 2, '2026-09-09', 'feed', 'one_time', NULL, 16570.668691318206, 'Weekly feed supply', '2026-09-29 07:50:21.686708', '2026-09-29 07:50:21.686730'),
+  (20, 1, 2, '2026-09-14', 'labor', 'one_time', NULL, 10535.671828947465, 'Farm hand wages', '2026-09-29 07:50:21.686744', '2026-09-29 07:50:21.686752'),
+  (21, 1, 2, '2026-09-16', 'feed', 'one_time', NULL, 16667.56389238407, 'Weekly feed supply', '2026-09-29 07:50:21.686761', '2026-09-29 07:50:21.686769'),
+  (22, 1, 2, '2026-09-23', 'feed', 'one_time', NULL, 18514.555967340635, 'Weekly feed supply', '2026-09-29 07:50:21.686778', '2026-09-29 07:50:21.686786'),
+  (23, 1, 2, '2026-10-02', 'feed', 'one_time', NULL, 18500, 'Bulk Purchase: 25 sacks Premium Layer Feed (B-Meg)', '2026-10-14 12:58:14.585918', '2026-10-14 12:58:14.585932'),
+  (24, 1, 2, '2026-10-05', 'utilities', 'monthly', NULL, 4800, 'Meralco Electricity Bill & Water Pumping', '2026-10-14 12:58:14.585936', '2026-10-14 12:58:14.585940'),
+  (25, 1, 2, '2026-10-08', 'labor', 'weekly', NULL, 6500, 'Caretaker and Egg Harvester Wages (Week 1-2)', '2026-10-14 12:58:14.585943', '2026-10-14 12:58:14.585946'),
+  (26, 1, 2, '2026-10-10', 'medicine', 'one_time', NULL, 2750, 'Electrolytes, Antibiotics & Disinfectant Solution', '2026-10-14 12:58:14.585949', '2026-10-14 12:58:14.585952'),
+  (27, 1, 2, '2026-10-12', 'other', 'one_time', NULL, 1200, 'Cardboard Egg Trays & Shrinkwrap Rolls', '2026-10-14 12:58:14.585955', '2026-10-14 12:58:14.585958'),
+  (28, 2, 4, '2026-10-03', 'feed', 'one_time', NULL, 14000, 'Layer Pellets Batch 1', '2026-10-14 12:58:14.585961', '2026-10-14 12:58:14.585964'),
+  (29, 2, 4, '2026-10-07', 'labor', 'weekly', NULL, 5000, 'Farm hand weekly wage', '2026-10-14 12:58:14.585967', '2026-10-14 12:58:14.585970');
 UNLOCK TABLES;
 
 -- --------------------------------------------------------
@@ -922,157 +1000,266 @@ INSERT INTO `production_records` (`id`, `farm_id`, `user_id`, `record_date`, `eg
   (219, 2, 4, '2026-10-13', 650, 'medium', 'white', 72, 2160, 6.2, 0, 'Standard output', '2026-10-14 12:58:14.602052', '2026-10-14 12:58:14.602055'),
   (220, 1, 2, '2026-10-14', 850, 'medium', 'brown', 95.5, 2865, 6.5, 1, 'Healthy flock, high laying consistency', '2026-10-14 12:58:14.602058', '2026-10-14 12:58:14.602061'),
   (221, 1, 2, '2026-10-14', 420, 'large', 'brown', 0, 0, 7.2, 0, 'Grade A Large sorted', '2026-10-14 12:58:14.602064', '2026-10-14 12:58:14.602066'),
-  (222, 2, 4, '2026-10-14', 650, 'medium', 'white', 72, 2160, 6.2, 0, 'Standard output', '2026-10-14 12:58:14.602069', '2026-10-14 12:58:14.602072');
+  (222, 2, 4, '2026-10-14', 650, 'medium', 'white', 72, 2160, 6.2, 0, 'Standard output', '2026-10-14 12:58:14.602069', '2026-10-14 12:58:14.602072'),
+  (223, 1, 2, '2026-11-01', 2068, 'medium', 'brown', 232.15591681678725, 1111.6101287773786, 6.33, 0, NULL, '2026-11-16 02:49:16.496517', '2026-11-16 02:49:16.496554'),
+  (224, 1, 2, '2026-11-01', 1977, 'medium', 'white', 234.0541359541144, 1027.7732781490258, 6.17, 0, NULL, '2026-11-16 02:49:16.496569', '2026-11-16 02:49:16.496580'),
+  (225, 1, 2, '2026-11-02', 2238, 'medium', 'brown', 221.20777759331364, 1033.4849417434093, 6.33, 0, NULL, '2026-11-16 02:49:16.514212', '2026-11-16 02:49:16.514225'),
+  (226, 1, 2, '2026-11-02', 1893, 'medium', 'white', 230.84606877094606, 1023.2754613194637, 6.17, 1, NULL, '2026-11-16 02:49:16.514232', '2026-11-16 02:49:16.514238'),
+  (227, 1, 2, '2026-11-03', 1910, 'medium', 'brown', 246.8471383512915, 1041.4251302196894, 6.33, 1, NULL, '2026-11-16 02:49:16.514244', '2026-11-16 02:49:16.514249'),
+  (228, 1, 2, '2026-11-03', 1866, 'medium', 'white', 219.48761245433138, 1076.1367497243593, 6.17, 1, NULL, '2026-11-16 02:49:16.514255', '2026-11-16 02:49:16.514260'),
+  (229, 1, 2, '2026-11-04', 2055, 'medium', 'brown', 236.67360402256634, 957.5054649989378, 6.33, 0, NULL, '2026-11-16 02:49:16.525351', '2026-11-16 02:49:16.525363'),
+  (230, 1, 2, '2026-11-04', 2082, 'medium', 'white', 230.77215193866715, 1072.6039401106104, 6.17, 1, NULL, '2026-11-16 02:49:16.525370', '2026-11-16 02:49:16.525376'),
+  (231, 1, 2, '2026-11-05', 1901, 'medium', 'brown', 225.40320308659867, 1144.4704530085592, 6.33, 0, NULL, '2026-11-16 02:49:16.532297', '2026-11-16 02:49:16.532318'),
+  (232, 1, 2, '2026-11-05', 2085, 'medium', 'white', 238.0876158532393, 1039.7342601925889, 6.17, 0, NULL, '2026-11-16 02:49:16.532332', '2026-11-16 02:49:16.532343'),
+  (233, 1, 2, '2026-11-06', 2302, 'medium', 'brown', 243.8134511274659, 982.123368103428, 6.33, 0, NULL, '2026-11-16 02:49:16.540201', '2026-11-16 02:49:16.540220'),
+  (234, 1, 2, '2026-11-06', 1813, 'medium', 'white', 210.4625361505952, 1095.334486579307, 6.17, 0, NULL, '2026-11-16 02:49:16.540233', '2026-11-16 02:49:16.540243'),
+  (235, 1, 2, '2026-11-07', 2166, 'medium', 'brown', 225.599661772871, 1130.5098186206085, 6.33, 1, NULL, '2026-11-16 02:49:16.540254', '2026-11-16 02:49:16.540265'),
+  (236, 1, 2, '2026-11-07', 2001, 'medium', 'white', 219.7575428577065, 984.9217642635524, 6.17, 0, NULL, '2026-11-16 02:49:16.540276', '2026-11-16 02:49:16.540286'),
+  (237, 1, 2, '2026-11-08', 1958, 'medium', 'brown', 236.51745838353432, 974.1178211275404, 6.33, 1, NULL, '2026-11-16 02:49:16.548163', '2026-11-16 02:49:16.548183'),
+  (238, 1, 2, '2026-11-08', 1832, 'medium', 'white', 217.69992349363145, 926.7691317461855, 6.17, 1, NULL, '2026-11-16 02:49:16.548195', '2026-11-16 02:49:16.548205'),
+  (239, 1, 2, '2026-11-09', 1906, 'medium', 'brown', 220.31634681898893, 1107.4740812914993, 6.33, 1, NULL, '2026-11-16 02:49:16.555834', '2026-11-16 02:49:16.555878'),
+  (240, 1, 2, '2026-11-09', 1841, 'medium', 'white', 216.77318736793393, 1061.0703324893902, 6.17, 1, NULL, '2026-11-16 02:49:16.555889', '2026-11-16 02:49:16.555898'),
+  (241, 1, 2, '2026-11-10', 2229, 'medium', 'brown', 223.85277543000737, 1026.921552798808, 6.33, 0, NULL, '2026-11-16 02:49:16.562673', '2026-11-16 02:49:16.562691'),
+  (242, 1, 2, '2026-11-10', 2193, 'medium', 'white', 223.8942927117212, 926.8719051643869, 6.17, 0, NULL, '2026-11-16 02:49:16.562703', '2026-11-16 02:49:16.562714'),
+  (243, 1, 2, '2026-11-11', 1919, 'medium', 'brown', 231.138604301368, 1002.3034646424865, 6.33, 1, NULL, '2026-11-16 02:49:16.562724', '2026-11-16 02:49:16.562734'),
+  (244, 1, 2, '2026-11-11', 1844, 'medium', 'white', 235.23041261929586, 928.5037614962821, 6.17, 1, NULL, '2026-11-16 02:49:16.562745', '2026-11-16 02:49:16.562756'),
+  (245, 1, 2, '2026-11-12', 2059, 'medium', 'brown', 229.64584975433553, 1103.2514399906092, 6.33, 0, NULL, '2026-11-16 02:49:16.570885', '2026-11-16 02:49:16.570904'),
+  (246, 1, 2, '2026-11-12', 1908, 'medium', 'white', 217.39605580510894, 1082.0014213947472, 6.17, 0, NULL, '2026-11-16 02:49:16.570916', '2026-11-16 02:49:16.570927'),
+  (247, 1, 2, '2026-11-13', 1927, 'medium', 'brown', 224.85078612485395, 1144.4875396758598, 6.33, 0, NULL, '2026-11-16 02:49:16.579499', '2026-11-16 02:49:16.579515'),
+  (248, 1, 2, '2026-11-13', 1833, 'medium', 'white', 228.73877449112396, 923.9379799815497, 6.17, 0, NULL, '2026-11-16 02:49:16.579526', '2026-11-16 02:49:16.579536'),
+  (249, 1, 2, '2026-11-14', 2211, 'medium', 'brown', 241.00953812085396, 1069.4908975499616, 6.33, 0, NULL, '2026-11-16 02:49:16.586664', '2026-11-16 02:49:16.586681'),
+  (250, 1, 2, '2026-11-14', 1980, 'medium', 'white', 216.4898684288416, 1045.261240274528, 6.17, 1, NULL, '2026-11-16 02:49:16.586692', '2026-11-16 02:49:16.586702'),
+  (251, 1, 2, '2026-11-15', 2154, 'medium', 'brown', 230.0493069564417, 963.7155814199568, 6.33, 0, NULL, '2026-11-16 02:49:16.586713', '2026-11-16 02:49:16.586722'),
+  (252, 1, 2, '2026-11-15', 2045, 'medium', 'white', 226.42314463186926, 1066.2048920422797, 6.17, 0, NULL, '2026-11-16 02:49:16.586733', '2026-11-16 02:49:16.586742'),
+  (253, 1, 2, '2026-11-16', 2262, 'medium', 'brown', 233.23959519463733, 1125.6223627446411, 6.33, 0, NULL, '2026-11-16 02:49:16.594322', '2026-11-16 02:49:16.594339'),
+  (254, 1, 2, '2026-11-16', 1856, 'medium', 'white', 218.79233149376637, 1030.077592871869, 6.17, 1, NULL, '2026-11-16 02:49:16.594350', '2026-11-16 02:49:16.594359');
 UNLOCK TABLES;
 
 -- --------------------------------------------------------
--- Table structure for table `products`
+-- Table structure for table `feed_records`
 -- --------------------------------------------------------
-DROP TABLE IF EXISTS `products`;
-CREATE TABLE `products` (
-  `id` INT(11) NOT NULL AUTO_INCREMENT,
-  `farmer_id` INT(11) NOT NULL,
-  `farm_id` INT(11) NOT NULL,
-  `name` VARCHAR(150) NOT NULL,
-  `description` TEXT DEFAULT NULL,
-  `size` VARCHAR(11) NOT NULL DEFAULT 'medium',
-  `variety` VARCHAR(5) NOT NULL DEFAULT 'brown',
-  `unit` VARCHAR(8) NOT NULL DEFAULT 'piece',
-  `price` DECIMAL(10, 2) NOT NULL,
-  `stock` INT(11) NOT NULL DEFAULT 0,
-  `location` VARCHAR(255) DEFAULT NULL,
-  `is_available` TINYINT(1) NOT NULL DEFAULT 1,
-  `image_url` VARCHAR(500) DEFAULT NULL,
-  `moderation_status` VARCHAR(8) NOT NULL DEFAULT 'pending',
-  `created_at` DATETIME NOT NULL,
-  `updated_at` DATETIME NOT NULL,
-  PRIMARY KEY (`id`),
-  KEY `ix_products_farmer_id` (`farmer_id`),
-  KEY `ix_products_farm_id` (`farm_id`),
-  KEY `ix_products_variety` (`variety`),
-  KEY `ix_products_is_available` (`is_available`),
-  KEY `ix_products_size` (`size`),
-  CONSTRAINT `fk_products_farmer_id` FOREIGN KEY (`farmer_id`) REFERENCES `users` (`id`),
-  CONSTRAINT `fk_products_farm_id` FOREIGN KEY (`farm_id`) REFERENCES `farms` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=9 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
--- Dumping data for table `products`
-LOCK TABLES `products` WRITE;
-INSERT INTO `products` (`id`, `farmer_id`, `farm_id`, `name`, `description`, `size`, `variety`, `unit`, `price`, `stock`, `location`, `is_available`, `created_at`, `updated_at`, `image_url`, `moderation_status`) VALUES
-  (1, 2, 1, 'Fresh Brown Eggs (Small)', 'Freshly harvested small brown eggs.', 'small', 'brown', 'tray', 170, 100, NULL, 1, '2026-09-29 07:50:21.565475', '2026-09-29 07:50:21.565485', NULL, 'pending'),
-  (2, 2, 1, 'Fresh Brown Eggs (Medium)', 'Freshly harvested medium brown eggs.', 'medium', 'brown', 'tray', 190, 300, NULL, 1, '2026-09-29 07:50:21.565492', '2026-09-29 07:50:21.565496', NULL, 'pending'),
-  (3, 2, 1, 'Fresh Brown Eggs (Large)', 'Freshly harvested large brown eggs.', 'large', 'brown', 'tray', 210, 200, NULL, 1, '2026-09-29 07:50:21.565501', '2026-09-29 07:50:21.565506', NULL, 'pending'),
-  (4, 2, 1, 'Fresh White Eggs (Small)', 'Freshly harvested small white eggs.', 'small', 'white', 'tray', 165, 120, NULL, 1, '2026-09-29 07:50:21.565511', '2026-09-29 07:50:21.565515', NULL, 'pending'),
-  (5, 2, 1, 'Fresh White Eggs (Medium)', 'Freshly harvested medium white eggs.', 'medium', 'white', 'tray', 185, 250, NULL, 1, '2026-09-29 07:50:21.565520', '2026-09-29 07:50:21.565525', NULL, 'pending'),
-  (6, 2, 1, 'Fresh White Eggs (Large)', 'Freshly harvested large white eggs.', 'large', 'white', 'tray', 205, 180, NULL, 1, '2026-09-29 07:50:21.565531', '2026-09-29 07:50:21.565538', NULL, 'pending'),
-  (7, 2, 1, 'Fresh Brown Eggs (Extra Large)', NULL, 'extra_large', 'brown', 'tray', 230, 80, 'Sunshine Farm', 1, '2026-10-14 12:56:47.913152', '2026-10-14 12:56:47.913169', NULL, 'pending'),
-  (8, 2, 1, 'Fresh Brown Eggs (Jumbo)', NULL, 'jumbo', 'brown', 'tray', 250, 50, 'Sunshine Farm', 1, '2026-10-14 12:56:47.913174', '2026-10-14 12:56:47.913177', NULL, 'pending');
-UNLOCK TABLES;
-
--- --------------------------------------------------------
--- Table structure for table `sales_records`
--- --------------------------------------------------------
-DROP TABLE IF EXISTS `sales_records`;
-CREATE TABLE `sales_records` (
+DROP TABLE IF EXISTS `feed_records`;
+CREATE TABLE `feed_records` (
   `id` INT(11) NOT NULL AUTO_INCREMENT,
   `farm_id` INT(11) NOT NULL,
   `user_id` INT(11) NOT NULL,
-  `sale_date` DATE NOT NULL,
-  `quantity_sold` INT(11) NOT NULL,
-  `price_per_egg` DECIMAL(10, 2) NOT NULL,
-  `total_revenue` DECIMAL(12, 2) NOT NULL,
-  `buyer_name` VARCHAR(255) DEFAULT NULL,
+  `record_date` DATE NOT NULL,
+  `feed_type` VARCHAR(100) NOT NULL,
+  `feed_consumed_kg` DECIMAL(8, 2) DEFAULT 0.00,
+  `feed_cost` DECIMAL(10, 2) DEFAULT 0.00,
   `notes` TEXT DEFAULT NULL,
   `created_at` DATETIME NOT NULL,
   `updated_at` DATETIME NOT NULL,
   PRIMARY KEY (`id`),
-  KEY `ix_sales_records_user_id` (`user_id`),
-  KEY `ix_sales_records_farm_id` (`farm_id`),
-  KEY `ix_sales_records_sale_date` (`sale_date`),
-  CONSTRAINT `fk_sales_records_farm_id` FOREIGN KEY (`farm_id`) REFERENCES `farms` (`id`),
-  CONSTRAINT `fk_sales_records_user_id` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=78 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+  KEY `ix_feed_records_farm_id` (`farm_id`),
+  KEY `ix_feed_records_record_date` (`record_date`),
+  KEY `ix_feed_records_user_id` (`user_id`),
+  CONSTRAINT `fk_feed_records_farm_id` FOREIGN KEY (`farm_id`) REFERENCES `farms` (`id`),
+  CONSTRAINT `fk_feed_records_user_id` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=29 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- Dumping data for table `sales_records`
-LOCK TABLES `sales_records` WRITE;
-INSERT INTO `sales_records` (`id`, `farm_id`, `user_id`, `sale_date`, `quantity_sold`, `price_per_egg`, `total_revenue`, `buyer_name`, `notes`, `created_at`, `updated_at`) VALUES
-  (1, 1, 2, '2026-07-12', 600, 5.666666666666667, 3400, 'Maria Reyes', NULL, '2026-07-12 15:00:00.000000', '2026-09-29 07:50:21.734197'),
-  (2, 1, 2, '2026-07-08', 750, 6.333333333333333, 4750, 'Maria Reyes', NULL, '2026-07-08 13:00:00.000000', '2026-09-29 07:50:21.740814'),
-  (3, 1, 2, '2026-08-09', 1080, 5.5, 5940, 'Maria Reyes', NULL, '2026-08-09 09:00:00.000000', '2026-09-29 07:50:21.744477'),
-  (4, 1, 2, '2026-08-08', 300, 6.833333333333333, 2050, 'Maria Reyes', NULL, '2026-08-08 09:00:00.000000', '2026-09-29 07:50:21.747973'),
-  (5, 1, 2, '2026-07-18', 1260, 5.666666666666667, 7140, 'Maria Reyes', NULL, '2026-07-18 17:00:00.000000', '2026-09-29 07:50:21.750868'),
-  (6, 1, 2, '2026-07-18', 1080, 5.5, 5940, 'Maria Reyes', NULL, '2026-07-18 08:00:00.000000', '2026-09-29 07:50:21.753251'),
-  (7, 1, 2, '2026-07-05', 1050, 6.833333333333333, 7175, 'Maria Reyes', NULL, '2026-07-05 16:00:00.000000', '2026-09-29 07:50:21.755487'),
-  (8, 1, 2, '2026-07-04', 390, 5.666666666666667, 2210, 'Maria Reyes', NULL, '2026-07-04 10:00:00.000000', '2026-09-29 07:50:21.757944'),
-  (9, 1, 2, '2026-08-01', 1290, 6.166666666666667, 7955, 'Maria Reyes', NULL, '2026-08-01 12:00:00.000000', '2026-09-29 07:50:21.761083'),
-  (10, 1, 2, '2026-07-23', 600, 5.666666666666667, 3400, 'Maria Reyes', NULL, '2026-07-23 18:00:00.000000', '2026-09-29 07:50:21.764390'),
-  (11, 1, 2, '2026-08-13', 810, 6.333333333333333, 5130, 'Maria Reyes', NULL, '2026-08-13 09:00:00.000000', '2026-09-29 07:50:21.767920'),
-  (12, 1, 2, '2026-09-22', 780, 6.333333333333333, 4940, 'Maria Reyes', NULL, '2026-09-22 17:00:00.000000', '2026-09-29 07:50:21.771238'),
-  (13, 1, 2, '2026-07-31', 150, 5.5, 825, 'Maria Reyes', NULL, '2026-07-31 13:00:00.000000', '2026-09-29 07:50:21.774272'),
-  (14, 1, 2, '2026-07-20', 150, 5.666666666666667, 850, 'Maria Reyes', NULL, '2026-07-20 15:00:00.000000', '2026-09-29 07:50:21.777730'),
-  (15, 1, 2, '2026-07-02', 450, 6.833333333333333, 3075, 'Maria Reyes', NULL, '2026-07-02 09:00:00.000000', '2026-09-29 07:50:21.780852'),
-  (16, 1, 2, '2026-07-25', 990, 6.166666666666667, 6105, 'Maria Reyes', NULL, '2026-07-25 14:00:00.000000', '2026-09-29 07:50:21.784180'),
-  (17, 1, 2, '2026-09-16', 420, 7, 2940, 'Maria Reyes', NULL, '2026-09-16 08:00:00.000000', '2026-09-29 07:50:21.787408'),
-  (18, 1, 2, '2026-07-16', 780, 6.166666666666667, 4810, 'Maria Reyes', NULL, '2026-07-16 17:00:00.000000', '2026-09-29 07:50:21.790667'),
-  (19, 1, 2, '2026-09-17', 1200, 5.5, 6600, 'Maria Reyes', NULL, '2026-09-17 17:00:00.000000', '2026-09-29 07:50:21.794639'),
-  (20, 1, 2, '2026-09-13', 840, 5.666666666666667, 4760, 'Maria Reyes', NULL, '2026-09-13 11:00:00.000000', '2026-09-29 07:50:21.797777'),
-  (21, 1, 2, '2026-07-31', 630, 6.166666666666667, 3885, 'Maria Reyes', NULL, '2026-07-31 09:00:00.000000', '2026-09-29 07:50:21.800997'),
-  (22, 1, 2, '2026-07-12', 810, 5.5, 4455, 'Maria Reyes', NULL, '2026-07-12 08:00:00.000000', '2026-09-29 07:50:21.804945'),
-  (23, 1, 2, '2026-07-10', 330, 5.666666666666667, 1870, 'Maria Reyes', NULL, '2026-07-10 13:00:00.000000', '2026-09-29 07:50:21.808373'),
-  (24, 1, 2, '2026-09-06', 1260, 6.833333333333333, 8610, 'Maria Reyes', NULL, '2026-09-06 11:00:00.000000', '2026-09-29 07:50:21.811076'),
-  (25, 1, 2, '2026-07-11', 240, 7, 1680, 'Maria Reyes', NULL, '2026-07-11 18:00:00.000000', '2026-09-29 07:50:21.814329'),
-  (26, 1, 2, '2026-09-09', 720, 6.166666666666667, 4440, 'Maria Reyes', NULL, '2026-09-09 15:00:00.000000', '2026-09-29 07:50:21.817570'),
-  (27, 1, 2, '2026-07-22', 1320, 6.333333333333333, 8360, 'Maria Reyes', NULL, '2026-07-22 10:00:00.000000', '2026-09-29 07:50:21.820567'),
-  (28, 1, 2, '2026-08-15', 720, 6.166666666666667, 4440, 'Maria Reyes', NULL, '2026-08-15 15:00:00.000000', '2026-09-29 07:50:21.823931'),
-  (29, 1, 2, '2026-07-01', 660, 5.666666666666667, 3740, 'Maria Reyes', NULL, '2026-07-01 16:00:00.000000', '2026-09-29 07:50:21.827908'),
-  (30, 1, 2, '2026-09-07', 450, 6.333333333333333, 2850, 'Maria Reyes', NULL, '2026-09-07 14:00:00.000000', '2026-09-29 07:50:21.830016'),
-  (31, 1, 2, '2026-08-10', 1470, 5.5, 8085, 'Maria Reyes', NULL, '2026-08-10 17:00:00.000000', '2026-09-29 07:50:21.833061'),
-  (32, 1, 2, '2026-09-18', 450, 5.5, 2475, 'Maria Reyes', NULL, '2026-09-18 15:00:00.000000', '2026-09-29 07:50:21.835470'),
-  (33, 1, 2, '2026-07-05', 870, 6.166666666666667, 5365, 'Maria Reyes', NULL, '2026-07-05 13:00:00.000000', '2026-09-29 07:50:21.837598'),
-  (34, 1, 2, '2026-09-05', 570, 6.333333333333333, 3610, 'Maria Reyes', NULL, '2026-09-05 15:00:00.000000', '2026-09-29 07:50:21.839717'),
-  (35, 1, 2, '2026-09-16', 1470, 5.666666666666667, 8330, 'Maria Reyes', NULL, '2026-09-16 08:00:00.000000', '2026-09-29 07:50:21.842087'),
-  (36, 1, 2, '2026-07-17', 510, 6.333333333333333, 3230, 'Maria Reyes', NULL, '2026-07-17 16:00:00.000000', '2026-09-29 07:50:21.845336'),
-  (37, 1, 2, '2026-08-13', 900, 6.833333333333333, 6150, 'Maria Reyes', NULL, '2026-08-13 16:00:00.000000', '2026-09-29 07:50:21.848521'),
-  (38, 1, 2, '2026-07-07', 990, 5.666666666666667, 5610, 'Maria Reyes', NULL, '2026-07-07 18:00:00.000000', '2026-09-29 07:50:21.851487'),
-  (39, 1, 2, '2026-09-22', 330, 7, 2310, 'Maria Reyes', NULL, '2026-09-22 11:00:00.000000', '2026-09-29 07:50:21.853778'),
-  (40, 1, 2, '2026-09-09', 510, 5.666666666666667, 2890, 'Maria Reyes', NULL, '2026-09-09 11:00:00.000000', '2026-09-29 07:50:21.856083'),
-  (41, 1, 2, '2026-08-13', 600, 6.833333333333333, 4100, 'Maria Reyes', NULL, '2026-08-13 11:00:00.000000', '2026-09-29 07:50:21.858355'),
-  (42, 1, 2, '2026-08-12', 1410, 5.666666666666667, 7990, 'Maria Reyes', NULL, '2026-08-12 14:00:00.000000', '2026-09-29 07:50:21.861643'),
-  (43, 1, 2, '2026-09-05', 750, 6.833333333333333, 5125, 'Maria Reyes', NULL, '2026-09-05 12:00:00.000000', '2026-09-29 07:50:21.864873'),
-  (44, 1, 2, '2026-07-11', 150, 5.666666666666667, 850, 'Maria Reyes', NULL, '2026-07-11 15:00:00.000000', '2026-09-29 07:50:21.867974'),
-  (45, 1, 2, '2026-07-06', 1020, 6.166666666666667, 6290, 'Maria Reyes', NULL, '2026-07-06 08:00:00.000000', '2026-09-29 07:50:21.870344'),
-  (46, 1, 2, '2026-08-25', 1170, 5.5, 6435, 'Maria Reyes', NULL, '2026-08-25 12:00:00.000000', '2026-09-29 07:50:21.872480'),
-  (47, 1, 2, '2026-07-07', 690, 6.833333333333333, 4715, 'Maria Reyes', NULL, '2026-07-07 17:00:00.000000', '2026-09-29 07:50:21.874576'),
-  (48, 1, 2, '2026-09-17', 480, 5.666666666666667, 2720, 'Maria Reyes', NULL, '2026-09-17 18:00:00.000000', '2026-09-29 07:50:21.877016'),
-  (49, 1, 2, '2026-09-21', 750, 6.333333333333333, 4750, 'Maria Reyes', NULL, '2026-09-21 16:00:00.000000', '2026-09-29 07:50:21.879215'),
-  (50, 1, 2, '2026-08-07', 300, 6.333333333333333, 1900, 'Maria Reyes', NULL, '2026-08-07 13:00:00.000000', '2026-09-29 07:50:21.881908'),
-  (51, 1, 2, '2026-08-15', 1260, 6.833333333333333, 8610, 'Maria Reyes', NULL, '2026-08-15 18:00:00.000000', '2026-09-29 07:50:21.884599'),
-  (52, 1, 2, '2026-07-05', 300, 7, 2100, 'Maria Reyes', NULL, '2026-07-05 13:00:00.000000', '2026-09-29 07:50:21.886769'),
-  (53, 1, 2, '2026-08-27', 1380, 7, 9660, 'Maria Reyes', NULL, '2026-08-27 13:00:00.000000', '2026-09-29 07:50:21.888870'),
-  (54, 1, 2, '2026-08-28', 630, 6.166666666666667, 3885, 'Maria Reyes', NULL, '2026-08-28 08:00:00.000000', '2026-09-29 07:50:21.890966'),
-  (55, 1, 2, '2026-07-31', 1320, 6.333333333333333, 8360, 'Maria Reyes', NULL, '2026-07-31 17:00:00.000000', '2026-09-29 07:50:21.893473'),
-  (56, 1, 2, '2026-08-06', 1350, 6.833333333333333, 9225, 'Maria Reyes', NULL, '2026-08-06 18:00:00.000000', '2026-09-29 07:50:21.895592'),
-  (57, 1, 2, '2026-07-25', 450, 7, 3150, 'Maria Reyes', NULL, '2026-07-25 11:00:00.000000', '2026-09-29 07:50:21.898247'),
-  (58, 1, 2, '2026-07-24', 570, 7, 3990, 'Maria Reyes', NULL, '2026-07-24 09:00:00.000000', '2026-09-29 07:50:21.900967'),
-  (59, 1, 2, '2026-08-03', 720, 6.333333333333333, 4560, 'Maria Reyes', NULL, '2026-08-03 15:00:00.000000', '2026-09-29 07:50:21.903100'),
-  (60, 1, 2, '2026-09-13', 1170, 6.333333333333333, 7410, 'Maria Reyes', NULL, '2026-09-13 08:00:00.000000', '2026-09-29 07:50:21.905203'),
-  (61, 1, 2, '2026-07-17', 240, 5.5, 1320, 'Maria Reyes', NULL, '2026-07-17 08:00:00.000000', '2026-09-29 07:50:21.907569'),
-  (62, 1, 2, '2026-09-14', 330, 5.666666666666667, 1870, 'Maria Reyes', NULL, '2026-09-14 11:00:00.000000', '2026-09-29 07:50:21.910525'),
-  (63, 1, 2, '2026-08-17', 1050, 6.166666666666667, 6475, 'Maria Reyes', NULL, '2026-08-17 09:00:00.000000', '2026-09-29 07:50:21.912696'),
-  (64, 1, 2, '2026-07-30', 810, 6.333333333333333, 5130, 'Maria Reyes', NULL, '2026-07-30 17:00:00.000000', '2026-09-29 07:50:21.915060'),
-  (65, 1, 2, '2026-08-09', 720, 6.166666666666667, 4440, 'Maria Reyes', NULL, '2026-08-09 10:00:00.000000', '2026-09-29 07:50:21.918013'),
-  (66, 1, 2, '2026-08-31', 720, 6.833333333333333, 4920, 'Maria Reyes', NULL, '2026-08-31 16:00:00.000000', '2026-09-29 07:50:21.920207'),
-  (67, 1, 2, '2026-07-23', 630, 5.666666666666667, 3570, 'Maria Reyes', NULL, '2026-07-23 08:00:00.000000', '2026-09-29 07:50:21.922322'),
-  (68, 1, 2, '2026-07-03', 990, 5.5, 5445, 'Maria Reyes', NULL, '2026-07-03 15:00:00.000000', '2026-09-29 07:50:21.924422'),
-  (69, 1, 2, '2026-09-18', 930, 6.833333333333333, 6355, 'Maria Reyes', NULL, '2026-09-18 17:00:00.000000', '2026-09-29 07:50:21.926448'),
-  (70, 1, 2, '2026-10-02', 3000, 6.8, 20400, 'Aling Nena Sari-sari Wholesale', '100 trays brown medium', '2026-10-14 12:58:14.606263', '2026-10-14 12:58:14.606271'),
-  (71, 1, 2, '2026-10-05', 4500, 7.1, 31950, 'Batangas Public Market Stall #14', '150 trays large brown', '2026-10-14 12:58:14.606278', '2026-10-14 12:58:14.606283'),
-  (72, 1, 2, '2026-10-07', 1800, 6.5, 11700, 'Golden Bakery & Pastries', '60 trays medium eggs', '2026-10-14 12:58:14.606289', '2026-10-14 12:58:14.606294'),
-  (73, 1, 2, '2026-10-09', 2400, 7.8, 18720, 'Lipa City Gourmet Diner', '80 trays XL & Jumbo brown', '2026-10-14 12:58:14.606299', '2026-10-14 12:58:14.606304'),
-  (74, 1, 2, '2026-10-11', 3600, 6.9, 24840, 'Community Egg Reseller Group', '120 trays mixed brown', '2026-10-14 12:58:14.606310', '2026-10-14 12:58:14.606315'),
-  (75, 1, 2, '2026-10-13', 2100, 7, 14700, 'Mang Juan Canteen', '70 trays brown medium', '2026-10-14 12:58:14.606320', '2026-10-14 12:58:14.606323'),
-  (76, 2, 4, '2026-10-04', 3000, 6.2, 18600, 'Tanauan Mini Mart', '100 trays white medium', '2026-10-14 12:58:14.606326', '2026-10-14 12:58:14.606329'),
-  (77, 2, 4, '2026-10-10', 2400, 6.3, 15120, 'San Juan Grocers', '80 trays white', '2026-10-14 12:58:14.606332', '2026-10-14 12:58:14.606335');
+-- Dumping data for table `feed_records`
+LOCK TABLES `feed_records` WRITE;
+INSERT INTO `feed_records` (`id`, `farm_id`, `user_id`, `record_date`, `feed_type`, `feed_consumed_kg`, `feed_cost`, `notes`, `created_at`, `updated_at`) VALUES
+  (1, 1, 2, '2026-10-01', 'Layer Mash Boost Premium', 98.5, 2955, 'Regular feeding schedule', '2026-10-14 12:58:14.593116', '2026-10-14 12:58:14.593123'),
+  (2, 2, 4, '2026-10-01', 'Commercial Layer Pellet', 75, 2250, 'Morning ration', '2026-10-14 12:58:14.593127', '2026-10-14 12:58:14.593130'),
+  (3, 1, 2, '2026-10-02', 'Layer Mash Boost Premium', 98.5, 2955, 'Regular feeding schedule', '2026-10-14 12:58:14.593133', '2026-10-14 12:58:14.593136'),
+  (4, 2, 4, '2026-10-02', 'Commercial Layer Pellet', 75, 2250, 'Morning ration', '2026-10-14 12:58:14.593139', '2026-10-14 12:58:14.593142'),
+  (5, 1, 2, '2026-10-03', 'Layer Mash Boost Premium', 98.5, 2955, 'Regular feeding schedule', '2026-10-14 12:58:14.593145', '2026-10-14 12:58:14.593148'),
+  (6, 2, 4, '2026-10-03', 'Commercial Layer Pellet', 75, 2250, 'Morning ration', '2026-10-14 12:58:14.593151', '2026-10-14 12:58:14.593154'),
+  (7, 1, 2, '2026-10-04', 'Layer Mash Boost Premium', 98.5, 2955, 'Regular feeding schedule', '2026-10-14 12:58:14.593157', '2026-10-14 12:58:14.593160'),
+  (8, 2, 4, '2026-10-04', 'Commercial Layer Pellet', 75, 2250, 'Morning ration', '2026-10-14 12:58:14.593163', '2026-10-14 12:58:14.593166'),
+  (9, 1, 2, '2026-10-05', 'Layer Mash Boost Premium', 98.5, 2955, 'Regular feeding schedule', '2026-10-14 12:58:14.593169', '2026-10-14 12:58:14.593172'),
+  (10, 2, 4, '2026-10-05', 'Commercial Layer Pellet', 75, 2250, 'Morning ration', '2026-10-14 12:58:14.593175', '2026-10-14 12:58:14.593178'),
+  (11, 1, 2, '2026-10-06', 'Layer Mash Boost Premium', 98.5, 2955, 'Regular feeding schedule', '2026-10-14 12:58:14.593181', '2026-10-14 12:58:14.593184'),
+  (12, 2, 4, '2026-10-06', 'Commercial Layer Pellet', 75, 2250, 'Morning ration', '2026-10-14 12:58:14.593187', '2026-10-14 12:58:14.593190'),
+  (13, 1, 2, '2026-10-07', 'Layer Mash Boost Premium', 98.5, 2955, 'Regular feeding schedule', '2026-10-14 12:58:14.593193', '2026-10-14 12:58:14.593195'),
+  (14, 2, 4, '2026-10-07', 'Commercial Layer Pellet', 75, 2250, 'Morning ration', '2026-10-14 12:58:14.593198', '2026-10-14 12:58:14.593201'),
+  (15, 1, 2, '2026-10-08', 'Layer Mash Boost Premium', 98.5, 2955, 'Regular feeding schedule', '2026-10-14 12:58:14.593205', '2026-10-14 12:58:14.593207'),
+  (16, 2, 4, '2026-10-08', 'Commercial Layer Pellet', 75, 2250, 'Morning ration', '2026-10-14 12:58:14.593211', '2026-10-14 12:58:14.593213'),
+  (17, 1, 2, '2026-10-09', 'Layer Mash Boost Premium', 98.5, 2955, 'Regular feeding schedule', '2026-10-14 12:58:14.593216', '2026-10-14 12:58:14.593219'),
+  (18, 2, 4, '2026-10-09', 'Commercial Layer Pellet', 75, 2250, 'Morning ration', '2026-10-14 12:58:14.593222', '2026-10-14 12:58:14.593225'),
+  (19, 1, 2, '2026-10-10', 'Layer Mash Boost Premium', 98.5, 2955, 'Regular feeding schedule', '2026-10-14 12:58:14.593228', '2026-10-14 12:58:14.593231'),
+  (20, 2, 4, '2026-10-10', 'Commercial Layer Pellet', 75, 2250, 'Morning ration', '2026-10-14 12:58:14.593234', '2026-10-14 12:58:14.593237'),
+  (21, 1, 2, '2026-10-11', 'Layer Mash Boost Premium', 98.5, 2955, 'Regular feeding schedule', '2026-10-14 12:58:14.593240', '2026-10-14 12:58:14.593243'),
+  (22, 2, 4, '2026-10-11', 'Commercial Layer Pellet', 75, 2250, 'Morning ration', '2026-10-14 12:58:14.593246', '2026-10-14 12:58:14.593249'),
+  (23, 1, 2, '2026-10-12', 'Layer Mash Boost Premium', 98.5, 2955, 'Regular feeding schedule', '2026-10-14 12:58:14.593252', '2026-10-14 12:58:14.593255'),
+  (24, 2, 4, '2026-10-12', 'Commercial Layer Pellet', 75, 2250, 'Morning ration', '2026-10-14 12:58:14.593258', '2026-10-14 12:58:14.593261'),
+  (25, 1, 2, '2026-10-13', 'Layer Mash Boost Premium', 98.5, 2955, 'Regular feeding schedule', '2026-10-14 12:58:14.593264', '2026-10-14 12:58:14.593267'),
+  (26, 2, 4, '2026-10-13', 'Commercial Layer Pellet', 75, 2250, 'Morning ration', '2026-10-14 12:58:14.593270', '2026-10-14 12:58:14.593273'),
+  (27, 1, 2, '2026-10-14', 'Layer Mash Boost Premium', 98.5, 2955, 'Regular feeding schedule', '2026-10-14 12:58:14.593276', '2026-10-14 12:58:14.593278'),
+  (28, 2, 4, '2026-10-14', 'Commercial Layer Pellet', 75, 2250, 'Morning ration', '2026-10-14 12:58:14.593281', '2026-10-14 12:58:14.593284');
+UNLOCK TABLES;
+
+-- --------------------------------------------------------
+-- Table structure for table `mortality_records`
+-- --------------------------------------------------------
+DROP TABLE IF EXISTS `mortality_records`;
+CREATE TABLE `mortality_records` (
+  `id` INT(11) NOT NULL AUTO_INCREMENT,
+  `farm_id` INT(11) NOT NULL,
+  `user_id` INT(11) NOT NULL,
+  `record_date` DATE NOT NULL,
+  `quantity_died` INT(11) NOT NULL DEFAULT 0,
+  `reason` VARCHAR(255) NOT NULL,
+  `notes` TEXT DEFAULT NULL,
+  `created_at` DATETIME NOT NULL,
+  `updated_at` DATETIME NOT NULL,
+  PRIMARY KEY (`id`),
+  KEY `ix_mortality_records_record_date` (`record_date`),
+  KEY `ix_mortality_records_user_id` (`user_id`),
+  KEY `ix_mortality_records_farm_id` (`farm_id`),
+  CONSTRAINT `fk_mortality_records_user_id` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`),
+  CONSTRAINT `fk_mortality_records_farm_id` FOREIGN KEY (`farm_id`) REFERENCES `farms` (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=8 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Dumping data for table `mortality_records`
+LOCK TABLES `mortality_records` WRITE;
+INSERT INTO `mortality_records` (`id`, `farm_id`, `user_id`, `record_date`, `quantity_died`, `reason`, `notes`, `created_at`, `updated_at`) VALUES
+  (1, 2, 3, '2026-08-18', 5, 'Heat stress', NULL, '2026-08-18 12:58:52.095133', '2026-08-18 12:58:52.095144'),
+  (2, 5, 1, '2026-08-18', 1, '1', NULL, '2026-08-18 15:34:37.035946', '2026-08-18 15:34:37.035953'),
+  (3, 4, 1, '2026-08-18', 1, '21', NULL, '2026-08-18 15:34:50.906191', '2026-08-18 15:34:50.906200'),
+  (4, 1, 2, '2026-10-03', 2, 'Heat stress during midday peak', 'Hydration vitamins administered', '2026-10-14 12:58:14.596633', '2026-10-14 12:58:14.596639'),
+  (5, 1, 2, '2026-10-08', 1, 'Natural age culling', 'Flock check normal', '2026-10-14 12:58:14.596642', '2026-10-14 12:58:14.596645'),
+  (6, 1, 2, '2026-10-12', 2, 'Respiratory isolation check', 'Coop sanitized', '2026-10-14 12:58:14.596649', '2026-10-14 12:58:14.596651'),
+  (7, 2, 4, '2026-10-05', 1, 'Injury from coop wire', 'Repaired mesh', '2026-10-14 12:58:14.596654', '2026-10-14 12:58:14.596657');
+UNLOCK TABLES;
+
+-- --------------------------------------------------------
+-- Table structure for table `conversations`
+-- --------------------------------------------------------
+DROP TABLE IF EXISTS `conversations`;
+CREATE TABLE `conversations` (
+  `id` INT(11) NOT NULL AUTO_INCREMENT,
+  `farmer_id` INT(11) NOT NULL,
+  `participant_id` INT(11) NOT NULL,
+  `participant_role` VARCHAR(32) NOT NULL,
+  `deleted_by_farmer` TINYINT(1) DEFAULT 0,
+  `deleted_by_participant` TINYINT(1) DEFAULT 0,
+  `created_at` DATETIME NOT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uq_convo_pair` (`farmer_id`, `participant_id`),
+  KEY `ix_conversations_participant_id` (`participant_id`),
+  KEY `ix_conversations_farmer_id` (`farmer_id`),
+  CONSTRAINT `fk_conversations_participant_id` FOREIGN KEY (`participant_id`) REFERENCES `users` (`id`),
+  CONSTRAINT `fk_conversations_farmer_id` FOREIGN KEY (`farmer_id`) REFERENCES `users` (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Dumping data for table `conversations`
+LOCK TABLES `conversations` WRITE;
+INSERT INTO `conversations` (`id`, `farmer_id`, `participant_id`, `participant_role`, `deleted_by_farmer`, `deleted_by_participant`, `created_at`) VALUES
+  (1, 2, 3, 'buyer', 0, 0, '2026-10-07 10:06:13.833557');
+UNLOCK TABLES;
+
+-- --------------------------------------------------------
+-- Table structure for table `messages`
+-- --------------------------------------------------------
+DROP TABLE IF EXISTS `messages`;
+CREATE TABLE `messages` (
+  `id` INT(11) NOT NULL AUTO_INCREMENT,
+  `conversation_id` INT(11) NOT NULL,
+  `sender_id` INT(11) NOT NULL,
+  `receiver_id` INT(11) NOT NULL,
+  `body` TEXT NOT NULL,
+  `sent_at` DATETIME NOT NULL,
+  `delivered_at` DATETIME DEFAULT NULL,
+  `seen_at` DATETIME DEFAULT NULL,
+  `is_seen` TINYINT(1) NOT NULL DEFAULT 0,
+  PRIMARY KEY (`id`),
+  KEY `ix_messages_conversation_id` (`conversation_id`),
+  KEY `ix_messages_is_seen` (`is_seen`),
+  KEY `ix_messages_sender_id` (`sender_id`),
+  KEY `ix_messages_sent_at` (`sent_at`),
+  KEY `ix_messages_receiver_id` (`receiver_id`),
+  CONSTRAINT `fk_messages_receiver_id` FOREIGN KEY (`receiver_id`) REFERENCES `users` (`id`),
+  CONSTRAINT `fk_messages_sender_id` FOREIGN KEY (`sender_id`) REFERENCES `users` (`id`),
+  CONSTRAINT `fk_messages_conversation_id` FOREIGN KEY (`conversation_id`) REFERENCES `conversations` (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=23 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Dumping data for table `messages`
+LOCK TABLES `messages` WRITE;
+INSERT INTO `messages` (`id`, `conversation_id`, `sender_id`, `receiver_id`, `body`, `sent_at`, `delivered_at`, `seen_at`, `is_seen`) VALUES
+  (1, 1, 3, 2, 'hello', '2026-10-07 10:09:26.977061', '2026-10-07 10:09:26.966902', '2026-10-07 10:14:47.896611', 1),
+  (2, 1, 3, 2, 'hello again', '2026-10-07 10:13:49.309479', '2026-10-07 10:13:49.303756', '2026-10-07 10:14:47.896611', 1),
+  (3, 1, 3, 2, 'hi', '2026-10-07 10:13:56.868165', '2026-10-07 10:13:56.863656', '2026-10-07 10:14:47.896611', 1),
+  (4, 1, 2, 3, 'hello why', '2026-10-07 10:15:06.421250', '2026-10-07 10:15:06.415494', '2026-10-17 11:58:24.649109', 1),
+  (5, 1, 2, 3, 'hey', '2026-10-07 10:16:59.759580', '2026-10-07 10:16:59.754105', '2026-10-17 11:58:24.649109', 1),
+  (6, 1, 2, 3, 'hi', '2026-10-07 10:23:08.038045', '2026-10-07 10:23:08.032546', '2026-10-17 11:58:24.649109', 1),
+  (7, 1, 2, 3, 'Testing message sending from browser agent', '2026-10-07 10:28:34.488873', '2026-10-07 10:28:34.419820', '2026-10-17 11:58:24.649109', 1),
+  (8, 1, 2, 3, 'Testing via JavaScript trigger', '2026-10-07 10:30:08.678672', '2026-10-07 10:30:08.662098', '2026-10-17 11:58:24.649109', 1),
+  (9, 1, 2, 3, 'Testing via JavaScript trigger', '2026-10-07 10:32:02.360922', '2026-10-07 10:32:02.356996', '2026-10-17 11:58:24.649109', 1),
+  (10, 1, 2, 3, 'hello', '2026-10-07 10:36:23.046624', '2026-10-07 10:36:23.042112', '2026-10-17 11:58:24.649109', 1),
+  (11, 1, 2, 3, 'hello', '2026-10-17 11:50:41.857052', '2026-10-17 11:50:41.846353', '2026-10-17 11:58:24.649109', 1),
+  (12, 1, 2, 3, 'test message', '2026-10-17 11:53:19.556098', '2026-10-17 11:53:19.548136', '2026-10-17 11:58:24.649109', 1),
+  (13, 1, 3, 2, 'test from buyer', '2026-10-17 11:54:12.068360', '2026-10-17 11:54:12.060760', '2026-10-17 11:57:00.684288', 1),
+  (14, 1, 2, 3, 'Hello from farmer!', '2026-10-17 11:55:49.544781', '2026-10-17 11:55:49.536194', '2026-10-17 11:58:24.649109', 1),
+  (15, 1, 2, 3, 'Hello from buyer!', '2026-10-17 11:55:49.567588', '2026-10-17 11:55:49.564340', '2026-10-17 11:58:24.649109', 1),
+  (16, 1, 3, 2, 'Hello from buyer!', '2026-10-17 11:55:59.798870', '2026-10-17 11:55:59.790356', '2026-10-17 11:57:00.684288', 1),
+  (17, 1, 2, 3, 'Kumusta po?', '2026-10-17 11:57:00.652285', '2026-10-17 11:57:00.637477', '2026-10-17 11:58:24.649109', 1),
+  (18, 1, 2, 3, 'Maayos naman po, available ba ang poultry?', '2026-10-17 11:57:00.717318', '2026-10-17 11:57:00.712467', '2026-10-17 11:58:24.649109', 1),
+  (19, 1, 2, 3, 'hi', '2026-10-17 11:57:54.653212', '2026-10-17 11:57:54.645892', '2026-10-17 11:58:24.649109', 1),
+  (20, 1, 3, 2, 'hello', '2026-10-17 11:58:31.885143', '2026-10-17 11:58:31.879725', '2026-10-17 12:06:37.217440', 1),
+  (21, 1, 3, 2, 'Bago pong mensahe!', '2026-10-17 12:06:06.690852', '2026-10-17 12:06:05.995412', '2026-10-17 12:06:37.217440', 1),
+  (22, 1, 3, 2, 'hi', '2026-10-17 12:07:24.202879', '2026-10-17 12:07:24.196299', '2026-10-20 04:36:00.855307', 1),
+  (23, 1, 2, 3, 'hello', '2026-10-20 04:36:04.092863', '2026-10-20 04:36:04.083757', '2026-10-20 04:36:54.644499', 1),
+  (24, 1, 2, 3, 'hello', '2026-10-20 04:36:39.057892', '2026-10-20 04:36:39.053109', '2026-10-20 04:36:54.644499', 1);
+UNLOCK TABLES;
+
+-- --------------------------------------------------------
+-- Table structure for table `notifications`
+-- --------------------------------------------------------
+DROP TABLE IF EXISTS `notifications`;
+CREATE TABLE `notifications` (
+  `id` INT(11) NOT NULL AUTO_INCREMENT,
+  `user_id` INT(11) NOT NULL,
+  `title` VARCHAR(120) NOT NULL,
+  `body` VARCHAR(255) NOT NULL,
+  `notif_type` VARCHAR(32) NOT NULL DEFAULT 'message',
+  `is_read` TINYINT(1) NOT NULL DEFAULT 0,
+  `link_url` VARCHAR(255) DEFAULT NULL,
+  `created_at` DATETIME NOT NULL,
+  PRIMARY KEY (`id`),
+  KEY `ix_notifications_user_id` (`user_id`),
+  KEY `ix_notifications_is_read` (`is_read`),
+  CONSTRAINT `fk_notifications_user_id` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=28 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Dumping data for table `notifications`
+LOCK TABLES `notifications` WRITE;
+INSERT INTO `notifications` (`id`, `user_id`, `title`, `body`, `notif_type`, `is_read`, `link_url`, `created_at`) VALUES
+  (1, 3, 'New Conversation', 'Maria Reyes started a conversation with you.', 'message', 1, '/messaging/?open=1', '2026-10-07 10:06:13.865833'),
+  (2, 2, 'New message from Maria Reyes', 'hello', 'message', 1, '/messaging/?open=1', '2026-10-07 10:09:26.980200'),
+  (3, 2, 'New message from Maria Reyes', 'hello again', 'message', 1, '/messaging/?open=1', '2026-10-07 10:13:49.313094'),
+  (4, 2, 'New message from Maria Reyes', 'hi', 'message', 1, '/messaging/?open=1', '2026-10-07 10:13:56.871501'),
+  (5, 3, 'Message read by Juan Dela Cruz', 'Juan Dela Cruz has seen your latest message.', 'seen', 1, '/messaging/?open=1', '2026-10-07 10:14:47.905472'),
+  (6, 3, 'New message from Juan Dela Cruz', 'hello why', 'message', 1, '/messaging/?open=1', '2026-10-07 10:15:06.423656'),
+  (7, 3, 'New message from Juan Dela Cruz', 'hey', 'message', 1, '/messaging/?open=1', '2026-10-07 10:16:59.762209'),
+  (8, 3, 'New message from Juan Dela Cruz', 'hi', 'message', 1, '/messaging/?open=1', '2026-10-07 10:23:08.041379'),
+  (9, 3, 'New message from Juan Dela Cruz', 'Testing message sending from browser agent', 'message', 1, '/messaging/?open=1', '2026-10-07 10:28:34.505509'),
+  (10, 3, 'New message from Juan Dela Cruz', 'Testing via JavaScript trigger', 'message', 1, '/messaging/?open=1', '2026-10-07 10:30:08.689239'),
+  (11, 3, 'New message from Juan Dela Cruz', 'Testing via JavaScript trigger', 'message', 1, '/messaging/?open=1', '2026-10-07 10:32:02.363701'),
+  (12, 3, 'New message from Juan Dela Cruz', 'hello', 'message', 1, '/messaging/?open=1', '2026-10-07 10:36:23.049416'),
+  (13, 3, 'New message from Juan Dela Cruz', 'hello', 'message', 1, '/messaging/?open=1', '2026-10-17 11:50:41.860261'),
+  (14, 3, 'New message from Juan Dela Cruz', 'test message', 'message', 1, '/messaging/?open=1', '2026-10-17 11:53:19.558873'),
+  (15, 2, 'New message from Maria Reyes', 'test from buyer', 'message', 1, '/messaging/?open=1', '2026-10-17 11:54:12.071052'),
+  (16, 3, 'New message from Juan Dela Cruz', 'Hello from farmer!', 'message', 1, '/messaging/?open=1', '2026-10-17 11:55:49.547581'),
+  (17, 3, 'New message from Juan Dela Cruz', 'Hello from buyer!', 'message', 1, '/messaging/?open=1', '2026-10-17 11:55:49.569202'),
+  (18, 2, 'New message from Maria Reyes', 'Hello from buyer!', 'message', 1, '/messaging/?open=1', '2026-10-17 11:55:59.801660'),
+  (19, 3, 'New message from Juan Dela Cruz', 'Kumusta po?', 'message', 1, '/messaging/?open=1', '2026-10-17 11:57:00.657510'),
+  (20, 3, 'Message read by Juan Dela Cruz', 'Juan Dela Cruz has seen your latest message.', 'seen', 1, '/messaging/?open=1', '2026-10-17 11:57:00.695563'),
+  (21, 3, 'New message from Juan Dela Cruz', 'Maayos naman po, available ba ang poultry?', 'message', 1, '/messaging/?open=1', '2026-10-17 11:57:00.719523'),
+  (22, 3, 'New message from Juan Dela Cruz', 'hi', 'message', 1, '/messaging/?open=1', '2026-10-17 11:57:54.656906'),
+  (23, 2, 'Message read by Maria Reyes', 'Maria Reyes has seen your latest message.', 'seen', 1, '/messaging/?open=1', '2026-10-17 11:58:24.657790'),
+  (24, 2, 'New message from Maria Reyes', 'hello', 'message', 1, '/messaging/?open=1', '2026-10-17 11:58:31.887067'),
+  (25, 2, 'New message from Maria Reyes', 'Bago pong mensahe!', 'message', 1, '/messaging/?open=1', '2026-10-17 12:06:06.693581'),
+  (26, 3, 'Message read by Juan Dela Cruz', 'Juan Dela Cruz has seen your latest message.', 'seen', 1, '/messaging/?open=1', '2026-10-17 12:06:37.234402'),
+  (27, 2, 'New message from Maria Reyes', 'hi', 'message', 1, '/messaging/?open=1', '2026-10-17 12:07:24.206321'),
+  (28, 3, 'Message read by Juan Dela Cruz', 'Juan Dela Cruz has seen your latest message.', 'seen', 1, '/messaging/?open=1', '2026-10-20 04:36:00.869920'),
+  (29, 3, 'New message from Juan Dela Cruz', 'hello', 'message', 1, '/messaging/?open=1', '2026-10-20 04:36:04.095463'),
+  (30, 3, 'New message from Juan Dela Cruz', 'hello', 'message', 1, '/messaging/?open=1', '2026-10-20 04:36:39.059904'),
+  (31, 2, 'Message read by Maria Reyes', 'Maria Reyes has seen your latest message.', 'seen', 1, '/messaging/?open=1', '2026-10-20 04:36:54.654427'),
+  (32, 2, 'New Order #101 Received!', 'You have a new order from Customer Juan. Click to view order details.', 'order', 1, '/marketplace/manage/orders#farmerOrder-1', '2026-11-16 02:30:29.451035'),
+  (33, 2, 'Farm Owner Verification Active', 'Your poultry farm is fully verified and listed in the public marketplace.', 'verification', 1, '/dashboard/farmer', '2026-11-16 00:30:29.458970');
 UNLOCK TABLES;
 
 -- --------------------------------------------------------
@@ -1160,116 +1347,14 @@ CREATE TABLE `content_moderations` (
   CONSTRAINT `fk_content_moderations_product_id` FOREIGN KEY (`product_id`) REFERENCES `products` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- No data to dump for table `content_moderations`
-
 -- --------------------------------------------------------
--- Table structure for table `order_items`
+-- Restore environment variables & constraints
 -- --------------------------------------------------------
-DROP TABLE IF EXISTS `order_items`;
-CREATE TABLE `order_items` (
-  `id` INT(11) NOT NULL AUTO_INCREMENT,
-  `order_id` INT(11) NOT NULL,
-  `product_id` INT(11) NOT NULL,
-  `quantity` INT(11) NOT NULL DEFAULT 1,
-  `unit_price` DECIMAL(10, 2) NOT NULL,
-  PRIMARY KEY (`id`),
-  KEY `ix_order_items_order_id` (`order_id`),
-  KEY `ix_order_items_product_id` (`product_id`),
-  CONSTRAINT `fk_order_items_product_id` FOREIGN KEY (`product_id`) REFERENCES `products` (`id`),
-  CONSTRAINT `fk_order_items_order_id` FOREIGN KEY (`order_id`) REFERENCES `orders` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=79 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
--- Dumping data for table `order_items`
-LOCK TABLES `order_items` WRITE;
-INSERT INTO `order_items` (`id`, `order_id`, `product_id`, `quantity`, `unit_price`) VALUES
-  (1, 1, 1, 20, 170),
-  (2, 2, 2, 25, 190),
-  (3, 3, 4, 36, 165),
-  (4, 4, 6, 10, 205),
-  (5, 5, 1, 42, 170),
-  (6, 6, 4, 36, 165),
-  (7, 7, 6, 35, 205),
-  (8, 8, 1, 13, 170),
-  (9, 9, 5, 43, 185),
-  (10, 10, 1, 20, 170),
-  (11, 11, 2, 27, 190),
-  (12, 12, 2, 26, 190),
-  (13, 13, 4, 5, 165),
-  (14, 14, 1, 5, 170),
-  (15, 15, 6, 15, 205),
-  (16, 16, 5, 33, 185),
-  (17, 17, 3, 14, 210),
-  (18, 18, 5, 26, 185),
-  (19, 19, 4, 40, 165),
-  (20, 20, 1, 28, 170),
-  (21, 21, 5, 21, 185),
-  (22, 22, 4, 27, 165),
-  (23, 23, 1, 11, 170),
-  (24, 24, 6, 42, 205),
-  (25, 25, 3, 8, 210),
-  (26, 26, 5, 24, 185),
-  (27, 27, 2, 44, 190),
-  (28, 28, 5, 24, 185),
-  (29, 29, 3, 27, 210),
-  (30, 30, 1, 22, 170),
-  (31, 31, 2, 15, 190),
-  (32, 32, 4, 49, 165),
-  (33, 33, 4, 15, 165),
-  (34, 34, 5, 29, 185),
-  (35, 35, 2, 19, 190),
-  (36, 36, 1, 49, 170),
-  (37, 37, 2, 17, 190),
-  (38, 38, 6, 30, 205),
-  (39, 39, 1, 33, 170),
-  (40, 40, 3, 11, 210),
-  (41, 41, 1, 17, 170),
-  (42, 42, 6, 20, 205),
-  (43, 43, 1, 47, 170),
-  (44, 44, 6, 25, 205),
-  (45, 45, 1, 5, 170),
-  (46, 46, 5, 34, 185),
-  (47, 47, 4, 39, 165),
-  (48, 48, 6, 23, 205),
-  (49, 49, 1, 16, 170),
-  (50, 50, 2, 25, 190),
-  (51, 51, 2, 10, 190),
-  (52, 52, 6, 42, 205),
-  (53, 53, 3, 10, 210),
-  (54, 54, 3, 46, 210),
-  (55, 55, 5, 21, 185),
-  (56, 56, 2, 44, 190),
-  (57, 57, 6, 45, 205),
-  (58, 58, 3, 15, 210),
-  (59, 59, 3, 19, 210),
-  (60, 60, 2, 24, 190),
-  (61, 61, 2, 39, 190),
-  (62, 62, 4, 8, 165),
-  (63, 63, 1, 11, 170),
-  (64, 64, 5, 35, 185),
-  (65, 65, 2, 27, 190),
-  (66, 66, 5, 24, 185),
-  (67, 67, 6, 24, 205),
-  (68, 68, 1, 21, 170),
-  (69, 69, 4, 33, 165),
-  (70, 70, 6, 31, 205),
-  (71, 71, 1, 30, 170),
-  (72, 72, 2, 60, 190),
-  (73, 73, 3, 50, 210),
-  (74, 74, 7, 25, 230),
-  (75, 75, 8, 20, 250),
-  (76, 76, 2, 45, 190),
-  (77, 77, 3, 35, 210),
-  (78, 78, 1, 20, 170);
-UNLOCK TABLES;
-
--- --------------------------------------------------------
--- Restore environment settings
--- --------------------------------------------------------
+SET TIME_ZONE=@OLD_TIME_ZONE;
+SET SQL_MODE=@OLD_SQL_MODE;
 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS;
 SET UNIQUE_CHECKS=@OLD_UNIQUE_CHECKS;
 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT;
 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS;
 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION;
-SET TIME_ZONE=@OLD_TIME_ZONE;
-SET SQL_MODE=@OLD_SQL_MODE;
 SET SQL_NOTES=@OLD_SQL_NOTES;

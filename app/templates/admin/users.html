@@ -99,7 +99,7 @@
           <label style="display: block; font-size: 0.725rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--adm-text-muted); margin-bottom: 0.35rem;">Role</label>
           <select name="role" class="adm-select" style="min-width: 140px;">
             <option value="">All Roles</option>
-            <option value="farmer" {% if role_filter == 'farmer' %}selected{% endif %}>Farmer</option>
+            <option value="farmer" {% if role_filter == 'farmer' %}selected{% endif %}>Owner</option>
             <option value="buyer" {% if role_filter == 'buyer' %}selected{% endif %}>Buyer</option>
             <option value="admin" {% if role_filter == 'admin' %}selected{% endif %}>Admin</option>
           </select>
@@ -156,7 +156,7 @@
           </td>
           <td>
             <span class="adm-badge {% if user.role.value == 'admin' %}adm-badge-success{% elif user.role.value == 'farmer' %}adm-badge-warning{% elif user.role.value == 'buyer' %}adm-badge-info{% else %}adm-badge-danger{% endif %}">
-              {{ user.role.value|replace('_', ' ')|title }}
+              {{ user.role_display }}
             </span>
           </td>
           <td style="font-size: 0.8125rem; font-family: var(--font-mono); color: var(--adm-text-secondary);">{{ user.phone or '—' }}</td>
@@ -233,7 +233,7 @@
         <div>
           <label style="display: block; font-size: 0.75rem; font-weight: 600; color: var(--adm-text-secondary); margin-bottom: 0.25rem;">Role *</label>
           <select name="role" required class="adm-select" style="width: 100%;">
-            <option value="farmer">Farmer</option>
+            <option value="farmer">Owner</option>
             <option value="buyer">Buyer</option>
             <option value="admin">Admin</option>
           </select>
@@ -280,7 +280,7 @@
         <div>
           <label style="display: block; font-size: 0.75rem; font-weight: 600; color: var(--adm-text-secondary); margin-bottom: 0.25rem;">Role</label>
           <select name="role" id="edit_role" class="adm-select" style="width: 100%;">
-            <option value="farmer">Farmer</option>
+            <option value="farmer">Owner</option>
             <option value="buyer">Buyer</option>
             <option value="admin">Admin</option>
           </select>

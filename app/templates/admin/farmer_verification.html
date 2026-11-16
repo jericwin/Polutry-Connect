@@ -1,7 +1,7 @@
 {% extends "admin/admin_base.html" %}
 
-{% block page_title %}Farmer Verification{% endblock %}
-{% block breadcrumb %}Farmer Verification{% endblock %}
+{% block page_title %}Owner Verification{% endblock %}
+{% block breadcrumb %}Owner Verification{% endblock %}
 
 {% block extra_css %}
 <style>
@@ -435,7 +435,7 @@
 
     <a href="{{ url_for('admin.farmer_verification', status='approved') }}" class="metric-card {% if status_filter == 'approved' %}active{% endif %}">
       <div class="metric-info">
-        <span class="metric-label">Approved Farmers</span>
+        <span class="metric-label">Approved Owners</span>
         <span class="metric-num">{{ total_approved }}</span>
       </div>
       <div class="metric-pill approved">
@@ -482,7 +482,7 @@
     <table class="adm-table">
       <thead>
         <tr>
-          <th style="width: 25%;">Farmer Profile</th>
+          <th style="width: 25%;">Owner Profile</th>
           <th style="width: 25%;">Farm Details</th>
           <th style="width: 28%;">Submitted Documents</th>
           <th style="width: 10%;">Status</th>
@@ -613,7 +613,7 @@
     <div class="empty-state-row">
       <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="color: var(--adm-text-muted); margin-bottom: 0.75rem;"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
       <div style="font-weight: 600; color: var(--adm-text-primary); font-size: 0.95rem;">No {{ status_filter }} applications found</div>
-      <div style="font-size: 0.8125rem; color: var(--adm-text-muted); margin-top: 0.25rem;">There are no farmer verification applications matching this filter.</div>
+      <div style="font-size: 0.8125rem; color: var(--adm-text-muted); margin-top: 0.25rem;">There are no owner verification applications matching this filter.</div>
     </div>
     {% endif %}
   </div>
@@ -627,10 +627,10 @@
       <div style="width: 28px; height: 28px; border-radius: 6px; background: var(--adm-accent-dim); color: #34d399; display: flex; align-items: center; justify-content: center; border: 1px solid var(--adm-accent-border);">
         <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
       </div>
-      <h3 class="modal-title">Approve Farmer Verification</h3>
+      <h3 class="modal-title">Approve Owner Verification</h3>
     </div>
     <p class="modal-desc">
-      You are about to activate full farmer permissions for <strong id="approveFarmerName" style="color: var(--adm-text-primary);"></strong>. An approval notification will be delivered to their account.
+      You are about to activate full owner permissions for <strong id="approveFarmerName" style="color: var(--adm-text-primary);"></strong>. An approval notification will be delivered to their account.
     </p>
     <form id="approveForm" method="POST">
       <label style="font-size: 0.8125rem; font-weight: 600; color: var(--adm-text-secondary); display: block; margin-bottom: 0.35rem;">Notification Message (Optional):</label>

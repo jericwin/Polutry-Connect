@@ -33,7 +33,7 @@ production_bp = Blueprint('production', __name__)
 def check_farmer_verification():
     if current_user.is_authenticated and current_user.role == UserRole.FARMER:
         if not current_user.verification or current_user.verification.status != VerificationStatus.APPROVED:
-            flash('Your account is pending verification. Please wait for an administrator to approve your account before accessing farmer features.', 'warning')
+            flash('Your account is pending verification. Please wait for an administrator to approve your account before accessing owner features.', 'warning')
             return redirect(url_for('dashboard.farmer'))
 
 
@@ -814,6 +814,7 @@ def onsite_sales_add():
         product_id     = _safe_int(request.form.get('product_id'))
         sale_date      = _parse_date(request.form.get('sale_date'))
         quantity_sold  = _safe_int(request.form.get('quantity_sold'))
+        price_input    = _safe_decimal(request.form.get('price_per_egg'))
         buyer_name     = request.form.get('buyer_name', '').strip()
         notes          = request.form.get('notes', '').strip()
 
@@ -828,6 +829,10 @@ def onsite_sales_add():
         elif product and quantity_sold > product.stock:
             errors.append(f'Not enough stock. Only {product.stock} available for {product.name}.')
 
+        price_per_egg = price_input if (price_input and price_input > 0) else (product.price if product else Decimal(0))
+        if price_per_egg <= 0:
+            errors.append('Amount per pcs/tray must be greater than zero.')
+
         if errors:
             for e in errors:
                 flash(e, 'error')
@@ -840,9 +845,13 @@ def onsite_sales_add():
                 today=date.today(),
             )
 
-        price_per_egg = product.price
         total_revenue = Decimal(quantity_sold) * price_per_egg
         product.stock -= quantity_sold
+
+        unit_str = product.unit.value.title() if hasattr(product.unit, 'value') else str(product.unit).title()
+        size_str = product.size.value.title() if hasattr(product.size, 'value') else str(product.size).title()
+        detail_note = f"Product: {product.name} | Size: {size_str} | Unit: {unit_str}"
+        full_notes = f"{detail_note}. {notes}" if notes else detail_note
 
         sale = SalesRecord(
             farm_id=product.farm_id,
@@ -852,7 +861,7 @@ def onsite_sales_add():
             price_per_egg=price_per_egg,
             total_revenue=total_revenue,
             buyer_name=buyer_name or None,
-            notes=f"On-site sale. {notes}" if notes else "On-site sale",
+            notes=full_notes,
         )
         db.session.add(sale)
         db.session.commit()

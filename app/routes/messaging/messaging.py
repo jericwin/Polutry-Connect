@@ -181,7 +181,7 @@ def start_from_farm():
     # Ensure the farm owner is actually a farmer (safety)
     owner = User.query.get(farmer_id)
     if not owner or owner.role != UserRole.FARMER:
-        flash('Selected farm owner is not a farmer.', 'error')
+        flash('Selected farm owner is not an owner.', 'error')
         return redirect(url_for('messaging.index'))
 
     # Find or create conversation where farmer is the farm owner and participant is current_user
@@ -284,9 +284,9 @@ def start():
         ).first()
     elif current_role == UserRole.BUYER.value:
         if participant_role_value != UserRole.FARMER.value:
-            flash('You can only start conversations with Farmers.', 'error')
+            flash('You can only start conversations with Owners.', 'error')
             if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-                return jsonify({'ok': False, 'error': 'You can only start conversations with Farmers.'}), 400
+                return jsonify({'ok': False, 'error': 'You can only start conversations with Owners.'}), 400
             return redirect(url_for('messaging.index'))
         farmer_id = participant.id
         participant_user_id = current_user.id

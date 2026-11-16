@@ -82,8 +82,12 @@
     {% for product in products %}
     <div class="manage-card {{ 'manage-card--inactive' if not product.is_available }}" id="manageProduct-{{ product.id }}">
         <div class="manage-card__header">
-            <div class="manage-card__img">
-                🥚
+            <div class="manage-card__img" style="overflow: hidden; width: 48px; height: 48px; border-radius: var(--radius-sm); display: flex; align-items: center; justify-content: center; background: #f1f5f9;">
+                {% if product.display_image_url %}
+                    <img src="{{ product.display_image_url }}" alt="{{ product.name }}" style="width: 100%; height: 100%; object-fit: cover; border-radius: inherit;">
+                {% else %}
+                    🥚
+                {% endif %}
             </div>
             <div class="manage-card__meta">
                 <div class="manage-card__name">{{ product.name }}</div>

@@ -90,8 +90,11 @@
         <div class="fo-card__items">
             {% for item in order.items %}
             {% if item.product_id in my_product_ids %}
-            <div class="fo-item-row">
-                <span class="fo-item-name">{{ item.product.name }}</span>
+            <div class="fo-item-row" style="display: flex; align-items: center; gap: 0.65rem;">
+                {% if item.product and item.product.display_image_url %}
+                <img src="{{ item.product.display_image_url }}" alt="{{ item.product.name }}" style="width: 26px; height: 26px; border-radius: 4px; object-fit: cover; border: 1px solid var(--outline-variant); flex-shrink: 0;">
+                {% endif %}
+                <span class="fo-item-name" style="flex: 1;">{{ item.product.name }}</span>
                 <span class="fo-item-qty">× {{ item.quantity }}</span>
                 <span class="fo-item-price">₱{{ "%.2f"|format(item.subtotal) }}</span>
             </div>

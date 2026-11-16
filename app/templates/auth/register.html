@@ -68,7 +68,7 @@
         <div class="select-wrap">
             <select id="role" name="role" required>
                 <option value="" disabled {% if not form_data.get('role') %}selected{% endif %}>Select your role</option>
-                <option value="farmer"       {% if form_data.get('role') == 'farmer'       %}selected{% endif %}>Farmer</option>
+                <option value="farmer"       {% if form_data.get('role') in ['farmer', 'owner']       %}selected{% endif %}>Owner</option>
                 <option value="buyer"        {% if form_data.get('role') == 'buyer'        %}selected{% endif %}>Buyer</option>
                 <!-- <option value="feed_supplier"{% if form_data.get('role') == 'feed_supplier'%}selected{% endif %}>Feed Supplier</option> -->
                 <!-- <option value="veterinarian" {% if form_data.get('role') == 'veterinarian' %}selected{% endif %}>Veterinarian</option> -->

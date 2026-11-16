@@ -24,7 +24,7 @@
                         <select name="product_id" id="product_id" required>
                             <option value="">— Select a Product —</option>
                             {% for p in products %}
-                            <option value="{{ p.id }}" data-stock="{{ p.stock }}" data-price="{{ p.price }}" {% if form_data.get('product_id')|string == p.id|string %}selected{% endif %}>
+                            <option value="{{ p.id }}" data-stock="{{ p.stock }}" data-price="{{ p.price }}" data-unit="{{ p.unit.value }}" data-size="{{ p.size.value }}" {% if form_data.get('product_id')|string == p.id|string %}selected{% endif %}>
                                 [{{ p.farm.name }}] {{ p.name }} (Stock: {{ p.stock }}, ₱{{ p.price }})
                             </option>
                             {% endfor %}
@@ -47,7 +47,25 @@
                     <label for="quantity_sold">Quantity Sold <span class="required">*</span></label>
                     <input type="number" name="quantity_sold" id="quantity_sold" 
                            value="{{ form_data.get('quantity_sold', '') }}" 
-                           min="1" required>
+                           min="1" placeholder="e.g. 10" required>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <!-- Amount per pcs/tray -->
+                <div class="form-group">
+                    <label for="price_per_egg">Amount per <span id="unit_type_label">Pcs / Tray</span> (₱) <span class="required">*</span></label>
+                    <input type="number" step="0.01" min="0.01" name="price_per_egg" id="price_per_egg" 
+                           value="{{ form_data.get('price_per_egg', '') }}" 
+                           placeholder="0.00" required>
+                </div>
+
+                <!-- Total Sales -->
+                <div class="form-group">
+                    <label for="total_sales">Total Sales (₱)</label>
+                    <input type="text" id="total_sales" readonly 
+                           value="₱0.00" 
+                           style="background: #f0fdf4; border: 1.5px solid #86efac; color: #15803d; font-weight: 800; font-size: 1.15rem;">
                 </div>
             </div>
 
@@ -95,20 +113,70 @@
 document.addEventListener('DOMContentLoaded', function() {
     const productSelect = document.getElementById('product_id');
     const qtyInput = document.getElementById('quantity_sold');
+    const priceInput = document.getElementById('price_per_egg');
+    const totalInput = document.getElementById('total_sales');
+    const unitLabel = document.getElementById('unit_type_label');
 
-    if(productSelect && qtyInput) {
+    function calculateTotal() {
+        const qty = parseFloat(qtyInput.value) || 0;
+        const price = parseFloat(priceInput.value) || 0;
+        const total = qty * price;
+        totalInput.value = '₱' + total.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    }
+
+    if(productSelect) {
         productSelect.addEventListener('change', function() {
             const selectedOpt = this.options[this.selectedIndex];
             if(selectedOpt && selectedOpt.value) {
                 const maxStock = parseInt(selectedOpt.getAttribute('data-stock'), 10);
-                qtyInput.setAttribute('max', maxStock);
-                if(parseInt(qtyInput.value, 10) > maxStock) {
-                    qtyInput.value = maxStock;
+                const price = parseFloat(selectedOpt.getAttribute('data-price')) || 0;
+                const unit = selectedOpt.getAttribute('data-unit') || 'pcs/tray';
+
+                if(priceInput && !priceInput.value) {
+                    priceInput.value = price.toFixed(2);
+                } else if (priceInput) {
+                    priceInput.value = price.toFixed(2);
+                }
+
+                if(unitLabel) {
+                    unitLabel.textContent = unit.charAt(0).toUpperCase() + unit.slice(1);
+                }
+
+                if(qtyInput) {
+                    qtyInput.setAttribute('max', maxStock);
+                    if(parseInt(qtyInput.value, 10) > maxStock) {
+                        qtyInput.value = maxStock;
+                    }
                 }
             } else {
-                qtyInput.removeAttribute('max');
+                if(qtyInput) qtyInput.removeAttribute('max');
+                if(unitLabel) unitLabel.textContent = 'Pcs / Tray';
             }
+            calculateTotal();
         });
+
+        // Trigger on load if already selected
+        if(productSelect.value) {
+            const selectedOpt = productSelect.options[productSelect.selectedIndex];
+            if(selectedOpt && selectedOpt.value) {
+                const price = parseFloat(selectedOpt.getAttribute('data-price')) || 0;
+                const unit = selectedOpt.getAttribute('data-unit') || 'pcs/tray';
+                if(priceInput && !priceInput.value) {
+                    priceInput.value = price.toFixed(2);
+                }
+                if(unitLabel) {
+                    unitLabel.textContent = unit.charAt(0).toUpperCase() + unit.slice(1);
+                }
+            }
+            calculateTotal();
+        }
+    }
+
+    if(qtyInput) {
+        qtyInput.addEventListener('input', calculateTotal);
+    }
+    if(priceInput) {
+        priceInput.addEventListener('input', calculateTotal);
     }
 });
 </script>

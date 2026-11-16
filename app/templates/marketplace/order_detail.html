@@ -217,9 +217,14 @@ document.addEventListener("DOMContentLoaded", function() {
           <tbody>
             {% for item in order.items %}
             <tr>
-              <td>
-                <div class="od-product-name">{{ item.product.name }}</div>
-                <div class="od-product-farm">{{ item.product.farm.name }}</div>
+              <td style="display: flex; align-items: center; gap: 0.75rem;">
+                {% if item.product and item.product.display_image_url %}
+                <img src="{{ item.product.display_image_url }}" alt="{{ item.product.name }}" style="width: 44px; height: 44px; border-radius: 8px; object-fit: cover; border: 1px solid var(--outline-variant); flex-shrink: 0;">
+                {% endif %}
+                <div>
+                  <div class="od-product-name">{{ item.product.name }}</div>
+                  <div class="od-product-farm">{{ item.product.farm.name }}</div>
+                </div>
               </td>
               <td>₱{{ "%.2f"|format(item.unit_price) }}</td>
               <td>{{ item.quantity }}</td>
