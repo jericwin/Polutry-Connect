@@ -35,7 +35,6 @@ PoultryConnect 2.0 centralizes data, analyzes it to provide actionable insights,
 Analyzes farm data to generate actionable insights:
 - **Production Forecasts:** Predicts future egg yields.
 - **Disease Alerts:** Warns when production drops abnormally.
-- **Feed Efficiency:** Monitors if feed consumption aligns with output.
 - **Pricing Recommendations:** Suggests optimal pricing per egg.
 
 ### 📊 Production Monitoring
@@ -91,22 +90,20 @@ venv\Scripts\activate
 pip install -r requirements.txt
 ```
 
-#### 4. Configure `.env`
-Copy the `.env.example` file:
-```bash
-cp .env.example .env
-```
-Ensure your `.env` connects to your XAMPP MySQL database:
+#### 4. Database Setup (XAMPP phpMyAdmin)
+1. Start **Apache** and **MySQL** in the XAMPP Control Panel.
+2. Open `http://localhost/phpmyadmin`, go to the **Import** tab, choose `poultryconnect_xampp.sql`, and click **Import**.
+   The file creates the `poultryconnect` database (18 tables) by itself.
+
+#### 5. Configure `.env` (optional)
+No `.env` is needed for XAMPP: the app auto-connects to `root@127.0.0.1:3306/poultryconnect` when MySQL is running,
+and falls back to the bundled SQLite file (`instance/poultryconnect.db`) when it isn't.
+To set it explicitly:
 ```env
 FLASK_ENV=development
 SECRET_KEY=poultryconnect-super-secret-key-2026
 DATABASE_URL=mysql+pymysql://root:@localhost/poultryconnect
 ```
-
-#### 5. Database Setup (XAMPP phpMyAdmin)
-1. Start **Apache** and **MySQL** in XAMPP Control Panel.
-2. Open `http://localhost/phpmyadmin` and create a database named `poultryconnect`.
-3. Select `poultryconnect`, go to the **Import** tab, choose `poultryconnect.sql`, and click **Import**.
 
 #### 6. Run the Application
 ```bash
@@ -120,9 +117,14 @@ Open **http://127.0.0.1:5000** in your browser.
 
 | Role | Username / Email | Password | Access |
 | :--- | :--- | :--- | :--- |
-| 👑 **Admin** | `admin` / `admin@poultryconnect.com` | `admin123` | System Management, Farmer Verification, All Reports |
-| 🐔 **Farmer** | `jdelacruz` / `farmer@poultryconnect.com` | `password123` | Farm Management, Production Logs, P&L Analytics, Products |
-| 🛒 **Buyer** | `mreyes` / `buyer@poultryconnect.com` | `password123` | Marketplace Shopping, Order Tracking, Feedback |
+| 👑 **Admin** | `admin` / `admin@poultryconnect.com` | `Admin#2026` | System Management, Owner Verification, All Reports |
+| 🐔 **Owner** | `ardonn` / `ardonn.sales@poultryconnect.com` | `Ardonn#2026` | Ardonn Farm (300 layers) |
+| 🐔 **Owner** | `benito` / `benito.valmonte@poultryconnect.com` | `Benito#2026` | Benito Farm (1,200 layers) |
+| 🐔 **Owner** | `jane` / `jane.ison@poultryconnect.com` | `Jane#2026` | Coco-A-Vanilla Farm (350 layers) |
+| 🐔 **Owner** | `digna` / `digna.fernandez@poultryconnect.com` | `Digna#2026` | Ising's Farm (300 layers) |
+| 🛒 **Buyer** | `liza`, `ramon`, `carla` / `<name>.<surname>@poultryconnect.com` | `Buyer#2026` | Marketplace Shopping, Order Tracking, Feedback |
+
+To reset all accounts and sample data (Oct 1 – Nov 16, 2026): `python seed_revision.py`, then `python scripts/export_mysql_dump.py` to refresh `poultryconnect_xampp.sql`.
 
 ---
 

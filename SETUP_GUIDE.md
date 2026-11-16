@@ -31,20 +31,14 @@ Bago magsimula, siguraduhing naka-install ang sumusunod sa iyong computer:
 
 ---
 
-### Hakbang 3: I-setup at I-import ang Database sa phpMyAdmin
-1. Buksan ang browser (Chrome, Edge, Firefox) at pumunta sa:  
+### Hakbang 3: I-import ang Database sa phpMyAdmin
+1. Buksan ang browser at pumunta sa:
    👉 **http://localhost/phpmyadmin**
-2. Sa kaliwang menu, i-click ang **New**.
-3. Sa **Database name**, ilagay:
-   ```text
-   poultryconnect
-   ```
-4. Piliin ang Collation bilang `utf8mb4_unicode_ci` (o iwanan sa default) at i-click ang **Create**.
-5. I-click ang bagong likhang database na **`poultryconnect`** sa kaliwang sidebar.
-6. Sa itaas na tabs, piliin ang **Import**.
-7. Sa **Choose File**, piliin ang **`poultryconnect.sql`** na nasa loob ng folder ng project.
-8. Mag-scroll pababa at i-click ang **Import** (o **Go**).
-> *Lalabas ang berdeng notification na matagumpay na na-import ang lahat ng 18 tables.*
+2. I-click ang tab na **Import** sa itaas (hindi na kailangang gumawa muna ng database — kusa itong gagawa ng `poultryconnect`).
+3. Sa **Choose File**, piliin ang **`poultryconnect_xampp.sql`** na nasa loob ng folder ng project.
+4. Mag-scroll pababa at i-click ang **Import** (o **Go**).
+> *Lalabas ang berdeng notification. Dapat may 18 tables sa `poultryconnect` database.*
+> *Kung may luma ka nang `poultryconnect` database, papalitan ito ng bagong data (DROP + CREATE).*
 
 ---
 
@@ -71,15 +65,17 @@ pip install -r requirements.txt
 
 ---
 
-### Hakbang 6: I-setup ang `.env` File
-1. Gumawa ng bagong file sa root folder na pinangalanang **`.env`** (o kopyahin ang `.env.example`).
-2. Ilagay ang sumusunod na configuration:
-   ```env
-   FLASK_ENV=development
-   SECRET_KEY=poultryconnect-super-secret-key-2026
-   DATABASE_URL=mysql+pymysql://root:@localhost/poultryconnect
-   ```
-   *(Default sa XAMPP ang username na `root` na walang password).*
+### Hakbang 6: I-setup ang `.env` File (Optional)
+Hindi na kailangan ng `.env` para sa XAMPP — kusang kumokonekta ang system sa MySQL ng XAMPP (`root`, walang password, `127.0.0.1:3306`, database `poultryconnect`) kapag naka-Start ito.
+
+Kung gusto mong i-set nang manual, gumawa ng **`.env`** sa root folder:
+```env
+FLASK_ENV=development
+SECRET_KEY=poultryconnect-super-secret-key-2026
+DATABASE_URL=mysql+pymysql://root:@localhost/poultryconnect
+```
+> ⚠️ Huwag ilagay ang `DATABASE_URL=sqlite:///...` kung XAMPP ang gagamitin.
+> Kung hindi naka-Start ang MySQL, gagamitin ng system ang kasamang SQLite file (`instance/poultryconnect.db`) para gumana pa rin.
 
 ---
 
@@ -110,9 +106,14 @@ Pumunta sa **http://127.0.0.1:5000/auth/login** at gamitin ang alinman sa mga ac
 
 | Role | Username / Email | Password | Mga Tampok / Access |
 | :--- | :--- | :--- | :--- |
-| 👑 **Admin** | `admin` <br> `admin@poultryconnect.com` | `admin123` | Buong platform access, Account Management, Farmer Verifications, Reports |
-| 🐔 **Farmer** | `jdelacruz` <br> `farmer@poultryconnect.com` | `password123` | Farm Dashboard, Daily Egg/Feed Logs, P&L Analytics, Product Listings, Review Monitoring |
-| 🛒 **Buyer** | `mreyes` <br> `buyer@poultryconnect.com` | `password123` | Marketplace Browsing, Order Cart/Checkout, Multi-Category Feedback submission |
+| 👑 **Admin** | `admin` <br> `admin@poultryconnect.com` | `Admin#2026` | Buong platform access, Account Management, Owner Verifications, Reports |
+| 🐔 **Owner** | `ardonn` <br> `ardonn.sales@poultryconnect.com` | `Ardonn#2026` | Ardonn Farm — Brgy. Macasipac, Sta. Maria, Laguna (300 layers) |
+| 🐔 **Owner** | `benito` <br> `benito.valmonte@poultryconnect.com` | `Benito#2026` | Benito Farm — Brgy. Iniyapan, Sta. Maria, Laguna (1,200 layers) |
+| 🐔 **Owner** | `jane` <br> `jane.ison@poultryconnect.com` | `Jane#2026` | Coco-A-Vanilla Farm — Brgy. Bubucal, Sta. Maria, Laguna (350 layers) |
+| 🐔 **Owner** | `digna` <br> `digna.fernandez@poultryconnect.com` | `Digna#2026` | Ising's Farm — Brgy. Balian, Pangil, Laguna (300 layers) |
+| 🛒 **Buyer** | `liza` / `ramon` / `carla` <br> `liza.manalo@poultryconnect.com` | `Buyer#2026` | Marketplace, Cart/Checkout, Order Tracking, Feedback |
+
+> Sample data: Oct 1 – Nov 16, 2026. Para i-reset ang lahat ng data at accounts: `python seed_revision.py` tapos `python scripts/export_mysql_dump.py`.
 
 ---
 
@@ -123,6 +124,9 @@ Pumunta sa **http://127.0.0.1:5000/auth/login** at gamitin ang alinman sa mga ac
 
 * **Q: Paano kung `Access denied for user 'root'@'localhost'`?**  
   Siguraduhing tumatakbo ang MySQL sa XAMPP at tama ang format sa `.env`: `mysql+pymysql://root:@localhost/poultryconnect` (walang password pagkatapos ng colon).
+
+* **Q: Paano kung `Packet too large` / hindi ma-upload ang malaking picture?**
+  Kusa nang tinataasan ng system ang `max_allowed_packet` ng XAMPP sa 16 MB at pinaliliit ang malalaking picture. Kung lumabas pa rin, i-edit ang `C:\xampp\mysql\bin\my.ini`, palitan ang `max_allowed_packet=1M` ng `max_allowed_packet=16M` sa ilalim ng `[mysqld]`, at i-restart ang MySQL.
 
 * **Q: Paano kung may port conflict (`Address already in use` sa port 5000)?**  
   Patakbuhin sa ibang port gamit ang:

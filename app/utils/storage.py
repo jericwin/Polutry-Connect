@@ -23,8 +23,34 @@ _EXT_MIME = {
 }
 
 
+# XAMPP's MariaDB ships with max_allowed_packet = 1 MB, so keep stored images below that.
+SHRINK_ABOVE_BYTES = 900 * 1024
+
+
 class UploadTooLarge(Exception):
     pass
+
+
+def _shrink_image(data: bytes, filename: str):
+    """Resize/re-encode a large photo to JPEG (max 1600px) so it stays under ~900 KB."""
+    try:
+        import io
+        from PIL import Image, ImageOps
+        img = Image.open(io.BytesIO(data))
+        img = ImageOps.exif_transpose(img).convert('RGB')
+        img.thumbnail((1600, 1600))
+        for quality in (85, 75, 65, 55):
+            out = io.BytesIO()
+            img.save(out, 'JPEG', quality=quality, optimize=True)
+            if out.tell() <= SHRINK_ABOVE_BYTES:
+                break
+        new = out.getvalue()
+        if len(new) < len(data):
+            base = filename.rsplit('.', 1)[0] if '.' in filename else filename
+            return new, base + '.jpg'
+    except Exception:
+        pass
+    return data, None
 
 
 def file_ext(filename: str) -> str:
@@ -34,10 +60,17 @@ def file_ext(filename: str) -> str:
 def save_upload(file_storage, owner_id=None, private=False) -> str:
     """Persist an uploaded werkzeug FileStorage. Returns the public URL (/media/<id>)."""
     data = file_storage.read()
+    filename = file_storage.filename or 'upload'
+    mime = file_storage.mimetype or ''
+    is_image = mime.startswith('image/') or file_ext(filename) in ('jpg', 'jpeg', 'png', 'webp')
+    if is_image and len(data) > SHRINK_ABOVE_BYTES:
+        data, renamed = _shrink_image(data, filename)
+        if renamed:
+            filename, mime = renamed, 'image/jpeg'
     if len(data) > MAX_UPLOAD_BYTES:
         raise UploadTooLarge(f'File is too large ({len(data) // 1024} KB). Maximum is 4 MB.')
-    name = secure_filename(file_storage.filename or 'upload') or 'upload'
-    mime = file_storage.mimetype or _EXT_MIME.get(file_ext(name), 'application/octet-stream')
+    name = secure_filename(filename) or 'upload'
+    mime = mime or _EXT_MIME.get(file_ext(name), 'application/octet-stream')
     if mime == 'application/octet-stream':
         mime = _EXT_MIME.get(file_ext(name), mime)
     rec = StoredFile(owner_id=owner_id, filename=name, mimetype=mime,

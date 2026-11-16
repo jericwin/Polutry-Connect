@@ -97,6 +97,10 @@ def create_app(config_class=Config):
         except Exception as e:
             app.logger.warning(f"Auto db.create_all() warning: {e}")
         try:
+            _raise_local_mysql_packet_limit()
+        except Exception as e:
+            app.logger.info(f"max_allowed_packet not changed: {e}")
+        try:
             _ensure_columns()
         except Exception as e:
             app.logger.warning(f"Auto column migration warning: {e}")
@@ -114,6 +118,20 @@ _NEW_COLUMNS = {
         ('shipped_at', 'DATETIME'),
     ],
 }
+
+
+def _raise_local_mysql_packet_limit():
+    """XAMPP MariaDB defaults to a 1 MB packet limit — too small for uploaded PDFs/photos.
+    On a local MySQL server, raise it to 16 MB (needs the default root account)."""
+    url = db.engine.url
+    if url.get_backend_name() != 'mysql' or url.host not in ('127.0.0.1', 'localhost'):
+        return
+    from sqlalchemy import text
+    with db.engine.connect() as conn:
+        current = conn.execute(text('SELECT @@global.max_allowed_packet')).scalar() or 0
+        if int(current) < 16 * 1024 * 1024:
+            conn.execute(text('SET GLOBAL max_allowed_packet = 16777216'))
+    db.engine.dispose()  # new connections pick up the larger limit
 
 
 def _ensure_columns():

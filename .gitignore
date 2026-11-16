@@ -26,3 +26,7 @@ PRD.md
 design-config.md
 .vercel
 .env*
+
+# Old nested copy of the project (separate repo) and panel documents
+/poultryconnect/
+*.docx
