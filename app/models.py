@@ -479,9 +479,10 @@ class Product(db.Model):
     def display_image_url(self):
         if self.image_url:
             return self.image_url
+        # Real egg photos (public domain / CC0, Wikimedia Commons)
         if self.variety and self.variety.value == 'white':
-            return 'https://images.unsplash.com/photo-1587486913049-53fc88980cfc?w=500&auto=format&fit=crop&q=80'
-        return 'https://images.unsplash.com/photo-1516467508483-a7212febe31a?w=500&auto=format&fit=crop&q=80'
+            return '/static/img/eggs/white-eggs.jpg'
+        return '/static/img/eggs/brown-eggs.jpg'
 
     def __repr__(self):
         return f'<Product {self.name} â‚±{self.price}/{self.unit.value} (farmer={self.farmer_id})>'
@@ -513,6 +514,12 @@ class Order(db.Model):
     payment_method   = db.Column(db.String(50), nullable=False, default='COD')
     payment_date     = db.Column(db.DateTime, nullable=True)
     notes            = db.Column(db.Text)
+
+    # Fulfillment details set by the owner when confirming / shipping
+    estimated_days   = db.Column(db.Integer, nullable=True)        # working days until delivery
+    fulfillment_note = db.Column(db.String(255), nullable=True)    # e.g. "Ready for pick-up", "Out for delivery"
+    confirmed_at     = db.Column(db.DateTime, nullable=True)
+    shipped_at       = db.Column(db.DateTime, nullable=True)
     
     rating             = db.Column(db.Integer, nullable=True)
     feedback_text      = db.Column(db.Text, nullable=True)
@@ -538,6 +545,47 @@ class Order(db.Model):
     @property
     def item_count(self):
         return len(self.items)
+
+    @property
+    def estimated_delivery_date(self):
+        """Delivery ETA = confirmation date + N working days (Mon–Sat)."""
+        if not self.estimated_days:
+            return None
+        start = (self.confirmed_at or self.updated_at or self.created_at).date()
+        d, added = start, 0
+        while added < self.estimated_days:
+            d += timedelta(days=1)
+            if d.weekday() != 6:  # skip Sundays
+                added += 1
+        return d
+
+    @property
+    def fulfillment_message(self):
+        """Human-readable progress line shown to both buyer and owner."""
+        status = self.status.value if self.status else ''
+        eta = self.estimated_delivery_date
+        eta_txt = eta.strftime('%a, %b %d') if eta else None
+        days = self.estimated_days
+        if status == 'pending':
+            return 'Waiting for the owner to confirm your order.'
+        if status == 'confirmed':
+            msg = 'Order confirmed — being prepared.'
+            if days:
+                msg += f' Ships/delivers within {days} working day{"s" if days != 1 else ""}'
+                msg += f' (on or before {eta_txt}).' if eta_txt else '.'
+            return msg
+        if status == 'shipped':
+            msg = 'Out for delivery / ready for pick-up.'
+            if eta_txt:
+                msg += f' Expected to arrive by {eta_txt}.'
+            return msg
+        if status == 'delivered':
+            return 'Delivered. Please confirm receipt and leave feedback.'
+        if status == 'completed':
+            return 'Completed. Thank you for your order!'
+        if status == 'cancelled':
+            return 'This order was cancelled.'
+        return ''
 
     def __repr__(self):
         return f'<Order #{self.id} buyer={self.buyer_id} â‚±{self.total_amount} [{self.status.value}]>'
@@ -892,3 +940,25 @@ class BuyerFeedback(db.Model):
     farmer = db.relationship('User', foreign_keys=[farmer_id], backref=db.backref('received_feedback', lazy='dynamic'))
     order = db.relationship('Order', backref=db.backref('buyer_feedback', lazy='dynamic'))
     product = db.relationship('Product', backref=db.backref('buyer_feedback', lazy='dynamic'))
+
+
+# ─────────────────────────────────────────
+# TABLE: stored_files
+# Uploaded files kept in the database so they work on read-only / serverless
+# hosts (Vercel) and are shared across devices that use the same database.
+# ─────────────────────────────────────────
+
+class StoredFile(db.Model):
+    __tablename__ = 'stored_files'
+
+    id          = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    owner_id    = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True, index=True)
+    filename    = db.Column(db.String(255), nullable=False)
+    mimetype    = db.Column(db.String(100), nullable=False, default='application/octet-stream')
+    size_bytes  = db.Column(db.Integer, nullable=False, default=0)
+    is_private  = db.Column(db.Boolean, nullable=False, default=False)  # True = only owner/admin can view
+    data        = db.Column(db.LargeBinary(length=16 * 1024 * 1024), nullable=False)  # MEDIUMBLOB on MySQL
+    created_at  = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+
+    def __repr__(self):
+        return f'<StoredFile #{self.id} {self.filename} ({self.size_bytes} bytes)>'

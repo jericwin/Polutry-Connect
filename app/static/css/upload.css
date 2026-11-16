@@ -1,0 +1,212 @@
+/* ───────────────────────────────────────────────────────────
+   PoultryConnect — Upload Dropzone component
+   Used by: owner verification, product form
+   ─────────────────────────────────────────────────────────── */
+.pc-upload {
+  position: relative;
+  display: block;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.pc-upload__input {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  cursor: pointer;
+  z-index: 2;
+}
+
+.pc-upload__zone {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem 1.15rem;
+  border: 2px dashed #a7d7b5;
+  border-radius: 14px;
+  background: linear-gradient(135deg, #f6fdf8 0%, #eefaf2 100%);
+  transition: border-color .2s, background .2s, box-shadow .2s, transform .15s;
+}
+
+.pc-upload:hover .pc-upload__zone,
+.pc-upload.is-dragover .pc-upload__zone {
+  border-color: #16a34a;
+  background: linear-gradient(135deg, #ecfdf3 0%, #dcfce7 100%);
+  box-shadow: 0 6px 18px rgba(22, 163, 74, .12);
+}
+
+.pc-upload.is-dragover .pc-upload__zone { transform: scale(1.01); }
+
+.pc-upload__input:focus-visible + .pc-upload__zone {
+  outline: 3px solid rgba(22, 163, 74, .35);
+  outline-offset: 2px;
+}
+
+.pc-upload__icon {
+  flex-shrink: 0;
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #16a34a;
+  color: #fff;
+  box-shadow: 0 4px 12px rgba(22, 163, 74, .3);
+}
+
+.pc-upload__icon svg { width: 22px; height: 22px; }
+
+.pc-upload__text { flex: 1; min-width: 0; }
+
+.pc-upload__title {
+  font-size: .9rem;
+  font-weight: 700;
+  color: #14532d;
+  margin: 0 0 .15rem;
+}
+
+.pc-upload__title span { color: #16a34a; text-decoration: underline; text-underline-offset: 2px; }
+
+.pc-upload__hint {
+  font-size: .75rem;
+  color: #64748b;
+  margin: 0;
+}
+
+.pc-upload__btn {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: .35rem;
+  padding: .5rem 1rem;
+  border-radius: 999px;
+  background: #fff;
+  border: 1.5px solid #16a34a;
+  color: #15803d;
+  font-size: .8rem;
+  font-weight: 700;
+  white-space: nowrap;
+  transition: background .2s, color .2s;
+}
+
+.pc-upload:hover .pc-upload__btn { background: #16a34a; color: #fff; }
+
+/* ── Selected / preview state ── */
+.pc-upload__preview {
+  display: none;
+  align-items: center;
+  gap: .9rem;
+  padding: .75rem .9rem;
+  border: 1.5px solid #bbf7d0;
+  border-radius: 14px;
+  background: #fff;
+  box-shadow: 0 2px 10px rgba(15, 23, 42, .05);
+}
+
+.pc-upload.has-file .pc-upload__zone,
+.pc-upload.has-file .pc-upload__input { display: none; }
+.pc-upload.has-file .pc-upload__preview { display: flex; }
+
+.pc-upload__thumb {
+  flex-shrink: 0;
+  width: 64px;
+  height: 64px;
+  border-radius: 10px;
+  object-fit: cover;
+  background: #f1f5f9;
+  border: 1px solid #e2e8f0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #dc2626;
+  font-size: .7rem;
+  font-weight: 800;
+  overflow: hidden;
+}
+
+.pc-upload__thumb img { width: 100%; height: 100%; object-fit: cover; }
+
+.pc-upload__meta { flex: 1; min-width: 0; }
+
+.pc-upload__name {
+  font-size: .85rem;
+  font-weight: 700;
+  color: #0f172a;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.pc-upload__size {
+  font-size: .72rem;
+  color: #16a34a;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: .25rem;
+  margin-top: .15rem;
+}
+
+.pc-upload__actions { display: flex; gap: .4rem; flex-shrink: 0; }
+
+.pc-upload__action {
+  border: none;
+  cursor: pointer;
+  padding: .4rem .75rem;
+  border-radius: 999px;
+  font-size: .75rem;
+  font-weight: 700;
+  font-family: inherit;
+  transition: background .2s;
+}
+
+.pc-upload__action--change { background: #dcfce7; color: #166534; }
+.pc-upload__action--change:hover { background: #bbf7d0; }
+.pc-upload__action--remove { background: #fee2e2; color: #b91c1c; }
+.pc-upload__action--remove:hover { background: #fecaca; }
+
+/* ── "Currently on file" chip ── */
+.pc-upload__current {
+  display: flex;
+  align-items: center;
+  gap: .6rem;
+  margin-bottom: .6rem;
+  padding: .5rem .75rem;
+  border-radius: 10px;
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  font-size: .78rem;
+  color: #166534;
+  font-weight: 600;
+}
+
+.pc-upload__current img {
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  object-fit: cover;
+  border: 1px solid #bbf7d0;
+}
+
+.pc-upload__current a { color: #15803d; margin-left: auto; font-weight: 700; }
+
+.pc-upload__error {
+  display: none;
+  margin-top: .4rem;
+  font-size: .75rem;
+  font-weight: 600;
+  color: #b91c1c;
+}
+
+.pc-upload.has-error .pc-upload__error { display: block; }
+.pc-upload.has-error .pc-upload__zone { border-color: #f87171; background: #fef2f2; }
+
+@media (max-width: 560px) {
+  .pc-upload__zone { flex-wrap: wrap; }
+  .pc-upload__btn { width: 100%; justify-content: center; }
+  .pc-upload__preview { flex-wrap: wrap; }
+  .pc-upload__actions { width: 100%; justify-content: flex-end; }
+}

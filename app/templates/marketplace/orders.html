@@ -43,6 +43,12 @@ PoultryConnect{% endblock %} {% block extra_css %}
           {{ order.status_label }}
         </div>
       </div>
+      {% if order.status.value in ['pending', 'confirmed', 'shipped'] %}
+      <div style="display:flex; gap:.5rem; align-items:flex-start; margin:.5rem 0; padding:.6rem .8rem; border-radius:10px; font-size:.8rem; {% if order.status.value == 'shipped' %}background:#f0fdf4; color:#166534; border:1px solid #bbf7d0;{% elif order.status.value == 'confirmed' %}background:#eff6ff; color:#1e40af; border:1px solid #bfdbfe;{% elif order.status.value == 'cancelled' %}background:#fef2f2; color:#991b1b; border:1px solid #fecaca;{% elif order.status.value == 'pending' %}background:#fefce8; color:#854d0e; border:1px solid #fde68a;{% else %}background:#f8fafc; color:#334155; border:1px solid #e2e8f0;{% endif %}">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="15" height="15" style="flex-shrink:0; margin-top:1px;"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
+        <div><strong>{{ order.fulfillment_message }}</strong>{% if order.fulfillment_note %}<div style="opacity:.85;">{{ order.fulfillment_note }}</div>{% endif %}</div>
+      </div>
+      {% endif %}
 
       <div class="order-card__details">
         <div class="order-card__detail">

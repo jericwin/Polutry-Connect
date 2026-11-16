@@ -144,8 +144,8 @@
         </div>
     </div>
 
-        {# ── Farm Health & Efficiency Strip ── #}
-        <h4 style="margin: 1.5rem 0 1rem; color: #2c3e50; font-size: 1.25rem;">Flock Health & Efficiency</h4>
+        {# ── Flock Health Strip ── #}
+        <h4 style="margin: 1.5rem 0 1rem; color: #2c3e50; font-size: 1.25rem;">Flock Health</h4>
         <div class="kpi-grid kpi-grid--analytics" style="margin-bottom: 2rem;">
 
             <div class="kpi-card kpi-card--clickable" data-accent="green" onclick="pcOpenDataSource('feed')" title="Click to view Feed consumption breakdown" style="cursor: pointer; position: relative;">
@@ -161,30 +161,12 @@
                 <div class="kpi-sub">Total this month</div>
             </div>
 
-            <div
-                class="kpi-card {% if feed_efficiency > 150 %}kpi-card--loss{% elif feed_efficiency > 0 %}kpi-card--profit{% endif %}">
-                <div class="kpi-icon">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                        stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <circle cx="12" cy="12" r="10" />
-                        <path d="M16 12l-4-4-4 4M12 8v8" />
-                    </svg>
-                </div>
-                <div class="kpi-label">Feed Efficiency</div>
-                <div class="kpi-value {% if feed_efficiency > 150 %}kpi-value--loss{% endif %}">
-                    {{ "{:,.1f}".format(feed_efficiency) }} g
-                </div>
-                <div class="kpi-sub">Grams of feed per egg</div>
-            </div>
-
             <div class="kpi-card kpi-card--clickable" data-accent="red" onclick="pcOpenDataSource('mortality')" title="Click to view Mortality incident records" style="cursor: pointer; position: relative;">
                 <div class="kpi-icon">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                         stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M20 11H4" />
-                        <path d="M20 7H4" />
-                        <path d="M7 21V3h8a4 4 0 0 1 0 8H7" />
-                        <path d="M2 2l20 20" />
+                        <polyline points="23 18 13.5 8.5 8.5 13.5 1 6" />
+                        <polyline points="17 18 23 18 23 12" />
                     </svg>
                 </div>
                 <div class="kpi-label">Mortality</div>

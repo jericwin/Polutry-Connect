@@ -1,4 +1,5 @@
 {% extends "dashboard_base.html" %}
+{% from "includes/_upload.html" import upload_zone %}
 
 {% block title %}Owner Verification{% endblock %}
 {% block page_title %}Owner Verification{% endblock %}
@@ -352,7 +353,7 @@
         <div class="summary-col-val">{{ verification.id_type or 'Valid ID' }}</div>
         <div class="summary-col-sub">Number: <strong>{{ verification.id_number or 'N/A' }}</strong></div>
         {% if verification.id_document_url %}
-        <a href="{{ url_for('static', filename=verification.id_document_url) }}" target="_blank" class="doc-btn-link">
+        <a href="{{ verification.id_document_url|media_url }}" target="_blank" class="doc-btn-link">
           <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
           View Uploaded Document
         </a>
@@ -366,7 +367,7 @@
         </div>
         <div class="summary-col-val">{{ verification.permit_type or 'Farm Permit' }}</div>
         {% if verification.permit_document_url %}
-        <a href="{{ url_for('static', filename=verification.permit_document_url) }}" target="_blank" class="doc-btn-link">
+        <a href="{{ verification.permit_document_url|media_url }}" target="_blank" class="doc-btn-link">
           <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
           View Uploaded Permit
         </a>
@@ -378,7 +379,7 @@
     <div style="padding-top: 0.75rem; border-top: 1px solid #f1f5f9; display: flex; align-items: center; gap: 0.5rem; font-size: 0.8125rem;">
       <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
       <span style="color: #64748b;">Facility Photo:</span>
-      <a href="{{ url_for('static', filename=verification.farm_photo_url) }}" target="_blank" style="color: #0284c7; font-weight: 500; text-decoration: underline;">
+      <a href="{{ verification.farm_photo_url|media_url }}" target="_blank" style="color: #0284c7; font-weight: 500; text-decoration: underline;">
         View Farm Facility Photo
       </a>
     </div>
@@ -491,13 +492,7 @@
 
         <div class="field-group">
           <label class="field-label">Upload ID Document (Scan or Photo) *</label>
-          <input type="file" name="id_document" accept=".jpg,.jpeg,.png,.webp,.pdf" {% if not verification or not verification.id_document_url %}required{% endif %} class="field-file">
-          {% if verification and verification.id_document_url %}
-          <div class="field-attached">
-            <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
-            An ID document is currently on file. Upload a new file only if replacing.
-          </div>
-          {% endif %}
+          {{ upload_zone('id_document', accept='.jpg,.jpeg,.png,.webp,.pdf', title='Upload your ID', hint='Clear photo or scan — JPG, PNG, WEBP or PDF', required=(not verification or not verification.id_document_url), current_url=(verification.id_document_url if verification else None), current_label='ID document on file — upload only if replacing', is_image=False) }}
         </div>
       </div>
 
@@ -522,13 +517,7 @@
 
           <div class="field-group">
             <label class="field-label">Upload Permit Document *</label>
-            <input type="file" name="permit_document" accept=".jpg,.jpeg,.png,.webp,.pdf" {% if not verification or not verification.permit_document_url %}required{% endif %} class="field-file">
-            {% if verification and verification.permit_document_url %}
-            <div class="field-attached">
-              <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
-              A permit document is currently on file. Upload a new file only if replacing.
-            </div>
-            {% endif %}
+            {{ upload_zone('permit_document', accept='.jpg,.jpeg,.png,.webp,.pdf', title='Upload permit', hint='JPG, PNG, WEBP or PDF', required=(not verification or not verification.permit_document_url), current_url=(verification.permit_document_url if verification else None), current_label='Permit on file — upload only if replacing', is_image=False) }}
           </div>
         </div>
       </div>
@@ -540,14 +529,7 @@
           4. Farm Facility Photograph (Optional)
         </div>
         <div class="field-group">
-          <input type="file" name="farm_photo" accept=".jpg,.jpeg,.png,.webp" class="field-file">
-          <span class="field-help">Recommended: A photo of your coop or poultry enclosure helps expedite verification.</span>
-          {% if verification and verification.farm_photo_url %}
-          <div class="field-attached">
-            <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
-            A facility photograph is currently on file.
-          </div>
-          {% endif %}
+          {{ upload_zone('farm_photo', accept='.jpg,.jpeg,.png,.webp', title='Upload farm photo', hint='A photo of your coop or poultry house helps speed up verification', current_url=(verification.farm_photo_url if verification else None), current_label='Facility photo on file') }}
         </div>
       </div>
 

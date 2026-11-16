@@ -102,6 +102,16 @@
             {% endfor %}
         </div>
 
+        {% if order.status.value in ['confirmed', 'shipped', 'pending'] %}
+        <div class="fo-eta fo-eta--{{ order.status.value }}">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
+            <div>
+                <strong>{{ order.fulfillment_message }}</strong>
+                {% if order.fulfillment_note %}<div class="fo-eta__note">Note to buyer: {{ order.fulfillment_note }}</div>{% endif %}
+            </div>
+        </div>
+        {% endif %}
+
         <div class="fo-card__footer">
             <div class="fo-card__delivery">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
@@ -117,15 +127,29 @@
         {% if order.status.value != 'delivered' and order.status.value != 'cancelled' %}
         <form method="post" action="{{ url_for('marketplace.update_order_status', order_id=order.id) }}" class="fo-status-form">
             <label for="statusSelect-{{ order.id }}" class="fo-status-label">Update Status:</label>
-            <div class="fo-status-controls">
+            <div class="fo-status-controls" style="flex-wrap:wrap;">
                 <div class="select-wrap">
-                    <select id="statusSelect-{{ order.id }}" name="status">
+                    <select id="statusSelect-{{ order.id }}" name="status" onchange="toggleEta({{ order.id }})">
                         <option value="pending" {{ 'selected' if order.status.value == 'pending' }}>Pending</option>
                         <option value="confirmed" {{ 'selected' if order.status.value == 'confirmed' }}>Confirmed</option>
-                        <option value="shipped" {{ 'selected' if order.status.value == 'shipped' }}>Shipped</option>
+                        <option value="shipped" {{ 'selected' if order.status.value == 'shipped' }}>Shipped / Ready</option>
                         <option value="delivered" {{ 'selected' if order.status.value == 'delivered' }}>Delivered</option>
                         <option value="cancelled">Cancel Order</option>
                     </select>
+                </div>
+                <div class="fo-eta-fields" id="etaFields-{{ order.id }}">
+                    <label class="fo-eta-field">
+                        <span>Working days</span>
+                        <input type="number" name="estimated_days" min="1" max="30" value="{{ order.estimated_days or 2 }}" style="width:70px;">
+                    </label>
+                    <label class="fo-eta-field" style="flex:1; min-width:180px;">
+                        <span>Details for buyer</span>
+                        <select name="fulfillment_note">
+                            {% for n in ['Preparing your eggs', 'Ready for pick-up at the farm', 'Ready to be delivered', 'Out for delivery'] %}
+                            <option value="{{ n }}" {{ 'selected' if order.fulfillment_note == n }}>{{ n }}</option>
+                            {% endfor %}
+                        </select>
+                    </label>
                 </div>
                 <button type="submit" class="btn btn-primary btn-sm">Update</button>
             </div>
@@ -146,4 +170,24 @@
 </div>
 {% endif %}
 
+<style>
+.fo-eta { display:flex; gap:.6rem; align-items:flex-start; margin:.75rem 0 .25rem; padding:.7rem .9rem; border-radius:12px; font-size:.82rem; }
+.fo-eta svg { flex-shrink:0; margin-top:2px; }
+.fo-eta--pending { background:#fefce8; color:#854d0e; border:1px solid #fde68a; }
+.fo-eta--confirmed { background:#eff6ff; color:#1e40af; border:1px solid #bfdbfe; }
+.fo-eta--shipped { background:#f0fdf4; color:#166534; border:1px solid #bbf7d0; }
+.fo-eta__note { font-size:.76rem; opacity:.85; margin-top:.15rem; }
+.fo-eta-fields { display:flex; gap:.6rem; align-items:flex-end; flex-wrap:wrap; }
+.fo-eta-field { display:flex; flex-direction:column; gap:.2rem; font-size:.7rem; font-weight:700; color:var(--on-surface-variant); text-transform:uppercase; letter-spacing:.03em; }
+.fo-eta-field input, .fo-eta-field select { padding:.4rem .55rem; border:1px solid var(--outline-variant); border-radius:8px; font-family:inherit; font-size:.82rem; text-transform:none; letter-spacing:0; font-weight:500; }
+</style>
+<script>
+function toggleEta(id) {
+    var sel = document.getElementById('statusSelect-' + id);
+    var box = document.getElementById('etaFields-' + id);
+    if (!sel || !box) return;
+    box.style.display = (sel.value === 'confirmed' || sel.value === 'shipped') ? 'flex' : 'none';
+}
+document.querySelectorAll('[id^="statusSelect-"]').forEach(function (el) { toggleEta(el.id.split('-')[1]); });
+</script>
 {% endblock %}

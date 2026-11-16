@@ -14,24 +14,58 @@
 </a>
 {% endblock %}
 
+{% block extra_css %}
+<style>
+.pl-filter-row { display:flex; flex-wrap:wrap; gap:.4rem; align-items:center; }
+.pl-filter-label { font-size:.75rem; font-weight:700; text-transform:uppercase; letter-spacing:.05em; color:var(--on-surface-variant); margin-right:.15rem; }
+.pl-filter-sep { width:1px; height:22px; background:var(--outline-variant); margin:0 .5rem; }
+.pl-chip { display:inline-flex; align-items:center; gap:.35rem; padding:.35rem .9rem; border-radius:99px; font-size:.82rem; font-weight:600; text-decoration:none; border:1.5px solid var(--outline-variant); background:var(--surface); color:var(--on-surface-variant); transition:all .15s; }
+.pl-chip:hover { border-color:#15803d; color:#166534; }
+.pl-chip.is-active { border-color:#15803d; background:#dcfce7; color:#166534; }
+.variety-chip { display:inline-flex; align-items:center; gap:.35rem; }
+.variety-dot { width:11px; height:11px; border-radius:50%; display:inline-block; border:1px solid rgba(0,0,0,.18); flex-shrink:0; }
+.variety-dot--brown { background:#c08552; }
+.variety-dot--white { background:#f8fafc; }
+.pl-summary { display:grid; grid-template-columns:repeat(auto-fit, minmax(160px, 1fr)); gap:.75rem; margin-bottom:1.25rem; }
+.pl-summary__card { background:var(--surface); border:1px solid var(--outline-variant); border-radius:1rem; padding:.85rem 1rem; display:flex; flex-direction:column; gap:.15rem; }
+.pl-summary__card span { font-size:.75rem; font-weight:700; text-transform:uppercase; letter-spacing:.05em; color:var(--on-surface-variant); display:flex; align-items:center; gap:.35rem; }
+.pl-summary__card strong { font-size:1.5rem; color:var(--text-dark); }
+.pl-summary__card small { font-size:.75rem; color:var(--text-muted); }
+.pl-summary__card--brown { background:#fdf6ef; border-color:#f1dcc7; }
+.pl-day { margin-bottom:1rem; }
+.pl-day__head { display:flex; flex-wrap:wrap; align-items:center; gap:.75rem 1.25rem; padding:.85rem 1.1rem; border-bottom:1px solid var(--outline-variant); background:var(--surface-container-low, #f8fafc); }
+.pl-day__date { display:flex; flex-direction:column; min-width:120px; }
+.pl-day__date strong { font-size:.95rem; color:var(--text-dark); }
+.pl-day__date span { font-size:.78rem; color:var(--text-muted); }
+.pl-day__totals { display:flex; flex-wrap:wrap; gap:.5rem; }
+.pl-tot { display:inline-flex; align-items:center; gap:.35rem; padding:.3rem .7rem; border-radius:99px; font-size:.8rem; font-weight:600; }
+.pl-tot b { font-weight:800; }
+.pl-tot--brown { background:#fdf0e3; color:#7c4a1e; }
+.pl-tot--white { background:#f1f5f9; color:#334155; }
+.pl-tot--all { background:#dcfce7; color:#166534; }
+.pl-day__sizes { display:flex; flex-wrap:wrap; gap:.6rem; font-size:.75rem; color:var(--text-muted); margin-left:auto; }
+.pl-day__sizes b { color:var(--text-dark); }
+</style>
+{% endblock %}
+
 {% block content %}
 
 <div class="section-header">
     <h2>Daily Production Records</h2>
-    <p>Your last 60 production entries. Each record is one farm per day.</p>
+    <p>Daily egg collection by variety (brown / white) and size. Use the buttons to filter.</p>
 </div>
 
 {% if farms %}
 <div style="display: flex; flex-direction: column; gap: 1rem; margin-bottom: 2rem;">
     <!-- Farm Pills -->
     <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
-        <a href="{{ url_for('production.log', farm_id=0, start_date=start_date_str, end_date=end_date_str) }}" 
+        <a href="{{ url_for('production.log', farm_id=0, start_date=start_date_str, end_date=end_date_str, variety=selected_variety, size=selected_size) }}" 
            class="btn btn-sm" 
            style="border-radius: 99px; font-weight: 600; padding: 0.4rem 1.2rem; text-decoration: none; border: 1.5px solid {% if selected_farm_id == 0 or not selected_farm_id %}#15803d{% else %}var(--outline-variant){% endif %}; background: {% if selected_farm_id == 0 or not selected_farm_id %}#dcfce7{% else %}var(--surface){% endif %}; color: {% if selected_farm_id == 0 or not selected_farm_id %}#166534{% else %}var(--on-surface-variant){% endif %}; transition: all 0.2s;">
            All Farms
         </a>
         {% for farm in farms %}
-        <a href="{{ url_for('production.log', farm_id=farm.id, start_date=start_date_str, end_date=end_date_str) }}" 
+        <a href="{{ url_for('production.log', farm_id=farm.id, start_date=start_date_str, end_date=end_date_str, variety=selected_variety, size=selected_size) }}" 
            class="btn btn-sm" 
            style="border-radius: 99px; font-weight: 600; padding: 0.4rem 1.2rem; text-decoration: none; border: 1.5px solid {% if selected_farm_id == farm.id %}#15803d{% else %}var(--outline-variant){% endif %}; background: {% if selected_farm_id == farm.id %}#dcfce7{% else %}var(--surface){% endif %}; color: {% if selected_farm_id == farm.id %}#166534{% else %}var(--on-surface-variant){% endif %}; transition: all 0.2s;">
            {{ farm.name }}
@@ -44,6 +78,8 @@
         {% if selected_farm_id %}
             <input type="hidden" name="farm_id" value="{{ selected_farm_id }}">
         {% endif %}
+        {% if selected_variety %}<input type="hidden" name="variety" value="{{ selected_variety }}">{% endif %}
+        {% if selected_size %}<input type="hidden" name="size" value="{{ selected_size }}">{% endif %}
         <div style="display:flex; align-items:center; gap:0.5rem;">
             <label for="start_date" style="font-size:0.875rem; font-weight:600; color:var(--on-surface-variant); margin:0;">From</label>
             <input type="date" name="start_date" id="start_date" value="{{ start_date_str or '' }}" style="padding:0.3rem 0.5rem; border:1px solid var(--outline-variant); border-radius:0.5rem; outline:none; font-family:inherit; font-size:0.875rem; color:var(--text-dark);">
@@ -57,63 +93,76 @@
             <a href="{{ url_for('production.log') }}{% if selected_farm_id %}?farm_id={{ selected_farm_id }}{% endif %}" class="btn" style="padding:0.4rem 1rem; font-size:0.875rem; color:var(--text-muted); border-radius: 99px; text-decoration:none;">Clear</a>
         {% endif %}
     </form>
+
+    <!-- Variety & Size buttons -->
+    <div class="pl-filter-row">
+        <span class="pl-filter-label">Variety</span>
+        <a href="{{ url_for('production.log', farm_id=selected_farm_id, start_date=start_date_str, end_date=end_date_str, size=selected_size) }}" class="pl-chip {{ 'is-active' if not selected_variety }}">All</a>
+        {% for v_key, v_label in varieties %}
+        <a href="{{ url_for('production.log', farm_id=selected_farm_id, start_date=start_date_str, end_date=end_date_str, size=selected_size, variety=v_key) }}" class="pl-chip {{ 'is-active' if selected_variety == v_key }}"><span class="variety-dot variety-dot--{{ v_key }}"></span>{{ v_label }}</a>
+        {% endfor %}
+        <span class="pl-filter-sep"></span>
+        <span class="pl-filter-label">Size</span>
+        <a href="{{ url_for('production.log', farm_id=selected_farm_id, start_date=start_date_str, end_date=end_date_str, variety=selected_variety) }}" class="pl-chip {{ 'is-active' if not selected_size }}">All</a>
+        {% for s_key, s_label in sizes %}
+        <a href="{{ url_for('production.log', farm_id=selected_farm_id, start_date=start_date_str, end_date=end_date_str, variety=selected_variety, size=s_key) }}" class="pl-chip {{ 'is-active' if selected_size == s_key }}">{{ s_label }}</a>
+        {% endfor %}
+    </div>
 </div>
 {% endif %}
 
 {% if records %}
-<div class="table-card">
+<div class="pl-summary">
+    <div class="pl-summary__card"><span>Total eggs</span><strong>{{ "{:,}".format(summary.total) }}</strong><small>{{ summary.days }} day{{ 's' if summary.days != 1 }}</small></div>
+    <div class="pl-summary__card pl-summary__card--brown"><span><span class="variety-dot variety-dot--brown"></span> Brown</span><strong>{{ "{:,}".format(summary.brown) }}</strong></div>
+    <div class="pl-summary__card pl-summary__card--white"><span><span class="variety-dot variety-dot--white"></span> White</span><strong>{{ "{:,}".format(summary.white) }}</strong></div>
+</div>
+
+{% for day in day_groups %}
+<div class="table-card pl-day">
+    <div class="pl-day__head">
+        <div class="pl-day__date">
+            <strong>{{ day.date.strftime('%A') }}</strong>
+            <span>{{ day.date.strftime('%b %d, %Y') }}</span>
+        </div>
+        <div class="pl-day__totals">
+            <span class="pl-tot pl-tot--brown"><span class="variety-dot variety-dot--brown"></span> Brown <b>{{ "{:,}".format(day.brown) }}</b></span>
+            <span class="pl-tot pl-tot--white"><span class="variety-dot variety-dot--white"></span> White <b>{{ "{:,}".format(day.white) }}</b></span>
+            <span class="pl-tot pl-tot--all">Total <b>{{ "{:,}".format(day.total) }}</b></span>
+        </div>
+        <div class="pl-day__sizes">
+            {% for s_key, s_label in sizes %}{% if day.sizes[s_key] %}<span>{{ s_label }}: <b>{{ "{:,}".format(day.sizes[s_key]) }}</b></span>{% endif %}{% endfor %}
+        </div>
+    </div>
     <table class="data-table">
         <thead>
             <tr>
-                <th>Date</th>
                 <th>Farm</th>
+                <th>Variety</th>
+                <th>Size</th>
                 <th>Eggs</th>
-                <th>Size/Variety</th>
+                <th>Price / egg</th>
                 <th>Notes</th>
                 <th style="text-align:right">Actions</th>
             </tr>
         </thead>
         <tbody>
-            {% for rec in records %}
+            {% for rec in day.records %}
             <tr>
-                <td>
-                    <span class="date-pill">{{ rec.record_date.strftime('%b %d, %Y') }}</span>
-                </td>
                 <td class="muted">{{ farm_map.get(rec.farm_id, '—') }}</td>
-                <td>
-                    <span class="badge badge-eggs">{{ "{:,}".format(rec.egg_count) }}</span>
-                </td>
-                <td class="muted">
-                    {% if rec.size and rec.variety %}
-                        {{ rec.size.value|title }} {{ rec.variety.value|title }}
-                    {% else %}
-                        —
-                    {% endif %}
-                </td>
-                <td class="muted" style="max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">
-                    {{ rec.notes or '—' }}
-                </td>
+                <td>{% if rec.variety %}<span class="variety-chip"><span class="variety-dot variety-dot--{{ rec.variety.value }}"></span>{{ rec.variety.value|title }}</span>{% else %}—{% endif %}</td>
+                <td>{{ rec.size.value.replace('_', ' ')|title if rec.size else '—' }}</td>
+                <td><span class="badge badge-eggs">{{ "{:,}".format(rec.egg_count) }}</span></td>
+                <td class="muted">{{ '₱%.2f'|format(rec.egg_price) if rec.egg_price else '—' }}</td>
+                <td class="muted" style="max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ rec.notes or '—' }}</td>
                 <td style="text-align:right">
                     <div class="row-actions">
-                        <a href="{{ url_for('production.log_edit', record_id=rec.id) }}"
-                           class="row-action-btn" title="Edit">
-                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
-                                 stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/>
-                                <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/>
-                            </svg>
+                        <a href="{{ url_for('production.log_edit', record_id=rec.id) }}" class="row-action-btn" title="Edit">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
                         </a>
-                        <form method="POST" action="{{ url_for('production.log_delete', record_id=rec.id) }}"
-                              style="display:inline"
-                              onsubmit="return confirm('Delete this production record? This cannot be undone.')">
+                        <form method="POST" action="{{ url_for('production.log_delete', record_id=rec.id) }}" style="display:inline" onsubmit="return confirm('Delete this production record? This cannot be undone.')">
                             <button type="submit" class="row-action-btn row-action-btn--danger" title="Delete">
-                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
-                                     stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                    <polyline points="3 6 5 6 21 6"/>
-                                    <path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/>
-                                    <path d="M10 11v6M14 11v6"/>
-                                    <path d="M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2"/>
-                                </svg>
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2"/></svg>
                             </button>
                         </form>
                     </div>
@@ -123,6 +172,7 @@
         </tbody>
     </table>
 </div>
+{% endfor %}
 {% else %}
 <div class="empty-page">
     <div class="empty-page__icon">

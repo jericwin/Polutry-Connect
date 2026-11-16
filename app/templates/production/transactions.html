@@ -33,6 +33,31 @@
     padding: 0.45rem 0.65rem !important;
     line-height: 1.25 !important;
 }
+.tx-tabs { display:inline-flex; gap:.25rem; padding:.3rem; background:var(--surface-container, #eef2f6); border-radius:99px; margin:0 0 1rem; }
+.tx-tab { display:inline-flex; align-items:center; gap:.35rem; padding:.45rem 1.1rem; border-radius:99px; font-weight:700; font-size:.85rem; color:var(--on-surface-variant); text-decoration:none; }
+.tx-tab.is-active { background:#fff; color:#166534; box-shadow:0 1px 4px rgba(0,0,0,.08); }
+.tx-quick { display:grid; grid-template-columns:repeat(auto-fit, minmax(220px, 1fr)); gap:.75rem; margin-bottom:1.25rem; }
+.tx-quick__card { display:flex; flex-direction:column; gap:.2rem; padding:.9rem 1.1rem; border-radius:1rem; border:1.5px solid var(--outline-variant); background:var(--surface); text-decoration:none; color:inherit; transition:border-color .15s, box-shadow .15s; }
+.tx-quick__card:hover { border-color:#86efac; }
+.tx-quick__card.is-active { border-color:#16a34a; box-shadow:0 4px 14px rgba(22,163,74,.12); background:#f0fdf4; }
+.tx-quick__label { font-size:.72rem; font-weight:700; text-transform:uppercase; letter-spacing:.05em; color:var(--on-surface-variant); }
+.tx-quick__card strong { font-size:1.45rem; color:#14532d; }
+.tx-quick__split { display:flex; gap:.5rem; flex-wrap:wrap; }
+.tx-quick__split em, .tx-sub-chip { font-style:normal; font-size:.72rem; font-weight:700; padding:.15rem .5rem; border-radius:99px; }
+.on { background:#dcfce7; color:#166534; }
+.ol { background:#e0f2fe; color:#0369a1; }
+.tx-period { display:inline-flex; gap:.2rem; margin-left:.5rem; background:var(--surface-container, #eef2f6); padding:.2rem; border-radius:99px; }
+.tx-period a { padding:.25rem .75rem; border-radius:99px; font-size:.75rem; font-weight:700; color:var(--on-surface-variant); text-decoration:none; }
+.tx-period a.is-active { background:#fff; color:#166534; box-shadow:0 1px 3px rgba(0,0,0,.08); }
+.tx-group-head td { background:var(--surface-container-low, #f8fafc) !important; padding:.55rem .65rem !important; border-top:2px solid var(--outline-variant); }
+.tx-group-head__inner { display:flex; justify-content:space-between; align-items:center; }
+.tx-group-head__inner strong { font-size:.8rem; color:var(--text-dark); }
+.tx-group-head__inner span { font-size:.72rem; color:var(--text-muted); }
+.tx-subtotal td { background:#fafdfb; font-weight:800; font-size:.78rem !important; color:#14532d; border-bottom:1px solid var(--outline-variant); }
+.tx-sub-label { margin-right:.6rem; text-transform:uppercase; letter-spacing:.04em; font-size:.7rem; color:var(--on-surface-variant); }
+.tx-sub-chip { margin-right:.35rem; }
+.tx-grand td { background:#14532d !important; color:#fff !important; font-weight:800; font-size:.9rem !important; padding:.75rem .65rem !important; }
+.tx-grand .tx-sub-label { color:#bbf7d0; }
 </style>
 
 <div class="dash-content-header">
@@ -42,16 +67,40 @@
     </div>
 </div>
 
+<!-- Online / On-site toggle -->
+<div class="tx-tabs">
+    <a href="{{ url_for('production.transactions', farm_id=selected_farm_id, start_date=start_date_str, end_date=end_date_str, period=period) }}" class="tx-tab {{ 'is-active' if not selected_type }}">All Sales</a>
+    <a href="{{ url_for('production.transactions', farm_id=selected_farm_id, start_date=start_date_str, end_date=end_date_str, period=period, type='onsite') }}" class="tx-tab {{ 'is-active' if selected_type == 'onsite' }}">
+        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
+        On-site
+    </a>
+    <a href="{{ url_for('production.transactions', farm_id=selected_farm_id, start_date=start_date_str, end_date=end_date_str, period=period, type='online') }}" class="tx-tab {{ 'is-active' if selected_type == 'online' }}">
+        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+        Online
+    </a>
+</div>
+
+<!-- Daily / Weekly / Monthly quick totals -->
+<div class="tx-quick">
+    {% for key, label in [('daily', 'Today'), ('weekly', 'This Week'), ('monthly', 'This Month')] %}
+    <a href="{{ url_for('production.transactions', farm_id=selected_farm_id, type=selected_type, start_date=start_date_str, end_date=end_date_str, period=key) }}" class="tx-quick__card {{ 'is-active' if period == key }}">
+        <span class="tx-quick__label">{{ label }} · {{ key|title }} Sales</span>
+        <strong>₱{{ "{:,.2f}".format(quick[key].total) }}</strong>
+        <span class="tx-quick__split"><em class="on">On-site ₱{{ "{:,.2f}".format(quick[key].onsite) }}</em><em class="ol">Online ₱{{ "{:,.2f}".format(quick[key].online) }}</em></span>
+    </a>
+    {% endfor %}
+</div>
+
 <div style="display: flex; flex-direction: column; gap: 1rem; margin-bottom: 2rem;">
     <!-- Farm Pills -->
     <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
-        <a href="{{ url_for('production.transactions', farm_id=0, type=selected_type, start_date=start_date_str, end_date=end_date_str) }}" 
+        <a href="{{ url_for('production.transactions', farm_id=0, type=selected_type, start_date=start_date_str, end_date=end_date_str, period=period) }}" 
            class="btn btn-sm" 
            style="border-radius: 99px; font-weight: 600; padding: 0.4rem 1.2rem; text-decoration: none; border: 1.5px solid {% if selected_farm_id == 0 or not selected_farm_id %}#15803d{% else %}var(--outline-variant){% endif %}; background: {% if selected_farm_id == 0 or not selected_farm_id %}#dcfce7{% else %}var(--surface){% endif %}; color: {% if selected_farm_id == 0 or not selected_farm_id %}#166534{% else %}var(--on-surface-variant){% endif %}; transition: all 0.2s;">
            All Farms
         </a>
         {% for farm in farms %}
-        <a href="{{ url_for('production.transactions', farm_id=farm.id, type=selected_type, start_date=start_date_str, end_date=end_date_str) }}" 
+        <a href="{{ url_for('production.transactions', farm_id=farm.id, type=selected_type, start_date=start_date_str, end_date=end_date_str, period=period) }}" 
            class="btn btn-sm" 
            style="border-radius: 99px; font-weight: 600; padding: 0.4rem 1.2rem; text-decoration: none; border: 1.5px solid {% if selected_farm_id == farm.id %}#15803d{% else %}var(--outline-variant){% endif %}; background: {% if selected_farm_id == farm.id %}#dcfce7{% else %}var(--surface){% endif %}; color: {% if selected_farm_id == farm.id %}#166534{% else %}var(--on-surface-variant){% endif %}; transition: all 0.2s;">
            {{ farm.name }}
@@ -94,8 +143,13 @@
 <div class="ds-card">
     <div class="ds-card__header" style="display:flex; justify-content:space-between; align-items:center;">
         <div style="display:flex; align-items:center; gap:0.75rem;">
-            <h3 class="ds-card__label" style="margin:0;">All Sales Records</h3>
+            <h3 class="ds-card__label" style="margin:0;">{{ {'onsite': 'On-site', 'online': 'Online'}.get(selected_type, 'All') }} Sales — {{ period|title }}</h3>
             <span class="ds-pill ds-pill--green" style="margin:0;">{{ sales|length }} Records</span>
+            <div class="tx-period">
+                {% for key in ['daily', 'weekly', 'monthly'] %}
+                <a href="{{ url_for('production.transactions', farm_id=selected_farm_id, type=selected_type, start_date=start_date_str, end_date=end_date_str, period=key) }}" class="{{ 'is-active' if period == key }}">{{ key|title }}</a>
+                {% endfor %}
+            </div>
         </div>
         <div style="display:flex; gap:0.5rem;">
             {% if current_user.is_premium %}
@@ -130,7 +184,16 @@
                 </tr>
             </thead>
             <tbody>
-                {% for sale in sales %}
+                {% for g in period_groups %}
+                <tr class="tx-group-head">
+                    <td colspan="6">
+                        <div class="tx-group-head__inner">
+                            <strong>{{ g.label }}</strong>
+                            <span>{{ g.sales|length }} sale{{ 's' if g.sales|length != 1 }}</span>
+                        </div>
+                    </td>
+                </tr>
+                {% for sale in g.sales %}
                 <tr style="border-bottom:1px solid var(--outline-variant); transition:background 0.2s;">
                     <td style="padding:0.45rem 0.65rem; white-space:nowrap; font-size:0.72rem;">{{ sale.sale_date.strftime('%b %d, %Y') }}</td>
                     <td style="padding:0.45rem 0.65rem; font-weight:500; white-space:nowrap;">
@@ -180,7 +243,28 @@
                     </td>
                 </tr>
                 {% endfor %}
+                <tr class="tx-subtotal">
+                    <td colspan="4">
+                        <span class="tx-sub-label">{{ period|title }} total</span>
+                        {% if not selected_type or selected_type == 'onsite' %}<span class="tx-sub-chip on">On-site ₱{{ "{:,.2f}".format(g.onsite) }} ({{ g.onsite_count }})</span>{% endif %}
+                        {% if not selected_type or selected_type == 'online' %}<span class="tx-sub-chip ol">Online ₱{{ "{:,.2f}".format(g.online) }} ({{ g.online_count }})</span>{% endif %}
+                    </td>
+                    <td style="text-align:right;">₱{{ "{:,.2f}".format(g.total) }}</td>
+                    <td></td>
+                </tr>
+                {% endfor %}
             </tbody>
+            <tfoot>
+                <tr class="tx-grand">
+                    <td colspan="4">
+                        <span class="tx-sub-label">Grand total ({{ grand.count }} sales)</span>
+                        {% if not selected_type or selected_type == 'onsite' %}<span class="tx-sub-chip on">On-site ₱{{ "{:,.2f}".format(grand.onsite) }}</span>{% endif %}
+                        {% if not selected_type or selected_type == 'online' %}<span class="tx-sub-chip ol">Online ₱{{ "{:,.2f}".format(grand.online) }}</span>{% endif %}
+                    </td>
+                    <td style="text-align:right;">₱{{ "{:,.2f}".format(grand.total) }}</td>
+                    <td></td>
+                </tr>
+            </tfoot>
         </table>
     </div>
     {% else %}

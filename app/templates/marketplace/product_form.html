@@ -1,4 +1,5 @@
 {% extends "dashboard_base.html" %}
+{% from "includes/_upload.html" import upload_zone %}
 
 {% block title %}{{ title }} — PoultryConnect{% endblock %}
 {% block page_title %}{{ title }}{% endblock %}
@@ -126,16 +127,7 @@
 
             <div class="form-group">
                 <label for="imageInput">Product Image <span style="font-weight:400; text-transform:none; letter-spacing:normal;">(optional)</span></label>
-                {% if product is defined and product and product.display_image_url %}
-                <div style="margin-bottom:0.75rem; display:flex; align-items:center; gap:0.75rem;">
-                    <img src="{{ product.display_image_url }}" alt="Current Image" style="width:72px; height:72px; object-fit:cover; border-radius:var(--radius-sm); border:1px solid var(--outline);">
-                    <div>
-                        <div style="font-size:0.85rem; font-weight:600; color:var(--text-dark);">Current Product Image</div>
-                        <div style="font-size:0.78rem; color:var(--text-muted);">Choose a new file below to replace it.</div>
-                    </div>
-                </div>
-                {% endif %}
-                <input type="file" id="imageInput" name="image" accept="image/*" style="display: block; width: 100%; padding: 0.5rem; border: 1px dashed var(--outline); border-radius: var(--radius-md); background: var(--surface-container-lowest);">
+                {{ upload_zone('image', accept='image/*', title='Upload product photo', hint='Use a real photo of your eggs — JPG, PNG or WEBP', input_id='imageInput', current_url=(product.display_image_url if product is defined and product else None), current_label='Current product photo — choose a new one to replace it') }}
                 <span class="form-hint">Upload a clear photo of your product. Images will be verified by our AI moderation system.</span>
             </div>
 

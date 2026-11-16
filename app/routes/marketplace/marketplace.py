@@ -818,21 +818,18 @@ def manage_add():
 
         image_file = request.files.get('image')
         if image_file and image_file.filename:
-            filename = secure_filename(image_file.filename)
-            timestamp = datetime.utcnow().strftime('%Y%m%d%H%M%S')
-            new_filename = f"{current_user.id}_{timestamp}_{filename}"
-            
-            upload_dir = os.path.join(current_app.root_path, 'static', 'uploads')
-            os.makedirs(upload_dir, exist_ok=True)
-            
-            file_path = os.path.join(upload_dir, new_filename)
-            image_file.save(file_path)
-            
-            image_url = url_for('static', filename=f'uploads/{new_filename}')
+            from app.utils.storage import save_upload, temp_copy, UploadTooLarge
+            try:
+                image_url = save_upload(image_file, owner_id=current_user.id)
+            except UploadTooLarge as e:
+                db.session.rollback()
+                flash(str(e), 'error')
+                return redirect(url_for('marketplace.manage_add'))
             product.image_url = image_url
-            
-            # AI Moderation
-            is_safe, flag_reason, ai_result_json = moderate_image(file_path)
+
+            # AI Moderation (runs on a temporary copy of the stored file)
+            with temp_copy(image_url) as file_path:
+                is_safe, flag_reason, ai_result_json = moderate_image(file_path)
             
             if is_safe:
                 product.moderation_status = ModerationStatus.APPROVED
@@ -928,14 +925,13 @@ def manage_edit(product_id):
 
         image_file = request.files.get('image')
         if image_file and image_file.filename:
-            filename = secure_filename(image_file.filename)
-            timestamp = datetime.utcnow().strftime('%Y%m%d%H%M%S')
-            new_filename = f"{current_user.id}_{timestamp}_{filename}"
-            upload_dir = os.path.join(current_app.root_path, 'static', 'uploads')
-            os.makedirs(upload_dir, exist_ok=True)
-            file_path = os.path.join(upload_dir, new_filename)
-            image_file.save(file_path)
-            product.image_url = url_for('static', filename=f'uploads/{new_filename}')
+            from app.utils.storage import save_upload, UploadTooLarge
+            try:
+                product.image_url = save_upload(image_file, owner_id=current_user.id)
+            except UploadTooLarge as e:
+                db.session.rollback()
+                flash(str(e), 'error')
+                return redirect(url_for('marketplace.manage_edit', product_id=product.id))
 
         db.session.commit()
         flash(f'"{product.name}" updated.', 'success')
@@ -1218,7 +1214,42 @@ def update_order_status(order_id):
                 if rec:
                     db.session.delete(rec)
 
+    # Fulfillment details (working days + note) shown to the buyer
+    est_days = _safe_int(request.form.get('estimated_days'), default=0)
+    note = (request.form.get('fulfillment_note') or '').strip()[:255]
+    if new_status in ('confirmed', 'shipped'):
+        if est_days > 0:
+            order.estimated_days = min(est_days, 30)
+        elif new_status == 'confirmed' and not order.estimated_days:
+            order.estimated_days = 2
+        if note:
+            order.fulfillment_note = note
+    if new_status == 'confirmed' and old_status != 'confirmed':
+        order.confirmed_at = datetime.utcnow()
+    if new_status == 'shipped' and old_status != 'shipped':
+        order.shipped_at = datetime.utcnow()
+        if not order.confirmed_at:
+            order.confirmed_at = datetime.utcnow()
+
     order.status = OrderStatus(new_status)
+
+    # Let the buyer know
+    if new_status != old_status:
+        try:
+            from app.models import Notification
+            body = order.fulfillment_message
+            if order.fulfillment_note:
+                body = f"{body} Note: {order.fulfillment_note}"
+            db.session.add(Notification(
+                user_id=order.buyer_id,
+                title=f'Order #{order.id} {order.status_label}',
+                body=body[:255],
+                notif_type='order',
+                link_url=url_for('marketplace.order_detail', order_id=order.id),
+            ))
+        except Exception:
+            pass
+
     db.session.commit()
     flash(f'Order #{order.id} status updated to {order.status_label}. Inventory adjusted.', 'success')
     return redirect(url_for('marketplace.farmer_orders'))

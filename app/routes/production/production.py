@@ -25,7 +25,7 @@ from datetime import date, datetime
 from decimal import Decimal, InvalidOperation
 
 from app import db
-from app.models import Farm, ProductionRecord, Expense, UserRole, ExpenseCategory, ExpenseFrequency, SalesRecord, ProductSize, ProductVariety, FeedRecord, FlockHistory, Product, VerificationStatus
+from app.models import Farm, ProductionRecord, Expense, UserRole, ExpenseCategory, ExpenseFrequency, SalesRecord, ProductSize, ProductVariety, FeedRecord, FlockHistory, Product, VerificationStatus, MortalityRecord
 
 production_bp = Blueprint('production', __name__)
 
@@ -263,7 +263,43 @@ def log():
         except ValueError:
             pass
 
-    records = query.order_by(ProductionRecord.record_date.desc()).limit(60).all()
+    selected_variety = request.args.get('variety', '')
+    selected_size = request.args.get('size', '')
+    if selected_variety in {v for v, _ in EGG_VARIETIES}:
+        query = query.filter(ProductionRecord.variety == ProductVariety(selected_variety))
+    else:
+        selected_variety = ''
+    if selected_size in {s for s, _ in EGG_SIZES}:
+        query = query.filter(ProductionRecord.size == ProductSize(selected_size))
+    else:
+        selected_size = ''
+
+    records = query.order_by(ProductionRecord.record_date.desc(),
+                             ProductionRecord.farm_id, ProductionRecord.id).limit(300).all()
+
+    # Group by day: totals for brown / white and per size
+    from collections import OrderedDict
+    days = OrderedDict()
+    for rec in records:
+        d = days.setdefault(rec.record_date, {
+            'date': rec.record_date, 'records': [], 'total': 0, 'brown': 0, 'white': 0,
+            'sizes': OrderedDict((k, 0) for k, _ in EGG_SIZES), 'value': 0.0,
+        })
+        d['records'].append(rec)
+        d['total'] += rec.egg_count or 0
+        if rec.variety:
+            d[rec.variety.value] += rec.egg_count or 0
+        if rec.size:
+            d['sizes'][rec.size.value] += rec.egg_count or 0
+        d['value'] += rec.revenue
+    day_groups = list(days.values())[:45]
+
+    summary = {
+        'total': sum(d['total'] for d in day_groups),
+        'brown': sum(d['brown'] for d in day_groups),
+        'white': sum(d['white'] for d in day_groups),
+        'days': len(day_groups),
+    }
 
     return render_template(
         'production/log.html',
@@ -271,6 +307,12 @@ def log():
         farms=farms,
         farm_map=farm_map,
         records=records,
+        day_groups=day_groups,
+        summary=summary,
+        sizes=EGG_SIZES,
+        varieties=EGG_VARIETIES,
+        selected_variety=selected_variety,
+        selected_size=selected_size,
         selected_farm_id=selected_farm_id,
         start_date_str=start_date_str,
         end_date_str=end_date_str,
@@ -278,10 +320,42 @@ def log():
     )
 
 
+EGG_SIZES = [
+    ('small', 'Small'), ('medium', 'Medium'), ('large', 'Large'),
+    ('extra_large', 'Extra Large'), ('jumbo', 'Jumbo'),
+]
+EGG_VARIETIES = [('brown', 'Brown'), ('white', 'White')]
+RECOMMENDED_EGG_PRICES = {
+    'brown': {'small': 6.00, 'medium': 7.00, 'large': 8.00, 'extra_large': 9.00, 'jumbo': 10.00},
+    'white': {'small': 5.50, 'medium': 6.50, 'large': 7.50, 'extra_large': 8.50, 'jumbo': 9.50},
+}
+
+
+def _last_prices(farm_ids):
+    """Most recent selling price used per variety/size (falls back to recommended)."""
+    prices = {v: dict(sizes) for v, sizes in RECOMMENDED_EGG_PRICES.items()}
+    if not farm_ids:
+        return prices
+    recent = ProductionRecord.query.filter(
+        ProductionRecord.farm_id.in_(farm_ids),
+        ProductionRecord.egg_price.isnot(None),
+    ).order_by(ProductionRecord.record_date.desc()).limit(200).all()
+    seen = set()
+    for r in recent:
+        if not (r.variety and r.size):
+            continue
+        key = (r.variety.value, r.size.value)
+        if key in seen:
+            continue
+        seen.add(key)
+        prices.setdefault(key[0], {})[key[1]] = float(r.egg_price)
+    return prices
+
+
 @production_bp.route('/log/add', methods=['GET', 'POST'])
 @login_required
 def log_add():
-    """Add a daily production record."""
+    """Log a day's egg collection for ALL sizes and both varieties at once."""
     _require_farmer()
     farms = _get_my_farms()
 
@@ -289,90 +363,93 @@ def log_add():
         flash('You need to register a farm before logging production data.', 'error')
         return redirect(url_for('production.farm_add'))
 
+    farm_ids = [f.id for f in farms]
+    ctx = dict(
+        title='Log Production', action='add', farms=farms,
+        sizes=EGG_SIZES, varieties=EGG_VARIETIES,
+        last_prices=_last_prices(farm_ids), today=date.today(),
+    )
+
     if request.method == 'POST':
         farm_id     = _safe_int(request.form.get('farm_id'))
         record_date = _parse_date(request.form.get('record_date'))
-        egg_count   = _safe_int(request.form.get('egg_count'), default=0)
-        feed_kg     = _safe_decimal(request.form.get('feed_kg'))
-        feed_cost   = _safe_decimal(request.form.get('feed_cost'))
-        egg_price_raw = request.form.get('egg_price', '').strip()
-        egg_price   = _safe_decimal(egg_price_raw) if egg_price_raw else None
-        mortality   = _safe_int(request.form.get('mortality'), default=0)
         notes       = request.form.get('notes', '').strip()
-        
-        size_str    = request.form.get('size', '').strip()
-        variety_str = request.form.get('variety', '').strip()
-        size        = ProductSize(size_str) if size_str in {e.value for e in ProductSize} else None
-        variety     = ProductVariety(variety_str) if variety_str in {e.value for e in ProductVariety} else None
 
-        # ── validation ──────────────────────────────────────────────────
         errors = []
-        farm_ids = [f.id for f in farms]
-
         if farm_id not in farm_ids:
             errors.append('Invalid farm selected.')
         if not record_date:
             errors.append('A valid date is required.')
         elif record_date > date.today():
             errors.append('Production date cannot be in the future.')
-        if egg_count < 0:
-            errors.append('Egg count cannot be negative.')
-        if feed_kg < 0:
-            errors.append('Feed consumption cannot be negative.')
-        if feed_cost < 0:
-            errors.append('Feed cost cannot be negative.')
-        if mortality < 0:
-            errors.append('Mortality count cannot be negative.')
-        if egg_price is not None and egg_price < 0:
-            errors.append('Egg selling price cannot be negative.')
+
+        entries = []
+        for v_key, v_label in EGG_VARIETIES:
+            for s_key, s_label in EGG_SIZES:
+                count_raw = (request.form.get(f'count_{v_key}_{s_key}') or '').strip()
+                if not count_raw:
+                    continue
+                count = _safe_int(count_raw, default=-1)
+                if count < 0:
+                    errors.append(f'{s_label} {v_label}: egg count must be a whole number of 0 or more.')
+                    continue
+                if count == 0:
+                    continue
+                price_raw = (request.form.get(f'price_{v_key}_{s_key}') or '').strip()
+                price = _safe_decimal(price_raw) if price_raw else None
+                if price is not None and price < 0:
+                    errors.append(f'{s_label} {v_label}: price cannot be negative.')
+                    continue
+                entries.append((v_key, s_key, count, price))
+
+        if not errors and not entries:
+            errors.append('Enter the number of eggs collected for at least one size.')
 
         if errors:
             for e in errors:
                 flash(e, 'error')
-            return render_template(
-                'production/log_form.html',
-                title='Log Production', action='add',
-                farms=farms, form_data=request.form,
-                today=date.today(),
-            )
+            return render_template('production/log_form.html', form_data=request.form, **ctx)
 
-        record = ProductionRecord(
-            farm_id=farm_id,
-            user_id=current_user.id,
-            record_date=record_date,
-            egg_count=egg_count,
-            feed_kg=feed_kg,
-            feed_cost=feed_cost,
-            egg_price=egg_price,
-            mortality=mortality,
-            notes=notes or None,
-            size=size,
-            variety=variety,
-        )
-        db.session.add(record)
+        saved, updated = 0, 0
+        for v_key, s_key, count, price in entries:
+            existing = ProductionRecord.query.filter_by(
+                farm_id=farm_id, record_date=record_date,
+                size=ProductSize(s_key), variety=ProductVariety(v_key),
+            ).first()
+            if existing:
+                existing.egg_count = count
+                if price is not None:
+                    existing.egg_price = price
+                if notes:
+                    existing.notes = notes
+                updated += 1
+            else:
+                db.session.add(ProductionRecord(
+                    farm_id=farm_id, user_id=current_user.id, record_date=record_date,
+                    egg_count=count, size=ProductSize(s_key), variety=ProductVariety(v_key),
+                    egg_price=price, feed_kg=Decimal('0.00'), feed_cost=Decimal('0.00'),
+                    mortality=0, notes=notes or None,
+                ))
+                saved += 1
         try:
             db.session.commit()
-            flash('Production record saved.', 'success')
-            return redirect(url_for('production.log'))
         except IntegrityError:
             db.session.rollback()
-            flash(
-                'A production record for that farm on that date already exists. '
-                'Please edit the existing record instead.',
-                'error'
-            )
-            return render_template(
-                'production/log_form.html',
-                title='Log Production', action='add',
-                farms=farms, form_data=request.form,
-                today=date.today(),
-            )
+            flash('Could not save — a record for one of those sizes already exists for that date.', 'error')
+            return render_template('production/log_form.html', form_data=request.form, **ctx)
+
+        total = sum(e[2] for e in entries)
+        msg = f'Saved {total:,} eggs across {len(entries)} size/variety entr{"y" if len(entries) == 1 else "ies"}.'
+        if updated:
+            msg += f' ({updated} existing entr{"y" if updated == 1 else "ies"} for that date updated.)'
+        flash(msg, 'success')
+        return redirect(url_for('production.log'))
 
     return render_template(
         'production/log_form.html',
-        title='Log Production', action='add',
-        farms=farms, form_data={'record_date': date.today().isoformat()},
-        today=date.today(),
+        form_data={'record_date': date.today().isoformat(),
+                   'farm_id': str(farms[0].id) if len(farms) == 1 else ''},
+        **ctx,
     )
 
 
@@ -429,7 +506,12 @@ def log_edit(record_id: int):
         record.notes     = notes or None
         record.size      = size
         record.variety   = variety
-        db.session.commit()
+        try:
+            db.session.commit()
+        except IntegrityError:
+            db.session.rollback()
+            flash('Another record already exists for that size and variety on this date. Edit that one instead.', 'error')
+            return redirect(url_for('production.log_edit', record_id=record.id))
         flash('Production record updated.', 'success')
         return redirect(url_for('production.log'))
 
@@ -437,6 +519,7 @@ def log_edit(record_id: int):
         'production/log_form.html',
         title='Edit Record', action='edit',
         farms=farms, record=record, form_data={},
+        farm_map={f.id: f.name for f in farms},
         today=date.today(),
     )
 
@@ -497,10 +580,68 @@ def transactions():
     elif selected_type == 'onsite':
         sales = [s for s in sales if not s.notes or '(Order #' not in s.notes]
 
+    # ── Period grouping (daily / weekly / monthly) ──
+    from collections import OrderedDict
+    from datetime import timedelta
+    period = request.args.get('period', 'daily')
+    if period not in ('daily', 'weekly', 'monthly'):
+        period = 'daily'
+
+    def period_key(d):
+        if period == 'weekly':
+            start = d - timedelta(days=d.weekday())
+            return start, f"Week of {start.strftime('%b %d')} – {(start + timedelta(days=6)).strftime('%b %d, %Y')}"
+        if period == 'monthly':
+            start = d.replace(day=1)
+            return start, start.strftime('%B %Y')
+        return d, d.strftime('%A, %b %d, %Y')
+
+    groups = OrderedDict()
+    for sale in sales:
+        key, label = period_key(sale.sale_date)
+        g = groups.setdefault(key, {'label': label, 'sales': [], 'online': 0.0, 'onsite': 0.0,
+                                    'online_count': 0, 'onsite_count': 0, 'total': 0.0})
+        g['sales'].append(sale)
+        amt = float(sale.total_revenue or 0)
+        if sale.sale_type == 'Online':
+            g['online'] += amt
+            g['online_count'] += 1
+        else:
+            g['onsite'] += amt
+            g['onsite_count'] += 1
+        g['total'] += amt
+    period_groups = list(groups.values())
+    grand = {
+        'online': sum(g['online'] for g in period_groups),
+        'onsite': sum(g['onsite'] for g in period_groups),
+        'total': sum(g['total'] for g in period_groups),
+        'count': len(sales),
+    }
+
+    # Quick cards: today / this week / this month, split online vs on-site (ignores the type filter)
+    all_sales = SalesRecord.query.filter_by(user_id=current_user.id)
+    if selected_farm_id and selected_farm_id in farm_ids:
+        all_sales = all_sales.filter(SalesRecord.farm_id == selected_farm_id)
+    today_d = date.today()
+    week_start = today_d - timedelta(days=today_d.weekday())
+    month_start = today_d.replace(day=1)
+    recent = all_sales.filter(SalesRecord.sale_date >= min(week_start, month_start)).all()
+
+    def bucket(since):
+        on = sum(float(x.total_revenue or 0) for x in recent if x.sale_date >= since and x.sale_type == 'Online')
+        off = sum(float(x.total_revenue or 0) for x in recent if x.sale_date >= since and x.sale_type != 'Online')
+        return {'online': on, 'onsite': off, 'total': on + off}
+
+    quick = {'daily': bucket(today_d), 'weekly': bucket(week_start), 'monthly': bucket(month_start)}
+
     return render_template(
         'production/transactions.html',
         title='Transactions Log',
         sales=sales,
+        period=period,
+        period_groups=period_groups,
+        grand=grand,
+        quick=quick,
         farms=farms,
         selected_farm_id=selected_farm_id,
         selected_type=selected_type,
@@ -911,10 +1052,22 @@ def feed():
         except ValueError:
             pass
 
-    records = query.order_by(FeedRecord.record_date.desc()).limit(60).all()
+    records = query.order_by(FeedRecord.record_date.desc(), FeedRecord.id).limit(200).all()
+
+    from collections import OrderedDict
+    days = OrderedDict()
+    for rec in records:
+        d = days.setdefault(rec.record_date, {'date': rec.record_date, 'records': [], 'kg': 0.0, 'cost': 0.0})
+        d['records'].append(rec)
+        d['kg'] += float(rec.feed_consumed_kg or 0)
+        d['cost'] += float(rec.feed_cost or 0)
+    feed_types = sorted({r.feed_type for r in FeedRecord.query.filter(FeedRecord.farm_id.in_(farm_ids)).all()} |
+                        {'Layer Mash', 'Grower Mash', 'Starter Mash', 'Layer Pellets'})
 
     return render_template(
         'production/feed_log.html',
+        day_groups=list(days.values()),
+        feed_types=feed_types,
         farms=farms,
         farm_map=farm_map,
         records=records,
@@ -937,30 +1090,68 @@ def feed_add():
 
     farm_id = _safe_int(request.form.get('farm_id'))
     record_date = _parse_date(request.form.get('record_date'))
-    feed_type = request.form.get('feed_type', '').strip()
-    feed_consumed_kg = _safe_decimal(request.form.get('feed_consumed_kg'))
-    feed_cost = _safe_decimal(request.form.get('feed_cost'))
     notes = request.form.get('notes', '').strip()
 
     if farm_id not in farm_ids:
         flash('Invalid farm selected.', 'error')
         return redirect(url_for('production.feed'))
-    if not record_date:
-        flash('A valid date is required.', 'error')
+    if not record_date or record_date > date.today():
+        flash('A valid date (not in the future) is required.', 'error')
         return redirect(url_for('production.feed'))
-    
-    record = FeedRecord(
-        farm_id=farm_id,
-        user_id=current_user.id,
-        record_date=record_date,
-        feed_type=feed_type,
-        feed_consumed_kg=feed_consumed_kg,
-        feed_cost=feed_cost,
-        notes=notes or None
-    )
-    db.session.add(record)
+
+    # One row per feed type — the form can send several (feed_type[] / feed_consumed_kg[] / feed_cost[])
+    types = request.form.getlist('feed_type')
+    kgs = request.form.getlist('feed_consumed_kg')
+    costs = request.form.getlist('feed_cost')
+    rows = []
+    for i, ftype in enumerate(types):
+        ftype = (ftype or '').strip()[:100]
+        kg = _safe_decimal(kgs[i] if i < len(kgs) else None)
+        cost = _safe_decimal(costs[i] if i < len(costs) else None)
+        if not ftype and kg == 0 and cost == 0:
+            continue  # empty row
+        if not ftype:
+            flash(f'Row {i + 1}: please enter the feed type.', 'error')
+            return redirect(url_for('production.feed'))
+        if kg <= 0:
+            flash(f'{ftype}: amount consumed must be greater than 0 kg.', 'error')
+            return redirect(url_for('production.feed'))
+        if cost < 0:
+            flash(f'{ftype}: cost cannot be negative.', 'error')
+            return redirect(url_for('production.feed'))
+        rows.append((ftype, kg, cost))
+
+    if not rows:
+        flash('Add at least one feed type with the amount consumed.', 'error')
+        return redirect(url_for('production.feed'))
+
+    for ftype, kg, cost in rows:
+        db.session.add(FeedRecord(
+            farm_id=farm_id,
+            user_id=current_user.id,
+            record_date=record_date,
+            feed_type=ftype,
+            feed_consumed_kg=kg,
+            feed_cost=cost,
+            notes=notes or None,
+        ))
     db.session.commit()
-    flash('Feed record saved.', 'success')
+    total_kg = sum(r[1] for r in rows)
+    total_cost = sum(r[2] for r in rows)
+    flash(f'Saved {len(rows)} feed type{"s" if len(rows) != 1 else ""}: {total_kg:,.1f} kg, ₱{total_cost:,.2f} total.', 'success')
+    return redirect(url_for('production.feed', farm_id=farm_id))
+
+
+@production_bp.route('/feed/<int:record_id>/delete', methods=['POST'])
+@login_required
+def feed_delete(record_id: int):
+    """Delete a feed record."""
+    _require_farmer()
+    rec = FeedRecord.query.get_or_404(record_id)
+    _get_own_farm_or_404(rec.farm_id)
+    db.session.delete(rec)
+    db.session.commit()
+    flash('Feed record deleted.', 'success')
     return redirect(url_for('production.feed'))
 
 # ════════════════════════════════════════════════════════════════════════════
@@ -978,6 +1169,8 @@ def mortality():
     farms = _get_my_farms()
     farm_ids = [f.id for f in farms]
     farm_map = {f.id: f.name for f in farms}
+
+    _ensure_initial_flock(farms)
 
     selected_farm_id = _safe_int(request.args.get('farm_id'), default=0)
     query = FlockHistory.query.filter(FlockHistory.farm_id.in_(farm_ids))
@@ -997,7 +1190,7 @@ def mortality():
         except ValueError:
             pass
 
-    records = query.order_by(FlockHistory.date.desc(), FlockHistory.id.desc()).limit(60).all()
+    records = query.order_by(FlockHistory.date.desc(), FlockHistory.id.desc()).limit(200).all()
 
     # Precompute running flock size for each record per farm
     # Chronological cumulative sum of quantity per farm
@@ -1013,6 +1206,19 @@ def mortality():
     farm_flock_map = {f.id: f.flock_size for f in farms}
     total_current_flock = sum(f.flock_size for f in farms)
 
+    # Summary: original flock, birds added, birds died (per selection)
+    scope = [h for h in all_farm_history if not selected_farm_id or h.farm_id == selected_farm_id]
+    initial_entries = [h for h in scope if h.change_type == 'initial']
+    flock_summary = {
+        'original': sum(h.quantity for h in initial_entries),
+        'original_date': min((h.date for h in initial_entries), default=None),
+        'added': sum(h.quantity for h in scope if h.quantity > 0 and h.change_type != 'initial'),
+        'died': -sum(h.quantity for h in scope if h.quantity < 0),
+    }
+    flock_summary['current'] = flock_summary['original'] + flock_summary['added'] - flock_summary['died']
+    flock_summary['mortality_rate'] = round(flock_summary['died'] * 100.0 / flock_summary['original'], 2) \
+        if flock_summary['original'] else 0
+
     return render_template(
         'production/mortality_log.html',
         farms=farms,
@@ -1020,12 +1226,72 @@ def mortality():
         farm_flock_map=farm_flock_map,
         total_current_flock=total_current_flock,
         running_flock_map=running_flock_map,
+        flock_summary=flock_summary,
         records=records,
         selected_farm_id=selected_farm_id,
         start_date_str=start_date_str,
         end_date_str=end_date_str,
         today=date.today(),
     )
+
+
+def _ensure_initial_flock(farms):
+    """Every farm needs an 'initial' FlockHistory row so the original flock size and date are visible."""
+    changed = False
+    for farm in farms:
+        has_initial = FlockHistory.query.filter_by(farm_id=farm.id, change_type='initial').first()
+        if has_initial:
+            continue
+        net = db.session.query(db.func.coalesce(db.func.sum(FlockHistory.quantity), 0)) \
+            .filter(FlockHistory.farm_id == farm.id).scalar() or 0
+        original = max(0, (farm.flock_size or 0) - int(net))
+        first = FlockHistory.query.filter_by(farm_id=farm.id).order_by(FlockHistory.date.asc()).first()
+        start = farm.created_at.date() if farm.created_at else date.today()
+        if first and first.date < start:
+            start = first.date
+        db.session.add(FlockHistory(farm_id=farm.id, user_id=farm.farmer_id, date=start,
+                                    change_type='initial', quantity=original,
+                                    notes='Original flock size when the farm was registered.'))
+        changed = True
+    if changed:
+        db.session.commit()
+
+
+@production_bp.route('/flock/add', methods=['POST'])
+@login_required
+def flock_add():
+    """Record new birds added to a farm (e.g. a new batch of pullets)."""
+    _require_farmer()
+    if not current_user.is_premium:
+        flash('Flock tracking is a Pro feature. Upgrade your account to unlock this tool.', 'error')
+        return redirect(url_for('dashboard.subscription'))
+    farms = _get_my_farms()
+    farm_ids = [f.id for f in farms]
+
+    farm_id = _safe_int(request.form.get('farm_id'))
+    record_date = _parse_date(request.form.get('date'))
+    quantity = _safe_int(request.form.get('quantity'))
+    notes = request.form.get('notes', '').strip()
+
+    if farm_id not in farm_ids:
+        flash('Invalid farm selected.', 'error')
+        return redirect(url_for('production.mortality'))
+    if not record_date or record_date > date.today():
+        flash('A valid date (not in the future) is required.', 'error')
+        return redirect(url_for('production.mortality'))
+    if quantity <= 0:
+        flash('Number of birds added must be greater than zero.', 'error')
+        return redirect(url_for('production.mortality'))
+
+    farm = db.session.get(Farm, farm_id)
+    _ensure_initial_flock([farm])
+    db.session.add(FlockHistory(farm_id=farm_id, user_id=current_user.id, date=record_date,
+                                change_type='added', quantity=quantity, notes=notes or None))
+    farm.flock_size = (farm.flock_size or 0) + quantity
+    db.session.commit()
+    flash(f'Added {quantity:,} birds. New flock size is {farm.flock_size:,}.', 'success')
+    return redirect(url_for('production.mortality', farm_id=farm_id))
+
 
 @production_bp.route('/mortality/add', methods=['POST'])
 @login_required
@@ -1058,6 +1324,7 @@ def mortality_add():
     if not target_farm:
         flash('Selected farm not found.', 'error')
         return redirect(url_for('production.mortality'))
+    _ensure_initial_flock([target_farm])
 
     # Store negative quantity in FlockHistory for mortality/reduction
     # Deduct from current flock size of the farm
@@ -1071,6 +1338,11 @@ def mortality_add():
     )
     target_farm.flock_size = max(0, (target_farm.flock_size or 0) - quantity)
 
+    # Also keep the MortalityRecord table in sync (used by Analytics)
+    db.session.add(MortalityRecord(
+        farm_id=farm_id, user_id=current_user.id, record_date=record_date,
+        quantity_died=quantity, reason=change_type[:255], notes=notes or None,
+    ))
     db.session.add(record)
     db.session.commit()
     flash(f'Mortality logged: {quantity} birds recorded. New flock size is {target_farm.flock_size:,}.', 'success')

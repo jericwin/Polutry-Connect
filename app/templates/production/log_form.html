@@ -6,10 +6,33 @@
     PoultryConnect / <a href="{{ url_for('production.log') }}" style="color:var(--primary)">Production Log</a> / {{ 'Edit' if action == 'edit' else 'Add' }}
 {% endblock %}
 
+{% block extra_css %}
+<style>
+.egg-grid { width: 100%; border-collapse: separate; border-spacing: 0; margin-top: .5rem; }
+.egg-grid th { font-size: .72rem; text-transform: uppercase; letter-spacing: .05em; color: var(--on-surface-variant); font-weight: 700; padding: .5rem .6rem; text-align: left; }
+.egg-grid td { padding: .35rem .6rem; border-top: 1px solid var(--outline-variant, #e2e8f0); }
+.egg-grid td.size-label { font-weight: 700; color: var(--text-dark, #0f172a); white-space: nowrap; }
+.egg-grid input { width: 100%; max-width: 160px; padding: .55rem .7rem; border: 1.5px solid var(--outline, #c8dce6); border-radius: .6rem; font-size: .95rem; font-family: inherit; box-sizing: border-box; background: var(--surface, #fff); }
+.egg-grid input:focus { outline: none; border-color: var(--primary, #16a34a); box-shadow: 0 0 0 3px rgba(22,163,74,.12); }
+.egg-grid tfoot td { font-weight: 800; border-top: 2px solid var(--outline-variant, #e2e8f0); padding-top: .6rem; }
+.variety-chip { display: inline-flex; align-items: center; gap: .35rem; }
+.variety-dot { width: 12px; height: 12px; border-radius: 50%; display: inline-block; border: 1px solid rgba(0,0,0,.15); }
+.variety-dot--brown { background: #c08552; }
+.variety-dot--white { background: #f8fafc; }
+.grid-section-title { display: flex; align-items: baseline; justify-content: space-between; gap: 1rem; flex-wrap: wrap; margin: 0 0 .25rem; }
+.grid-section-title h3 { font-size: 1rem; font-weight: 800; margin: 0; color: var(--text-dark, #0f172a); }
+.grid-section-title p { margin: 0; font-size: .8rem; color: var(--text-muted, #64748b); }
+.grand-total { display: flex; gap: 1rem; flex-wrap: wrap; margin-top: .75rem; }
+.grand-total div { background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: .75rem; padding: .5rem .9rem; font-size: .8rem; color: #166534; font-weight: 600; }
+.grand-total strong { font-size: 1.1rem; display: block; color: #14532d; }
+@media (max-width: 560px) { .egg-grid th, .egg-grid td { padding: .3rem .3rem; } }
+</style>
+{% endblock %}
+
 {% block content %}
 
 <div class="form-page">
-    <div class="form-card">
+    <div class="form-card" {% if action == 'add' %}style="max-width: 760px;"{% endif %}>
 
         <div class="form-card__header">
             <h2 class="form-card__title">
@@ -21,9 +44,9 @@
             </h2>
             <p class="form-card__sub">
                 {% if action == 'edit' %}
-                    Update the production data for this record. Date and farm cannot be changed.
+                    Update the egg count and price for this size/variety. Date and farm cannot be changed.
                 {% else %}
-                    Enter your egg count, feed usage, and any other data for today (or a past date).
+                    Type how many eggs you collected for each size — all sizes at once. Leave a box empty if none.
                 {% endif %}
             </p>
         </div>
@@ -31,7 +54,6 @@
         <form method="POST" class="data-form" novalidate>
 
             {% if action == 'add' %}
-            {# Farm & date selectors only shown on Add — can't change them on Edit #}
             <div class="form-row">
                 <div class="form-group">
                     <label for="farm_id">Farm <span class="required">*</span></label>
@@ -39,10 +61,7 @@
                         <select id="farm_id" name="farm_id" required>
                             <option value="">— Select a farm —</option>
                             {% for farm in farms %}
-                            <option value="{{ farm.id }}"
-                                {% if form_data.get('farm_id')|int == farm.id %}selected{% endif %}>
-                                {{ farm.name }}
-                            </option>
+                            <option value="{{ farm.id }}" {% if form_data.get('farm_id')|int == farm.id %}selected{% endif %}>{{ farm.name }}</option>
                             {% endfor %}
                         </select>
                     </div>
@@ -56,8 +75,90 @@
                     <span class="form-hint">Cannot be a future date.</span>
                 </div>
             </div>
+
+            <div class="form-divider"></div>
+
+            <!-- ── Eggs collected per size ── -->
+            <div class="grid-section-title">
+                <h3>Eggs Collected</h3>
+                <p>Number of eggs per size</p>
+            </div>
+            <table class="egg-grid" id="countGrid">
+                <thead>
+                    <tr>
+                        <th>Size</th>
+                        {% for v_key, v_label in varieties %}
+                        <th><span class="variety-chip"><span class="variety-dot variety-dot--{{ v_key }}"></span>{{ v_label }}</span></th>
+                        {% endfor %}
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for s_key, s_label in sizes %}
+                    <tr>
+                        <td class="size-label">{{ s_label }}</td>
+                        {% for v_key, v_label in varieties %}
+                        <td>
+                            <input type="number" min="0" step="1" inputmode="numeric"
+                                   name="count_{{ v_key }}_{{ s_key }}" data-variety="{{ v_key }}" data-size="{{ s_key }}"
+                                   class="count-input" placeholder="0"
+                                   aria-label="{{ s_label }} {{ v_label }} eggs collected"
+                                   value="{{ form_data.get('count_' ~ v_key ~ '_' ~ s_key, '') }}">
+                        </td>
+                        {% endfor %}
+                    </tr>
+                    {% endfor %}
+                </tbody>
+                <tfoot>
+                    <tr>
+                        <td>Total</td>
+                        {% for v_key, v_label in varieties %}
+                        <td id="total_{{ v_key }}">0</td>
+                        {% endfor %}
+                    </tr>
+                </tfoot>
+            </table>
+
+            <div class="form-divider"></div>
+
+            <!-- ── Selling price per egg ── -->
+            <div class="grid-section-title">
+                <h3>Selling Price per Egg (₱)</h3>
+                <p>Pre-filled with your last price — change if needed</p>
+            </div>
+            <table class="egg-grid">
+                <thead>
+                    <tr>
+                        <th>Size</th>
+                        {% for v_key, v_label in varieties %}
+                        <th><span class="variety-chip"><span class="variety-dot variety-dot--{{ v_key }}"></span>{{ v_label }}</span></th>
+                        {% endfor %}
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for s_key, s_label in sizes %}
+                    <tr>
+                        <td class="size-label">{{ s_label }}</td>
+                        {% for v_key, v_label in varieties %}
+                        {% set default_price = last_prices.get(v_key, {}).get(s_key) %}
+                        <td>
+                            <input type="number" min="0" step="0.01" inputmode="decimal"
+                                   name="price_{{ v_key }}_{{ s_key }}" data-variety="{{ v_key }}" data-size="{{ s_key }}"
+                                   class="price-input" placeholder="{{ '%.2f'|format(default_price) if default_price else '0.00' }}"
+                                   aria-label="{{ s_label }} {{ v_label }} price per egg"
+                                   value="{{ form_data.get('price_' ~ v_key ~ '_' ~ s_key) or ('%.2f'|format(default_price) if default_price else '') }}">
+                        </td>
+                        {% endfor %}
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+
+            <div class="grand-total">
+                <div>Total eggs<strong id="grandEggs">0</strong></div>
+                <div>Estimated value<strong id="grandValue">₱0.00</strong></div>
+            </div>
+
             {% else %}
-            {# On edit: show farm & date as read-only info #}
             <div class="info-row">
                 <div class="info-pill">
                     <span class="info-pill__label">Farm</span>
@@ -68,7 +169,6 @@
                     <span class="info-pill__val">{{ record.record_date.strftime('%B %d, %Y') }}</span>
                 </div>
             </div>
-            {% endif %}
 
             <div class="form-divider"></div>
 
@@ -77,23 +177,18 @@
                     <label for="variety">Category (Variety)</label>
                     <div class="select-wrap">
                         <select id="variety" name="variety">
-                            <option value="">— Select Category —</option>
-                            <option value="brown" {% if form_data.get('variety') == 'brown' or (action == 'edit' and record.variety and record.variety.value == 'brown') %}selected{% endif %}>Brown</option>
-                            <option value="white" {% if form_data.get('variety') == 'white' or (action == 'edit' and record.variety and record.variety.value == 'white') %}selected{% endif %}>White</option>
+                            <option value="brown" {% if (form_data.get('variety') or (record.variety.value if record.variety else '')) == 'brown' %}selected{% endif %}>Brown</option>
+                            <option value="white" {% if (form_data.get('variety') or (record.variety.value if record.variety else '')) == 'white' %}selected{% endif %}>White</option>
                         </select>
                     </div>
                 </div>
-
                 <div class="form-group">
                     <label for="size">Size</label>
                     <div class="select-wrap">
                         <select id="size" name="size">
-                            <option value="">— Select Size —</option>
-                            <option value="small" {% if form_data.get('size') == 'small' or (action == 'edit' and record.size and record.size.value == 'small') %}selected{% endif %}>Small</option>
-                            <option value="medium" {% if form_data.get('size') == 'medium' or (action == 'edit' and record.size and record.size.value == 'medium') %}selected{% endif %}>Medium</option>
-                            <option value="large" {% if form_data.get('size') == 'large' or (action == 'edit' and record.size and record.size.value == 'large') %}selected{% endif %}>Large</option>
-                            <option value="extra_large" {% if form_data.get('size') == 'extra_large' or (action == 'edit' and record.size and record.size.value == 'extra_large') %}selected{% endif %}>Extra Large</option>
-                            <option value="jumbo" {% if form_data.get('size') == 'jumbo' or (action == 'edit' and record.size and record.size.value == 'jumbo') %}selected{% endif %}>Jumbo</option>
+                            {% for s_key, s_label in [('small','Small'),('medium','Medium'),('large','Large'),('extra_large','Extra Large'),('jumbo','Jumbo')] %}
+                            <option value="{{ s_key }}" {% if (form_data.get('size') or (record.size.value if record.size else '')) == s_key %}selected{% endif %}>{{ s_label }}</option>
+                            {% endfor %}
                         </select>
                     </div>
                 </div>
@@ -102,27 +197,18 @@
             <div class="form-row">
                 <div class="form-group">
                     <label for="egg_count">Eggs Collected <span class="required">*</span></label>
-                    <input type="number" id="egg_count" name="egg_count"
-                           min="0" step="1" placeholder="e.g. 240" required
-                           value="{{ form_data.get('egg_count') or (record.egg_count if action == 'edit' else '') }}">
-                    <span class="form-hint">Total eggs from all flocks on this date.</span>
+                    <input type="number" id="egg_count" name="egg_count" min="0" step="1" required
+                           value="{{ form_data.get('egg_count') or record.egg_count }}">
+                </div>
+                <div class="form-group">
+                    <label for="egg_price">Selling Price per Egg (₱)</label>
+                    <input type="number" id="egg_price" name="egg_price" min="0" step="0.01"
+                           value="{{ form_data.get('egg_price') or (record.egg_price if record.egg_price else '') }}">
                 </div>
             </div>
+            {% endif %}
 
-
-
-            <div class="form-group">
-                <label for="egg_price">
-                    Selling Price per Egg (₱)
-                    <span class="form-hint-inline" title="Used by Analytics to calculate your revenue and profit/loss">ℹ</span>
-                </label>
-                <input type="number" id="egg_price" name="egg_price"
-                       min="0" step="0.01" placeholder="e.g. 7.50"
-                       value="{{ form_data.get('egg_price') or (record.egg_price if action == 'edit' and record.egg_price else '') }}">
-                <span class="form-hint">Optional — the price per egg you sold at today. Powers your Analytics profit/loss report.</span>
-            </div>
-
-            <div class="form-group">
+            <div class="form-group" style="margin-top:1rem;">
                 <label for="notes">Notes</label>
                 <textarea id="notes" name="notes" rows="2"
                           placeholder="Optional — observations, flock health notes, weather, etc.">{{ form_data.get('notes') or (record.notes or '' if action == 'edit' else '') }}</textarea>
@@ -131,7 +217,7 @@
             <div class="form-actions">
                 <a href="{{ url_for('production.log') }}" class="btn btn-secondary">Cancel</a>
                 <button type="submit" class="btn btn-primary">
-                    {{ 'Save Changes' if action == 'edit' else 'Save Record' }}
+                    {{ 'Save Changes' if action == 'edit' else 'Save All Sizes' }}
                 </button>
             </div>
 
@@ -139,31 +225,32 @@
     </div>
 </div>
 
+{% if action == 'add' %}
 <script>
-    document.addEventListener("DOMContentLoaded", function() {
-        const varietySelect = document.getElementById('variety');
-        const sizeSelect = document.getElementById('size');
-        const priceInput = document.getElementById('egg_price');
-
-        // Recommended prices based on variety and size
-        const recommendedPrices = {
-            'brown': { 'small': 5.50, 'medium': 6.50, 'large': 7.50, 'extra_large': 8.50, 'jumbo': 9.50 },
-            'white': { 'small': 5.00, 'medium': 6.00, 'large': 7.00, 'extra_large': 8.00, 'jumbo': 9.00 }
-        };
-
-        function updateRecommendedPrice() {
-            const variety = varietySelect.value;
-            const size = sizeSelect.value;
-            // Only auto-fill if the price input is empty OR if the user is changing categories
-            // To be safe, we'll auto-fill when they change the dropdowns.
-            if (variety && size && recommendedPrices[variety] && recommendedPrices[variety][size]) {
-                priceInput.value = recommendedPrices[variety][size].toFixed(2);
-            }
-        }
-
-        varietySelect.addEventListener('change', updateRecommendedPrice);
-        sizeSelect.addEventListener('change', updateRecommendedPrice);
+(function () {
+    function num(v) { var n = parseFloat(v); return isNaN(n) ? 0 : n; }
+    function recalc() {
+        var totals = {}, eggs = 0, value = 0;
+        document.querySelectorAll('.count-input').forEach(function (inp) {
+            var v = inp.dataset.variety, s = inp.dataset.size, c = num(inp.value);
+            totals[v] = (totals[v] || 0) + c;
+            eggs += c;
+            var price = document.querySelector('.price-input[data-variety="' + v + '"][data-size="' + s + '"]');
+            value += c * num(price ? (price.value || price.placeholder) : 0);
+        });
+        Object.keys(totals).forEach(function (v) {
+            var el = document.getElementById('total_' + v);
+            if (el) el.textContent = totals[v].toLocaleString();
+        });
+        document.getElementById('grandEggs').textContent = eggs.toLocaleString();
+        document.getElementById('grandValue').textContent = '₱' + value.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    }
+    document.querySelectorAll('.count-input, .price-input').forEach(function (inp) {
+        inp.addEventListener('input', recalc);
     });
+    recalc();
+})();
 </script>
+{% endif %}
 
 {% endblock %}

@@ -1,8 +1,8 @@
 import os
 from werkzeug.utils import secure_filename
-from flask import Blueprint, render_template, redirect, url_for, flash, request
+from flask import Blueprint, render_template, redirect, url_for, flash, request, current_app
 from flask_login import login_required, current_user
-from app.models import UserRole, Farm, ProductionRecord, Expense, SalesRecord, ExpenseFrequency, VerificationStatus, FarmerVerification
+from app.models import UserRole, Farm, ProductionRecord, Expense, SalesRecord, ExpenseFrequency, VerificationStatus, FarmerVerification, FlockHistory
 from datetime import date, timedelta, datetime
 from sqlalchemy import func
 from app import db
@@ -554,39 +554,34 @@ def submit_verification():
         verification = FarmerVerification(farmer_id=current_user.id)
         db.session.add(verification)
 
-    upload_dir = os.path.join('app', 'static', 'uploads', 'verifications')
-    os.makedirs(upload_dir, exist_ok=True)
+    from app.utils.storage import save_upload, UploadTooLarge
 
-    # File uploads
+    # File uploads (stored in the database — works on Vercel's read-only disk)
     id_file = request.files.get('id_document')
     permit_file = request.files.get('permit_document')
     farm_file = request.files.get('farm_photo')
 
-    timestamp = int(datetime.utcnow().timestamp())
+    try:
+        if id_file and id_file.filename and _allowed_verification_file(id_file.filename):
+            verification.id_document_url = save_upload(id_file, owner_id=current_user.id, private=True)
+        elif not verification.id_document_url:
+            db.session.rollback()
+            flash('Valid Government ID document is required (JPG, PNG, WEBP or PDF).', 'error')
+            return redirect(url_for('dashboard.farmer'))
 
-    if id_file and id_file.filename and _allowed_verification_file(id_file.filename):
-        ext = id_file.filename.rsplit('.', 1)[1].lower()
-        id_filename = f'id_{current_user.id}_{timestamp}.{ext}'
-        id_file.save(os.path.join(upload_dir, id_filename))
-        verification.id_document_url = f'uploads/verifications/{id_filename}'
-    elif not verification.id_document_url:
-        flash('Valid Government ID document is required.', 'error')
+        if permit_file and permit_file.filename and _allowed_verification_file(permit_file.filename):
+            verification.permit_document_url = save_upload(permit_file, owner_id=current_user.id, private=True)
+        elif not verification.permit_document_url:
+            db.session.rollback()
+            flash('Farm permit / Barangay clearance document is required (JPG, PNG, WEBP or PDF).', 'error')
+            return redirect(url_for('dashboard.farmer'))
+
+        if farm_file and farm_file.filename and _allowed_verification_file(farm_file.filename):
+            verification.farm_photo_url = save_upload(farm_file, owner_id=current_user.id, private=True)
+    except UploadTooLarge as e:
+        db.session.rollback()
+        flash(str(e), 'error')
         return redirect(url_for('dashboard.farmer'))
-
-    if permit_file and permit_file.filename and _allowed_verification_file(permit_file.filename):
-        ext = permit_file.filename.rsplit('.', 1)[1].lower()
-        permit_filename = f'permit_{current_user.id}_{timestamp}.{ext}'
-        permit_file.save(os.path.join(upload_dir, permit_filename))
-        verification.permit_document_url = f'uploads/verifications/{permit_filename}'
-    elif not verification.permit_document_url:
-        flash('Farm permit / Barangay clearance document is required.', 'error')
-        return redirect(url_for('dashboard.farmer'))
-
-    if farm_file and farm_file.filename and _allowed_verification_file(farm_file.filename):
-        ext = farm_file.filename.rsplit('.', 1)[1].lower()
-        farm_filename = f'farm_{current_user.id}_{timestamp}.{ext}'
-        farm_file.save(os.path.join(upload_dir, farm_filename))
-        verification.farm_photo_url = f'uploads/verifications/{farm_filename}'
 
     verification.farm_name = farm_name
     verification.farm_location = farm_location
@@ -615,7 +610,21 @@ def submit_verification():
         if initial_flock_size > 0 and (not farm.flock_size or farm.flock_size == 0):
             farm.flock_size = initial_flock_size
 
-    db.session.commit()
+    if farm.id is None:
+        db.session.flush()
+    if initial_flock_size > 0 and not FlockHistory.query.filter_by(farm_id=farm.id, change_type='initial').first():
+        db.session.add(FlockHistory(
+            farm_id=farm.id, user_id=current_user.id, date=datetime.utcnow().date(),
+            change_type='initial', quantity=initial_flock_size,
+            notes='Original flock size declared during owner verification.'))
+
+    try:
+        db.session.commit()
+    except Exception:
+        db.session.rollback()
+        current_app.logger.exception('Verification submit failed')
+        flash('Something went wrong while saving your documents. Please try again with smaller files (max 4 MB each).', 'error')
+        return redirect(url_for('dashboard.farmer'))
     flash('Requirements submitted successfully! Your application is now under review by an administrator.', 'success')
     return redirect(url_for('dashboard.farmer'))
 

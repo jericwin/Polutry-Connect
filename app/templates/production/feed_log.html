@@ -42,7 +42,9 @@
     border-radius: 1.25rem;
     padding: 2rem;
     width: 100%;
-    max-width: 500px;
+    max-width: 640px;
+    max-height: 92vh;
+    overflow-y: auto;
     margin: 1rem;
     box-shadow: 0 24px 60px rgba(0,31,42,0.2);
     animation: slideUp 0.25s cubic-bezier(0.4,0,0.2,1);
@@ -122,6 +124,22 @@
     padding-top: 1.25rem;
     border-top: 1px solid var(--outline-variant, #e0eef4);
 }
+
+.feed-rows { display:flex; flex-direction:column; gap:.5rem; }
+.feed-row { display:grid; grid-template-columns: 1.6fr 1fr 1fr 36px; gap:.5rem; align-items:center; }
+.feed-row-head { display:grid; grid-template-columns: 1.6fr 1fr 1fr 36px; gap:.5rem; font-size:.72rem; font-weight:700; text-transform:uppercase; letter-spacing:.04em; color:var(--on-surface-variant); }
+.feed-row__remove { width:36px; height:36px; border-radius:50%; border:none; background:#fee2e2; color:#b91c1c; cursor:pointer; display:flex; align-items:center; justify-content:center; }
+.feed-row__remove:hover { background:#fecaca; }
+.feed-add-btn { margin-top:.6rem; display:inline-flex; align-items:center; gap:.4rem; padding:.45rem .9rem; border-radius:99px; border:1.5px dashed #16a34a; background:#f0fdf4; color:#15803d; font-weight:700; font-size:.82rem; cursor:pointer; font-family:inherit; }
+.feed-add-btn:hover { background:#dcfce7; }
+.feed-totals { display:flex; gap:.75rem; margin-top:.9rem; flex-wrap:wrap; }
+.feed-totals div { flex:1; min-width:140px; background:#f0fdf4; border:1px solid #bbf7d0; border-radius:.75rem; padding:.5rem .8rem; font-size:.75rem; font-weight:700; color:#166534; text-transform:uppercase; letter-spacing:.04em; }
+.feed-totals strong { display:block; font-size:1.15rem; color:#14532d; text-transform:none; letter-spacing:0; }
+.fd-day-head { display:flex; flex-wrap:wrap; justify-content:space-between; align-items:center; gap:.5rem; padding:.75rem 1.1rem; background:var(--surface-container-low, #f8fafc); border-bottom:1px solid var(--outline-variant); }
+.fd-day-head strong { font-size:.95rem; }
+.fd-day-head .fd-tot { display:flex; gap:.5rem; }
+.fd-day-head .fd-tot span { padding:.25rem .7rem; border-radius:99px; font-size:.8rem; font-weight:700; background:#dcfce7; color:#166534; }
+@media (max-width:560px) { .feed-row, .feed-row-head { grid-template-columns: 1fr 1fr 36px; } .feed-row .ftype, .feed-row-head .ftype { grid-column: 1 / -1; } }
 </style>
 {% endblock %}
 
@@ -172,34 +190,44 @@
 {% endif %}
 
 {% if records %}
-<div class="table-card">
+{% for day in day_groups %}
+<div class="table-card" style="margin-bottom:1rem;">
+    <div class="fd-day-head">
+        <div><strong>{{ day.date.strftime('%A, %b %d, %Y') }}</strong> <span class="muted" style="font-size:.8rem;">· {{ day.records|length }} feed type{{ 's' if day.records|length != 1 }}</span></div>
+        <div class="fd-tot"><span>{{ "{:,.1f}".format(day.kg) }} kg</span><span>₱{{ "{:,.2f}".format(day.cost) }}</span></div>
+    </div>
     <table class="data-table">
         <thead>
             <tr>
-                <th>Date</th>
                 <th>Farm</th>
                 <th>Feed Type</th>
                 <th>Consumed (kg)</th>
                 <th>Cost (₱)</th>
                 <th>Notes</th>
+                <th style="text-align:right;">Actions</th>
             </tr>
         </thead>
         <tbody>
-            {% for rec in records %}
+            {% for rec in day.records %}
             <tr>
-                <td>
-                    <span class="date-pill">{{ rec.record_date.strftime('%b %d, %Y') }}</span>
-                </td>
                 <td class="muted">{{ farm_map.get(rec.farm_id, '—') }}</td>
                 <td><strong>{{ rec.feed_type }}</strong></td>
                 <td>{{ rec.feed_consumed_kg }} kg</td>
                 <td>₱{{ "{:,.2f}".format(rec.feed_cost) }}</td>
                 <td class="muted">{{ rec.notes or '—' }}</td>
+                <td style="text-align:right;">
+                    <form method="POST" action="{{ url_for('production.feed_delete', record_id=rec.id) }}" style="display:inline" onsubmit="return confirm('Delete this feed record?')">
+                        <button type="submit" class="row-action-btn row-action-btn--danger" title="Delete">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/></svg>
+                        </button>
+                    </form>
+                </td>
             </tr>
             {% endfor %}
         </tbody>
     </table>
 </div>
+{% endfor %}
 {% else %}
 <div class="empty-page">
     <div class="empty-page__icon">
@@ -242,21 +270,34 @@
                 <input type="date" name="record_date" value="{{ today.isoformat() }}" required max="{{ today.isoformat() }}">
             </div>
 
+            <datalist id="feedTypeList">
+                {% for t in feed_types %}<option value="{{ t }}">{% endfor %}
+            </datalist>
+
             <div class="form-group">
-                <label>Feed Type</label>
-                <input type="text" name="feed_type" placeholder="e.g. Grower Mash, Starter, Layer" required>
+                <label>Feeds given today</label>
+                <div class="feed-row-head"><span class="ftype">Feed type</span><span>Amount (kg)</span><span>Cost (₱)</span><span></span></div>
+                <div class="feed-rows" id="feedRows"></div>
+                <button type="button" class="feed-add-btn" onclick="addFeedRow()">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                    Add feed type
+                </button>
+                <div class="feed-totals">
+                    <div>Total consumed<strong id="feedTotalKg">0.0 kg</strong></div>
+                    <div>Total cost<strong id="feedTotalCost">₱0.00</strong></div>
+                </div>
             </div>
 
-            <div class="form-row-2">
-                <div class="form-group">
-                    <label>Amount Consumed (kg)</label>
-                    <input type="number" name="feed_consumed_kg" step="0.1" min="0" placeholder="0.0" required>
+            <template id="feedRowTpl">
+                <div class="feed-row">
+                    <input class="ftype" type="text" name="feed_type" list="feedTypeList" placeholder="e.g. Layer Mash" required>
+                    <input type="number" name="feed_consumed_kg" step="0.1" min="0.1" placeholder="kg" required oninput="recalcFeed()">
+                    <input type="number" name="feed_cost" step="0.01" min="0" placeholder="₱" required oninput="recalcFeed()">
+                    <button type="button" class="feed-row__remove" title="Remove" onclick="removeFeedRow(this)">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                    </button>
                 </div>
-                <div class="form-group">
-                    <label>Total Cost (₱)</label>
-                    <input type="number" name="feed_cost" step="0.01" min="0" placeholder="0.00" required>
-                </div>
-            </div>
+            </template>
 
             <div class="form-group">
                 <label>Notes <span style="font-weight:400; text-transform:none;">(Optional)</span></label>
@@ -265,7 +306,7 @@
 
             <div class="modal-card__footer">
                 <button type="button" class="btn btn-secondary" onclick="closeModal('feedModal')">Cancel</button>
-                <button type="submit" class="btn btn-primary">Save Record</button>
+                <button type="submit" class="btn btn-primary">Save Feed Log</button>
             </div>
         </form>
     </div>
@@ -275,6 +316,31 @@
 
 {% block extra_js %}
 <script>
+function addFeedRow() {
+    var tpl = document.getElementById('feedRowTpl');
+    var box = document.getElementById('feedRows');
+    box.appendChild(tpl.content.cloneNode(true));
+    var inputs = box.querySelectorAll('.feed-row');
+    inputs[inputs.length - 1].querySelector('input').focus();
+    recalcFeed();
+}
+function removeFeedRow(btn) {
+    var box = document.getElementById('feedRows');
+    if (box.children.length <= 1) { box.querySelectorAll('input').forEach(function (i) { i.value = ''; }); }
+    else { btn.closest('.feed-row').remove(); }
+    recalcFeed();
+}
+function recalcFeed() {
+    var kg = 0, cost = 0;
+    document.querySelectorAll('#feedRows .feed-row').forEach(function (row) {
+        var i = row.querySelectorAll('input');
+        kg += parseFloat(i[1].value) || 0;
+        cost += parseFloat(i[2].value) || 0;
+    });
+    document.getElementById('feedTotalKg').textContent = kg.toFixed(1) + ' kg';
+    document.getElementById('feedTotalCost').textContent = '₱' + cost.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
+}
+document.addEventListener('DOMContentLoaded', function () { addFeedRow(); });
 function openModal(id) {
     document.getElementById(id).classList.add('active');
     document.body.style.overflow = 'hidden';

@@ -502,6 +502,15 @@ document.addEventListener("DOMContentLoaded", function() {
           </div>
           {% endif %}
         </div>
+        {% if order.fulfillment_message %}
+        <div style="margin-top:1rem; padding:.75rem .9rem; border-radius:12px; font-size:.82rem; line-height:1.45; {% if order.status.value == 'shipped' %}background:#f0fdf4; color:#166534; border:1px solid #bbf7d0;{% elif order.status.value == 'confirmed' %}background:#eff6ff; color:#1e40af; border:1px solid #bfdbfe;{% elif order.status.value == 'cancelled' %}background:#fef2f2; color:#991b1b; border:1px solid #fecaca;{% elif order.status.value == 'pending' %}background:#fefce8; color:#854d0e; border:1px solid #fde68a;{% else %}background:#f8fafc; color:#334155; border:1px solid #e2e8f0;{% endif %}">
+          <strong>{{ order.fulfillment_message }}</strong>
+          {% if order.fulfillment_note %}<div style="margin-top:.25rem;">Owner's note: {{ order.fulfillment_note }}</div>{% endif %}
+          {% if order.estimated_delivery_date and order.status.value in ['confirmed', 'shipped'] %}
+          <div style="margin-top:.4rem; font-weight:700;">Estimated delivery: {{ order.estimated_delivery_date.strftime('%B %d, %Y') }}</div>
+          {% endif %}
+        </div>
+        {% endif %}
       </div>
 
       <!-- Delivery Info -->

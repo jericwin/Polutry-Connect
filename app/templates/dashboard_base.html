@@ -9,6 +9,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}?v=1.2" />
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/upload.css') }}?v=1" />
   {% block extra_css %}{% endblock %}
 </head>
 
@@ -146,6 +147,7 @@
     }
   </script>
 
+  <script src="{{ url_for('static', filename='js/upload.js') }}?v=1" defer></script>
   {% block extra_js %}{% endblock %}
 
   <!-- Sidebar message unread badge polling -->
