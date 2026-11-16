@@ -26,7 +26,7 @@ from flask import (
 )
 from flask_login import login_required, current_user
 from decimal import Decimal, InvalidOperation
-from datetime import datetime
+from datetime import date, datetime
 import json
 import os
 from app.utils.feedback_analysis import analyze_feedback
@@ -167,7 +167,7 @@ def farm_profile(farm_id):
     valid_sizes = {e.value for e in ProductSize}
     if size and size in valid_sizes:
         query = query.filter(Product.size == ProductSize(size))
-        
+
     valid_varieties = {e.value for e in ProductVariety}
     if variety and variety in valid_varieties:
         query = query.filter(Product.variety == ProductVariety(variety))
@@ -309,7 +309,7 @@ def cart_add():
         return redirect(url_for('marketplace.index'))
 
     available_stock = _get_available_stock(product)
-    
+
     if quantity > available_stock:
         if request.headers.get('X-Requested-With') == 'XMLHttpRequest' or request.is_json:
             return {'status': 'error', 'message': f'Only {available_stock} available in stock.'}
@@ -329,10 +329,10 @@ def cart_add():
 
     cart[pid_str] = new_qty
     _save_cart(cart)
-    
+
     if request.headers.get('X-Requested-With') == 'XMLHttpRequest' or request.is_json:
         return {'status': 'success', 'message': f'"{product.name}" added to cart.', 'cart_count': _get_cart_count()}
-        
+
     flash(f'"{product.name}" added to cart.', 'success')
     return redirect(request.referrer or url_for('marketplace.index'))
 
@@ -549,21 +549,38 @@ def checkout():
 def orders():
     """View buyer's order history."""
     _require_buyer()
-    
+
     status_filter = request.args.get('status', 'all')
-    query = Order.query.filter_by(buyer_id=current_user.id)
-    
-    if status_filter != 'all':
-        query = query.filter_by(status=status_filter)
-        
-    buyer_orders = query.order_by(Order.created_at.desc()).all()
+    valid = {e.value for e in OrderStatus}
+    if status_filter != 'all' and status_filter not in valid:
+        status_filter = 'all'
+
+    all_orders = Order.query.filter_by(buyer_id=current_user.id).order_by(Order.created_at.desc()).all()
+    counts = {'all': len(all_orders)}
+    for o in all_orders:
+        counts[o.status.value] = counts.get(o.status.value, 0) + 1
+    # "Delivered" tab also shows completed orders
+    counts['delivered'] = counts.get('delivered', 0) + counts.get('completed', 0)
+
+    if status_filter == 'all':
+        buyer_orders = all_orders
+    elif status_filter == 'delivered':
+        buyer_orders = [o for o in all_orders if o.status.value in ('delivered', 'completed')]
+    else:
+        buyer_orders = [o for o in all_orders if o.status.value == status_filter]
+
+    active = [o for o in all_orders if o.status.value in ('pending', 'confirmed', 'shipped')]
+    spent = sum(float(o.total_amount or 0) for o in all_orders if o.status.value in ('delivered', 'completed'))
 
     return render_template(
         'marketplace/orders.html',
         title='My Orders',
         orders=buyer_orders,
         cart_count=_get_cart_count(),
-        status_filter=status_filter
+        status_filter=status_filter,
+        counts=counts,
+        active_count=len(active),
+        total_spent=spent,
     )
 
 
@@ -590,17 +607,17 @@ def confirm_receipt(order_id):
     """Buyer confirms receipt of order."""
     _require_buyer()
     order = Order.query.get_or_404(order_id)
-    
+
     if order.buyer_id != current_user.id:
         abort(403)
-        
+
     if order.status.name != 'DELIVERED':
         flash('You can only confirm receipt of delivered orders.', 'error')
         return redirect(url_for('marketplace.order_detail', order_id=order_id))
-        
+
     order.status = OrderStatus.COMPLETED
     db.session.commit()
-    
+
     flash('Order marked as received. Thank you!', 'success')
     return redirect(url_for('marketplace.order_detail', order_id=order_id, feedback='auto'))
 
@@ -610,14 +627,14 @@ def order_feedback(order_id):
     """Submit buyer feedback for an order (3 categories: Website, Product, Delivery)."""
     _require_buyer()
     order = Order.query.get_or_404(order_id)
-    
+
     if order.buyer_id != current_user.id:
         abort(403)
-        
+
     if order.status.name not in ['DELIVERED', 'COMPLETED']:
         flash('You can only leave feedback on completed or delivered orders.', 'error')
         return redirect(url_for('marketplace.order_detail', order_id=order_id))
-        
+
     # Check if feedback already submitted
     existing_fb = BuyerFeedback.query.filter_by(order_id=order_id, buyer_id=current_user.id).first()
     if existing_fb or order.rating is not None:
@@ -631,24 +648,24 @@ def order_feedback(order_id):
     except ValueError:
         flash('Invalid rating format.', 'error')
         return redirect(url_for('marketplace.order_detail', order_id=order_id))
-        
+
     if not (1 <= rating_website <= 5) or not (1 <= rating_product <= 5) or not (1 <= rating_delivery <= 5):
         flash('Please provide a valid rating (1-5 stars) for all three categories.', 'error')
         return redirect(url_for('marketplace.order_detail', order_id=order_id))
-        
+
     comment_website = request.form.get('comment_website', '').strip()
     comment_product = request.form.get('comment_product', '').strip()
     comment_delivery = request.form.get('comment_delivery', '').strip()
-    
+
     order.rating = 1
-    
+
     import json
 
     def _process_feedback(text, category, rating):
         if not text:
             return None
         return analyze_feedback(text, category=category, rating=rating)
-        
+
     fb_web = BuyerFeedback(
         buyer_id=current_user.id, order_id=order.id,
         category=FeedbackCategory.WEBSITE, rating=rating_website, feedback_text=comment_website
@@ -661,7 +678,7 @@ def order_feedback(order_id):
             kws = fb_data.get("keywords", [])
             if isinstance(kws, list): fb_web.ai_keywords = json.dumps(kws)[:500]
     db.session.add(fb_web)
-    
+
     primary_product_id, farmer_id = None, None
     if order.items:
         primary_product_id = order.items[0].product_id
@@ -680,7 +697,7 @@ def order_feedback(order_id):
             kws = fb_data.get("keywords", [])
             if isinstance(kws, list): fb_prod.ai_keywords = json.dumps(kws)[:500]
     db.session.add(fb_prod)
-    
+
     fb_deliv = BuyerFeedback(
         buyer_id=current_user.id, order_id=order.id, farmer_id=farmer_id,
         category=FeedbackCategory.DELIVERY, rating=rating_delivery, feedback_text=comment_delivery
@@ -705,30 +722,30 @@ def manage():
     _require_farmer()
     farms = Farm.query.filter_by(farmer_id=current_user.id, is_active=True).all()
     farm_ids = [f.id for f in farms]
-    
+
     selected_farm_id = request.args.get('farm_id', type=int, default=0)
     query = Product.query.filter_by(farmer_id=current_user.id)
-    
+
     if selected_farm_id and selected_farm_id in farm_ids:
         query = query.filter_by(farm_id=selected_farm_id)
-        
+
     start_date_str = request.args.get('start_date', '')
     end_date_str = request.args.get('end_date', '')
-    
+
     if start_date_str:
         try:
             start_date = datetime.strptime(start_date_str, '%Y-%m-%d').date()
             query = query.filter(db.func.date(Product.created_at) >= start_date)
         except ValueError:
             pass
-            
+
     if end_date_str:
         try:
             end_date = datetime.strptime(end_date_str, '%Y-%m-%d').date()
             query = query.filter(db.func.date(Product.created_at) <= end_date)
         except ValueError:
             pass
-            
+
     products = query.order_by(Product.created_at.desc()).all()
 
     return render_template(
@@ -747,7 +764,7 @@ def manage():
 def manage_add():
     """Add a new product listing."""
     _require_farmer()
-    
+
     if not current_user.is_premium:
         current_product_count = Product.query.filter_by(farmer_id=current_user.id).count()
         if current_product_count >= 10:
@@ -830,16 +847,16 @@ def manage_add():
             # AI Moderation (runs on a temporary copy of the stored file)
             with temp_copy(image_url) as file_path:
                 is_safe, flag_reason, ai_result_json = moderate_image(file_path)
-            
+
             if is_safe:
                 product.moderation_status = ModerationStatus.APPROVED
             else:
                 product.moderation_status = ModerationStatus.FLAGGED
                 product.is_available = False # Hide until admin approves
-                
+
             db.session.add(product)
             db.session.flush() # Get product ID for moderation record
-            
+
             mod_record = ContentModeration(
                 product_id=product.id,
                 uploader_id=current_user.id,
@@ -850,7 +867,7 @@ def manage_add():
                 ai_safe=is_safe
             )
             db.session.add(mod_record)
-            
+
             if not is_safe:
                 flash(f'"{product.name}" was flagged by our automated moderation system for: {flag_reason}. It is pending admin review.', 'warning')
             else:
@@ -858,7 +875,7 @@ def manage_add():
         else:
             db.session.add(product)
             flash(f'"{product.name}" listed on the marketplace.', 'success')
-            
+
         db.session.commit()
         return redirect(url_for('marketplace.manage'))
 
@@ -976,10 +993,12 @@ def farmer_orders():
     my_product_query = Product.query.filter_by(farmer_id=current_user.id)
     if selected_farm_id and selected_farm_id in farm_ids:
         my_product_query = my_product_query.filter_by(farm_id=selected_farm_id)
-        
+
     my_product_ids = [p.id for p in my_product_query.all()]
-    
+
     current_status = request.args.get('status', 'all')
+    status_counts = {'all': 0}
+    month_sales = 0.0
 
     if not my_product_ids:
         orders_list = []
@@ -988,31 +1007,44 @@ def farmer_orders():
             OrderItem.product_id.in_(my_product_ids)
         ).distinct().all()
         order_ids = [oid[0] for oid in order_ids]
-        
+
         query = Order.query.filter(Order.id.in_(order_ids))
-        
+
+        # Counts per status (before status/date filters) + summary
+        base_orders = query.all()
+        for o in base_orders:
+            status_counts[o.status.value] = status_counts.get(o.status.value, 0) + 1
+            if o.status.value in ('delivered', 'completed'):
+                pay_day = (o.payment_date or o.updated_at or o.created_at).date()
+                if pay_day >= date.today().replace(day=1):
+                    month_sales += sum(i.subtotal for i in o.items if i.product_id in my_product_ids)
+        status_counts['all'] = len(base_orders)
+        status_counts['delivered'] = status_counts.get('delivered', 0) + status_counts.get('completed', 0)
+
         if current_status != 'all':
             valid_statuses = {e.value for e in OrderStatus}
-            if current_status in valid_statuses:
+            if current_status == 'delivered':
+                query = query.filter(Order.status.in_([OrderStatus.DELIVERED, OrderStatus.COMPLETED]))
+            elif current_status in valid_statuses:
                 query = query.filter(Order.status == current_status)
-                
+
         start_date_str = request.args.get('start_date', '')
         end_date_str = request.args.get('end_date', '')
-        
+
         if start_date_str:
             try:
                 start_date = datetime.strptime(start_date_str, '%Y-%m-%d').date()
                 query = query.filter(db.func.date(Order.created_at) >= start_date)
             except ValueError:
                 pass
-                
+
         if end_date_str:
             try:
                 end_date = datetime.strptime(end_date_str, '%Y-%m-%d').date()
                 query = query.filter(db.func.date(Order.created_at) <= end_date)
             except ValueError:
                 pass
-                
+
         orders_list = query.order_by(Order.created_at.desc()).all()
 
     return render_template(
@@ -1021,6 +1053,8 @@ def farmer_orders():
         orders=orders_list,
         my_product_ids=my_product_ids,
         current_status=current_status,
+        status_counts=status_counts,
+        month_sales=month_sales,
         farms=farms,
         selected_farm_id=selected_farm_id,
         start_date_str=start_date_str if 'start_date_str' in locals() else '',
@@ -1033,7 +1067,7 @@ def farmer_orders():
 def farmer_feedback():
     """View buyer feedback on the farmer's orders."""
     _require_farmer()
-    
+
     if not current_user.is_premium:
         flash('Want to see what buyers are saying? Upgrade to Pro to read all your customer feedback.', 'error')
         return redirect(url_for('dashboard.subscription'))
@@ -1050,7 +1084,7 @@ def farmer_feedback():
         BuyerFeedback.order_id.in_(order_ids_query),
         BuyerFeedback.category != FeedbackCategory.WEBSITE
     )
-    
+
     if search_category:
         try:
             cat_enum = FeedbackCategory(search_category)
@@ -1058,10 +1092,10 @@ def farmer_feedback():
                 query = query.filter(BuyerFeedback.category == cat_enum)
         except ValueError:
             pass
-            
+
     if search_sentiment:
         query = query.filter(func.lower(BuyerFeedback.ai_sentiment) == search_sentiment)
-        
+
     if search_keyword:
         from sqlalchemy import or_
         query = query.filter(
@@ -1070,7 +1104,7 @@ def farmer_feedback():
                 BuyerFeedback.ai_keywords.ilike(f'%"{search_keyword}"%')
             )
         )
-        
+
     if rating_filter:
         try:
             r = int(rating_filter)
@@ -1079,7 +1113,7 @@ def farmer_feedback():
             pass
 
     feedbacks = query.order_by(BuyerFeedback.created_at.desc()).all()
-    
+
     from collections import OrderedDict
     grouped = OrderedDict()
     for fb in feedbacks:
@@ -1099,7 +1133,7 @@ def farmer_feedback():
             grouped[fb.order_id]['product'] = fb
         elif cat == 'delivery':
             grouped[fb.order_id]['delivery'] = fb
-            
+
     feedbacks_grouped = list(grouped.values())
 
     # Get unique sentiments and categories for filters (excluding website feedback)
@@ -1107,10 +1141,10 @@ def farmer_feedback():
         BuyerFeedback.order_id.in_(order_ids_query),
         BuyerFeedback.category != FeedbackCategory.WEBSITE
     ).all()
-    
+
     unique_categories = [c.value for c in FeedbackCategory if c != FeedbackCategory.WEBSITE]
     unique_sentiments = list(set([fb.ai_sentiment for fb in all_fbs if fb.ai_sentiment]))
-    
+
     import json
     keywords_map = {}
     for fb in all_fbs:
@@ -1124,7 +1158,7 @@ def farmer_feedback():
                     keywords_map[k_lower].add(fb.order_id)
             except:
                 pass
-    
+
     # Convert sets to lengths for counting unique orders per keyword
     keywords_map_counts = {k: len(v) for k, v in keywords_map.items()}
     # Sort keywords by frequency

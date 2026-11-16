@@ -1,147 +1,166 @@
-{% extends "marketplace/marketplace_base.html" %} {% block title %}My Orders —
-PoultryConnect{% endblock %} {% block extra_css %}
-<link
-  rel="stylesheet"
-  href="{{ url_for('static', filename='css/marketplace.css') }}"
-/>
-{% endblock %} {% block content %}
-<div
-  class="mp-container"
-  style="padding: 2rem 1.5rem; max-width: 1200px; margin: 0 auto"
->
-  <h1
-    style="
-      font-family: var(--font-display);
-      font-size: 1.8rem;
-      font-weight: 800;
-      color: var(--on-surface);
-      margin-bottom: 1rem;
-    "
-  >
-    My Orders
-  </h1>
-  
-  <div class="orders-filter" style="display: flex; gap: 0.5rem; margin-bottom: 2rem; overflow-x: auto; padding-bottom: 0.5rem; white-space: nowrap;">
-      <a href="{{ url_for('marketplace.orders', status='all') }}" class="btn btn-sm {{ 'btn-primary' if status_filter == 'all' else 'btn-secondary' }}" style="border-radius: 20px; padding: 0.4rem 1rem;">All</a>
-      <a href="{{ url_for('marketplace.orders', status='pending') }}" class="btn btn-sm {{ 'btn-primary' if status_filter == 'pending' else 'btn-secondary' }}" style="border-radius: 20px; padding: 0.4rem 1rem;">Pending</a>
-      <a href="{{ url_for('marketplace.orders', status='confirmed') }}" class="btn btn-sm {{ 'btn-primary' if status_filter == 'confirmed' else 'btn-secondary' }}" style="border-radius: 20px; padding: 0.4rem 1rem;">Confirmed</a>
-      <a href="{{ url_for('marketplace.orders', status='shipped') }}" class="btn btn-sm {{ 'btn-primary' if status_filter == 'shipped' else 'btn-secondary' }}" style="border-radius: 20px; padding: 0.4rem 1rem;">Shipped</a>
-      <a href="{{ url_for('marketplace.orders', status='delivered') }}" class="btn btn-sm {{ 'btn-primary' if status_filter == 'delivered' else 'btn-secondary' }}" style="border-radius: 20px; padding: 0.4rem 1rem;">Delivered</a>
-      <a href="{{ url_for('marketplace.orders', status='cancelled') }}" class="btn btn-sm {{ 'btn-primary' if status_filter == 'cancelled' else 'btn-secondary' }}" style="border-radius: 20px; padding: 0.4rem 1rem;">Cancelled</a>
+{% extends "marketplace/marketplace_base.html" %}
+{% block title %}My Orders — PoultryConnect{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/marketplace.css') }}" />
+<link rel="stylesheet" href="{{ url_for('static', filename='css/orders.css') }}?v=1" />
+{% endblock %}
+{% block content %}
+{% set steps = [('pending', 'Placed'), ('confirmed', 'Confirmed'), ('shipped', 'On the way'), ('delivered', 'Delivered')] %}
+<div class="oc-wrap">
+
+  <div class="oc-page-head">
+    <div>
+      <h1>My Orders</h1>
+      <p>Track your egg orders from the farm to your door.</p>
+    </div>
+    <a href="{{ url_for('marketplace.index') }}" class="oc-btn oc-btn--soft">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
+      Shop more eggs
+    </a>
+  </div>
+
+  {% if counts.get('all', 0) %}
+  <div class="oc-stats">
+    <div class="oc-stat oc-stat--violet">
+      <span class="oc-stat__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg></span>
+      <div><strong>{{ active_count }}</strong><span>Active orders</span></div>
+    </div>
+    <div class="oc-stat oc-stat--green">
+      <span class="oc-stat__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg></span>
+      <div><strong>{{ counts.get('delivered', 0) }}</strong><span>Delivered</span></div>
+    </div>
+    <div class="oc-stat oc-stat--blue">
+      <span class="oc-stat__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></span>
+      <div><strong>₱{{ "{:,.2f}".format(total_spent) }}</strong><span>Total spent</span></div>
+    </div>
+  </div>
+  {% endif %}
+
+  <div class="oc-toolbar">
+    <div class="oc-tabs" role="tablist">
+      {% for key, label in [('all','All'), ('pending','Pending'), ('confirmed','Confirmed'), ('shipped','On the way'), ('delivered','Delivered'), ('cancelled','Cancelled')] %}
+      <a role="tab" href="{{ url_for('marketplace.orders', status=key) }}" class="oc-tab {{ 'is-active' if status_filter == key }}">
+        {{ label }}<span class="oc-tab__count">{{ counts.get(key, 0) }}</span>
+      </a>
+      {% endfor %}
+    </div>
   </div>
 
   {% if orders %}
-  <div class="orders-list">
+  <div class="oc-list">
     {% for order in orders %}
-    <div class="order-card" id="order-{{ order.id }}">
-      <div class="order-card__header">
-        <div class="order-card__id">
-          <span class="order-card__label">Order</span>
-          <span class="order-card__num">#{{ order.id }}</span>
+    {% set st = order.status.value %}
+    {% set idx = {'pending':0,'confirmed':1,'shipped':2,'delivered':3,'completed':3}.get(st, -1) %}
+    {% set first = order.items[0] if order.items else None %}
+    {% set farm = first.product.farm if first and first.product else None %}
+    {% set qty = order.items|sum(attribute='quantity') %}
+    <article class="oc-card oc-card--{{ st }}" id="order-{{ order.id }}">
+      <header class="oc-card__head">
+        <div class="oc-card__who">
+          <span class="oc-avatar oc-avatar--farm">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+          </span>
+          <div>
+            <div class="oc-card__title">{{ farm.name if farm else 'PoultryConnect Farm' }} <span class="oc-card__num">#{{ order.id }}</span></div>
+            <div class="oc-card__meta">{{ order.created_at.strftime('%b %d, %Y · %I:%M %p') }} · {{ order.payment_method }}</div>
+          </div>
         </div>
-        <div class="order-status order-status--{{ order.status.value }}">
-          {{ order.status_label }}
-        </div>
+        <span class="oc-badge oc-badge--{{ st }}">{{ 'On the way' if st == 'shipped' else order.status_label }}</span>
+      </header>
+
+      {% if st != 'cancelled' %}
+      <ol class="oc-steps">
+        {% for key, label in steps %}
+        <li class="{{ 'is-done' if loop.index0 < idx or (loop.index0 == idx and st in ['delivered','completed']) }} {{ 'is-current' if loop.index0 == idx and st not in ['delivered','completed'] }}">
+          <span class="oc-steps__dot"></span><span class="oc-steps__label">{{ label }}</span>
+        </li>
+        {% endfor %}
+      </ol>
+      {% endif %}
+
+      <div class="oc-card__body">
+        <ul class="oc-items">
+          {% for item in order.items[:3] %}
+          <li>
+            <img src="{{ item.product.display_image_url }}" alt="">
+            <div class="oc-items__name">
+              <strong>{{ item.product.name }}</strong>
+              <span>₱{{ "{:,.2f}".format(item.unit_price) }} / {{ item.product.unit_label }}</span>
+            </div>
+            <span class="oc-items__qty">× {{ item.quantity }}</span>
+            <span class="oc-items__sub">₱{{ "{:,.2f}".format(item.subtotal) }}</span>
+          </li>
+          {% endfor %}
+          {% if order.items|length > 3 %}
+          <li class="oc-items__more">+ {{ order.items|length - 3 }} more item{{ 's' if order.items|length - 3 != 1 }}</li>
+          {% endif %}
+        </ul>
+
+        <aside class="oc-side">
+          <div class="oc-side__row">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
+            <span>{{ order.delivery_address }}</span>
+          </div>
+          {% if order.estimated_delivery_date and st in ['confirmed', 'shipped'] %}
+          <div class="oc-side__row">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+            <span>Arrives by <strong>{{ order.estimated_delivery_date.strftime('%a, %b %d') }}</strong></span>
+          </div>
+          {% endif %}
+          <div class="oc-side__total"><span>Total · {{ qty }} {{ 'unit' if qty == 1 else 'units' }}</span><strong>₱{{ "{:,.2f}".format(order.total_amount) }}</strong></div>
+        </aside>
       </div>
-      {% if order.status.value in ['pending', 'confirmed', 'shipped'] %}
-      <div style="display:flex; gap:.5rem; align-items:flex-start; margin:.5rem 0; padding:.6rem .8rem; border-radius:10px; font-size:.8rem; {% if order.status.value == 'shipped' %}background:#f0fdf4; color:#166534; border:1px solid #bbf7d0;{% elif order.status.value == 'confirmed' %}background:#eff6ff; color:#1e40af; border:1px solid #bfdbfe;{% elif order.status.value == 'cancelled' %}background:#fef2f2; color:#991b1b; border:1px solid #fecaca;{% elif order.status.value == 'pending' %}background:#fefce8; color:#854d0e; border:1px solid #fde68a;{% else %}background:#f8fafc; color:#334155; border:1px solid #e2e8f0;{% endif %}">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="15" height="15" style="flex-shrink:0; margin-top:1px;"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
-        <div><strong>{{ order.fulfillment_message }}</strong>{% if order.fulfillment_note %}<div style="opacity:.85;">{{ order.fulfillment_note }}</div>{% endif %}</div>
+
+      {% if st in ['pending', 'confirmed', 'shipped'] %}
+      <div class="oc-eta oc-eta--{{ st }}">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
+        <div>
+          <strong>{{ order.fulfillment_message }}</strong>
+          {% if order.fulfillment_note %}<span>From the farm: “{{ order.fulfillment_note }}”</span>{% endif %}
+        </div>
       </div>
       {% endif %}
 
-      <div class="order-card__details">
-        <div class="order-card__detail">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-            width="14"
-            height="14"
-          >
-            <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
-            <line x1="16" y1="2" x2="16" y2="6" />
-            <line x1="8" y1="2" x2="8" y2="6" />
-            <line x1="3" y1="10" x2="21" y2="10" />
-          </svg>
-          {{ order.created_at.strftime('%b %d, %Y at %I:%M %p') }}
+      <footer class="oc-card__foot">
+        {% if farm %}
+        <form method="post" action="{{ url_for('messaging.start_from_farm') }}" style="margin:0;">
+          <input type="hidden" name="farm_id" value="{{ farm.id }}">
+          <button type="submit" class="oc-btn oc-btn--ghost">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+            Message farm
+          </button>
+        </form>
+        {% endif %}
+        <div class="oc-action__btns" style="margin-left:auto;">
+          {% if st == 'delivered' %}
+          <form method="post" action="{{ url_for('marketplace.confirm_receipt', order_id=order.id) }}" style="margin:0;">
+            <button type="submit" class="oc-btn oc-btn--primary">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+              Order received
+            </button>
+          </form>
+          {% endif %}
+          <a href="{{ url_for('marketplace.order_detail', order_id=order.id) }}" class="oc-btn {{ 'oc-btn--primary' if st == 'completed' and not order.rating else 'oc-btn--soft' }}">
+            {{ 'Rate & review' if st == 'completed' and not order.rating else 'View details' }} →
+          </a>
         </div>
-        <div class="order-card__detail">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-            width="14"
-            height="14"
-          >
-            <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z" />
-            <line x1="3" y1="6" x2="21" y2="6" />
-          </svg>
-          {{ order.item_count }} item{{ 's' if order.item_count != 1 }}
-        </div>
-        <div class="order-card__detail">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-            width="14"
-            height="14"
-          >
-            <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z" />
-            <circle cx="12" cy="10" r="3" />
-          </svg>
-          {{ order.delivery_address[:50] }}{{ '...' if
-          order.delivery_address|length > 50 }}
-        </div>
-      </div>
-
-      <div class="order-card__footer">
-        <div class="order-card__total">
-          <span class="order-card__total-label">Total:</span>
-          <span class="order-card__total-val"
-            >₱{{ "%.2f"|format(order.total_amount) }}</span
-          >
-        </div>
-        <a
-          href="{{ url_for('marketplace.order_detail', order_id=order.id) }}"
-          class="btn btn-secondary btn-sm"
-        >
-          View Details →
-        </a>
-      </div>
-    </div>
+      </footer>
+    </article>
     {% endfor %}
   </div>
 
   {% else %}
-  <div class="mp-empty">
-    <div class="mp-empty__icon">
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        stroke-width="2"
-        stroke-linecap="round"
-        stroke-linejoin="round"
-      >
-        <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" />
-        <polyline points="14 2 14 8 20 8" />
-        <line x1="16" y1="13" x2="8" y2="13" />
-        <line x1="16" y1="17" x2="8" y2="17" />
-      </svg>
-    </div>
+  <div class="oc-empty">
+    <div class="oc-empty__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 01-8 0"/></svg></div>
+    {% if status_filter != 'all' %}
+    <h3>No orders here</h3>
+    <p>You have no orders in this tab.</p>
+    <a href="{{ url_for('marketplace.orders') }}" class="oc-btn oc-btn--soft">See all orders</a>
+    {% else %}
     <h3>No orders yet</h3>
-    <p>Browse the marketplace and place your first order.</p>
-    <a href="{{ url_for('marketplace.index') }}" class="btn btn-primary"
-      >Browse Marketplace</a
-    >
+    <p>Browse the marketplace and order fresh eggs from local farms.</p>
+    <a href="{{ url_for('marketplace.index') }}" class="oc-btn oc-btn--primary">Browse Marketplace</a>
+    {% endif %}
   </div>
   {% endif %}
 </div>
